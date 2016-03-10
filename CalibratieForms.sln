@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalibratieForms", "CalibratieForms\CalibratieForms.csproj", "{B0373318-4718-49C6-B774-7CC2EBEBEE58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTKLib", "..\..\..\..\Desktop\calibratie\opentk\source\OpenTKLib\OpenTKLib.csproj", "{DF1F2330-134C-4EC6-A97C-3011D3072F0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTKTest", "..\..\..\..\Desktop\calibratie\opentk\source\OpenTKTest\OpenTKTest.csproj", "{546A9835-C8BC-4C43-A01C-C6603AF6674E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIConvexHull", "..\..\..\..\Desktop\calibratie\opentk\source\MIConvexHull\MIConvexHull.csproj", "{2337776D-7D0C-40AA-A439-C26C3CE24FAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cameracalibratie", "..\cameracalibratie\cameracalibratie\cameracalibratie.csproj", "{979415E1-4244-43D4-B673-D7DD53E818AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThemeVS2003", "..\..\..\..\Desktop\calibratie\dockpanelsuite-master\WinFormsUI\ThemeVS2003.csproj", "{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SceneManager", "SceneManager\SceneManager.csproj", "{59279DB9-6D27-4533-97BB-B431C6BD892C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0373318-4718-49C6-B774-7CC2EBEBEE58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0373318-4718-49C6-B774-7CC2EBEBEE58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0373318-4718-49C6-B774-7CC2EBEBEE58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0373318-4718-49C6-B774-7CC2EBEBEE58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF1F2330-134C-4EC6-A97C-3011D3072F0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF1F2330-134C-4EC6-A97C-3011D3072F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF1F2330-134C-4EC6-A97C-3011D3072F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF1F2330-134C-4EC6-A97C-3011D3072F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{546A9835-C8BC-4C43-A01C-C6603AF6674E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{546A9835-C8BC-4C43-A01C-C6603AF6674E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{546A9835-C8BC-4C43-A01C-C6603AF6674E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{546A9835-C8BC-4C43-A01C-C6603AF6674E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{979415E1-4244-43D4-B673-D7DD53E818AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{979415E1-4244-43D4-B673-D7DD53E818AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{979415E1-4244-43D4-B673-D7DD53E818AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{979415E1-4244-43D4-B673-D7DD53E818AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59279DB9-6D27-4533-97BB-B431C6BD892C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59279DB9-6D27-4533-97BB-B431C6BD892C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59279DB9-6D27-4533-97BB-B431C6BD892C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59279DB9-6D27-4533-97BB-B431C6BD892C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
