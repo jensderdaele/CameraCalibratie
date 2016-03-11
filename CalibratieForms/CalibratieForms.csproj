@@ -102,6 +102,7 @@
     <Compile Include="reprojectionForm.Designer.cs">
       <DependentUpon>reprojectionForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Util.cs" />
     <Compile Include="Windows\LogForm.cs">
       <SubType>Form</SubType>
     </Compile>

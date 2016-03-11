@@ -28,13 +28,19 @@ namespace CalibratieForms {
             cifo.Show(dockPanel1, DockState.DockRight);
             cifo.Width = w;
 
+            CameraInfoWindow cifo2 = new CameraInfoWindow();
+            w = cifo2.Width;
+            cifo2.Show(dockPanel1, DockState.DockRight);
+            cifo2.Width = w;
+
             LogForm logform = new LogForm();
             logform.Show(dockPanel1,DockState.DockBottom);
 
             PinholeCamera c = PinholeCamera.getTestCamera();
             cifo.Camera = c;
 
-
+            simfrm.InitialCameraWindow = cifo;
+            simfrm.CalibratedCameraWindow = cifo2;
 
             
             Log.AddReader(logform);

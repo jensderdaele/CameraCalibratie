@@ -15,6 +15,11 @@ namespace CalibratieForms {
 
         public ChessBoard():base(){}
 
+        public ChessBoard(int width, int height, double squareszmm) {
+            ChessboardSize = new Size(width, height);
+            SquareSizemm = squareszmm;
+        }
+
 
         public Point3d[] boardWorldCoordinated_Cv {
             get { return boardWorldCoordinates.Select(x => new Point3d(x.X, x.Y, x.Z)).ToArray(); }

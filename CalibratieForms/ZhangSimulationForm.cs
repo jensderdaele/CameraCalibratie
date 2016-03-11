@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -10,21 +11,24 @@ using System.Windows.Forms;
 using ComponentOwl.BetterListView;
 using OpenTK;
 using SceneManager;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace CalibratieForms {
-    public partial class ZhangSimulationForm : Form {
+    public partial class ZhangSimulationForm : DockContent {
         public CameraInfoWindow InitialCameraWindow { get;set; }
         public CameraInfoWindow CalibratedCameraWindow { get; set; }
-        public List<ZhangSimulation> Simulations { get; private set; }
+        public ObservableCollection<ZhangSimulation> Simulations { get { return _simulations; } }
+        private ObservableCollection<ZhangSimulation> _simulations = new ObservableCollection<ZhangSimulation>();
         public reprojectionForm ReprojectionWindow { get; set; }
         public ZhangSimulationForm() {
             InitializeComponent();
-            BetterListViewItem item = new BetterListViewItem();
+            _simulations.CollectionChanged += _simulations_CollectionChanged;
         }
 
-        private void ZhangSimulationForm_Load(object sender, EventArgs e) {
-
+        void _simulations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+            drawList();
         }
+
 
         public void drawList() {
             lv_Zhang.Clear();
@@ -32,7 +36,6 @@ namespace CalibratieForms {
                 var item = new BetterListViewItem();
                 var sub = new BetterListViewSubItem();
                 lv_Zhang.Items.Add(getSimulationItem(zhangSimulation));
-
             }
         }
 
@@ -43,7 +46,7 @@ namespace CalibratieForms {
                 s.calcMeanDist().ToString(),
                 s.AvgReprojectionError.ToString()
             });
-            item.Value = s;
+            item.Tag = s;
             return item;
         }
         //chessboard,angle,dist,reprojectionerror
@@ -54,14 +57,14 @@ namespace CalibratieForms {
                 (s.Camera.Pos-b.Pos).Length.ToString(),
                 "not implemented"
             });
-            item.Value = s;
+            item.Tag = s;
             return item;
         }
 
         private void lv_Zhang_SelectedIndexChanged(object sender, EventArgs e) {
             ZhangSimulation simulation;
             try {
-                simulation = (ZhangSimulation) lv_Zhang.SelectedItems[0].Value;
+                simulation = (ZhangSimulation) lv_Zhang.SelectedItems[0].Tag;
             }
             catch {
                 return;
@@ -76,7 +79,7 @@ namespace CalibratieForms {
             ZhangSimulation simulation;
             ChessBoard board;
             try {
-                simulation = (ZhangSimulation) lv_ZhangDetail.SelectedItems[0].Value;
+                simulation = (ZhangSimulation) lv_ZhangDetail.SelectedItems[0].Tag;
                 board = simulation.Chessboards[lv_ZhangDetail.SelectedIndices[0]];
             }
             catch {return;}
@@ -110,7 +113,13 @@ namespace CalibratieForms {
         }
 
         private void button1_Click(object sender, EventArgs e) {
-
+            var c = PinholeCamera.getTestCamera();
+            var b = new ChessBoard(8,6,20);
+            var s = ZhangSimulation.CreateSimulation(c, b, 12,
+                count => Util.gaussDistr(count, .5, .15, .2, 1),
+                count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
+                );
+            _simulations.Add(s);
         }
     }
 }
