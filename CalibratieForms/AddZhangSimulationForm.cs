@@ -14,4 +14,14 @@ namespace CalibratieForms {
             InitializeComponent();
         }
     }
+
+    [AttributeUsage(AttributeTargets.Delegate)]
+    public class ChessAngleDelegate : System.Attribute {
+        public readonly string UIText;
+
+        public ChessAngleDelegate(string UIText) {
+            this.UIText = UIText;
+        }
+       
+    }
 }

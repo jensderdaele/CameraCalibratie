@@ -49,6 +49,13 @@ namespace SceneManager {
             this._right = Vector3d.Cross(this._up, this._dir).Normalized();
             this.calcMatFromState();
         }
+        public void Orient(Quaterniond orientation) {
+            Matrix4d newOrientation = Matrix4d.CreateFromQuaternion(orientation);
+            this._dir = new Vector3d(newOrientation.M31, newOrientation.M32, newOrientation.M33);
+            this._up = new Vector3d(newOrientation.M21, newOrientation.M22, newOrientation.M23);
+            this._right = Vector3d.Cross(this._up, this._dir).Normalized();
+            this.calcMatFromState();
+        }
         public void Orient(Vector3d dir, Vector3d up) {
             this._dir = dir;
             this._up = up;

@@ -67,7 +67,7 @@ namespace CalibratieForms {
                 return;
             }
             if (InitialCameraWindow != null) { InitialCameraWindow.Camera = simulation.Camera; }
-            if (CalibratedCameraWindow != null) { CalibratedCameraWindow.Camera = simulation.CvCalibratedCamera; }
+            if (CalibratedCameraWindow != null) { CalibratedCameraWindow.Camera = simulation.CalibratedCamera; }
             
         }
 

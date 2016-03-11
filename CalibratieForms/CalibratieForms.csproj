@@ -119,7 +119,6 @@
     <Compile Include="ZhangSimulationForm.Designer.cs">
       <DependentUpon>ZhangSimulationForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ZhangSolve.cs" />
     <EmbeddedResource Include="AddZhangSimulationForm.resx">
       <DependentUpon>AddZhangSimulationForm.cs</DependentUpon>
     </EmbeddedResource>

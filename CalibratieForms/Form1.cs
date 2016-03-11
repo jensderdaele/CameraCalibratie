@@ -19,14 +19,24 @@ namespace CalibratieForms {
     public partial class Form1 : Form {
         public Form1() {
             InitializeComponent();
+
+            ZhangSimulationForm simfrm = new ZhangSimulationForm();
+            simfrm.Show(dockPanel1);
+
             CameraInfoWindow cifo = new CameraInfoWindow();
+            var w = cifo.Width;
+            cifo.Show(dockPanel1, DockState.DockRight);
+            cifo.Width = w;
+
             LogForm logform = new LogForm();
+            logform.Show(dockPanel1,DockState.DockBottom);
+
             PinholeCamera c = PinholeCamera.getTestCamera();
-            
-            cifo.Show(dockPanel1);
-            
-            logform.Show(dockPanel1);
             cifo.Camera = c;
+
+
+
+            
             Log.AddReader(logform);
 
         }
