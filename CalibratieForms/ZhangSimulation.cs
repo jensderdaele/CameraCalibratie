@@ -14,6 +14,8 @@ using SceneManager;
 namespace CalibratieForms {
     public class ZhangSimulation {
 
+        //todo: remove projection funcs & add in PinholeCamera
+
         #region ctors
         public static ZhangSimulation CreateSimulation(PinholeCamera c,ChessBoard board,int pictureCount, 
             Func<int,double[]> distanceGenerator ,
@@ -35,6 +37,7 @@ namespace CalibratieForms {
                 b.SquareSizemm = board.SquareSizemm;
                 b.Pos = pos;
                 b.Orient(q);
+                simulation.Chessboards.Add(b);
             }
 
 
@@ -56,9 +59,11 @@ namespace CalibratieForms {
         public Vec3d[] Calibratedrvecs { get; private set; }
         public Vec3d[] Calibratedtvecs { get; private set; }
 
+        public bool Solved { get { return CalibratedCamera != null; } }
+
         #endregion
 
-        public Vector2[] Calc2DProjectionBitmap(ChessBoard b) {
+        public Vector2[] Calc2DProjection(ChessBoard b) {
 
             CreateSimulation(Camera, Chessboards[0], 12,
                 length => MathNet.Numerics.Generate.UniformMap(length, dist => 30 + dist*5),
@@ -102,19 +107,6 @@ namespace CalibratieForms {
         }
 
         #region 2dprojection
-        private Vector2d[] get2DProjection_OpenCv(Point3d[] chessPoints, out double[,] jabobian) {
-            //Todo: Use InputArray on vector3d[] & pin GC
-            Point2d[] r;
-            Cv2.ProjectPoints(chessPoints, Camera.Cv_rvecs, Camera.Cv_tvecs, Camera.CameraMatrix.Mat, Camera.Cv_DistCoeffs5, out r, out jabobian);
-            return r.Select(x => new Vector2d(x.X, x.Y)).ToArray();
-        }
-        private Vector2d[] get2DProjection_OpenCv(Point3d[] chessPoints) {
-            //Todo: Use InputArray on vector3d[] & pin GC
-            Point2d[] r;
-            double[,] jabobian;
-            Cv2.ProjectPoints(chessPoints, Camera.Cv_rvecs, Camera.Cv_tvecs, Camera.CameraMatrix.Mat, Camera.Cv_DistCoeffs5, out r, out jabobian);
-            return r.Select(x => new Vector2d(x.X, x.Y)).ToArray();
-        }
         private void get2DProjection_OpenCv(ChessBoard b, out Point2f[] projected) {
             Point2d[] r;
             get2DProjection_OpenCv(b, out r);

@@ -80,6 +80,12 @@
       <DependentUpon>AddZhangSimulationForm.cs</DependentUpon>
     </Compile>
     <Compile Include="CalibPictureProvider.cs" />
+    <Compile Include="CameraSimulationFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CameraSimulationFrm.Designer.cs">
+      <DependentUpon>CameraSimulationFrm.cs</DependentUpon>
+    </Compile>
     <Compile Include="PinholeCamera.cs" />
     <Compile Include="CameraInfoWindow.cs">
       <SubType>Form</SubType>
@@ -96,12 +102,6 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Logging\Log.cs" />
-    <Compile Include="reprojectionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="reprojectionForm.Designer.cs">
-      <DependentUpon>reprojectionForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Util.cs" />
     <Compile Include="Windows\LogForm.cs">
       <SubType>Form</SubType>
@@ -126,11 +126,11 @@
     <EmbeddedResource Include="CameraInfoWindow.resx">
       <DependentUpon>CameraInfoWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="CameraSimulationFrm.resx">
+      <DependentUpon>CameraSimulationFrm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="reprojectionForm.resx">
-      <DependentUpon>reprojectionForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\LogForm.resx">
       <DependentUpon>LogForm.cs</DependentUpon>

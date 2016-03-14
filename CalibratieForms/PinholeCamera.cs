@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using cameracallibratie;
 using CalibratieForms.Annotations;
 using OpenCvSharp;
+using OpenTK;
 using SceneManager;
 
 namespace CalibratieForms {
@@ -29,6 +30,7 @@ namespace CalibratieForms {
         /// fotogrootte in pixels
         /// </summary>
         public Size PictureSize { get; set; }
+
 
         public string PictureSizeST { get { return String.Format("{0}x{1}", PictureSize.Width, PictureSize.Height); } }
         public CameraMatrix CameraMatrix {
@@ -71,6 +73,28 @@ namespace CalibratieForms {
         public double[] Cv_rvecs { get { return new [] {Dir.X, Dir.Y, Dir.Z}; } }
         public double[] Cv_tvecs { get { return new[] { Pos.X, Pos.Y, Pos.Z }; } }
 
+        public Point2d[] ProjectBoard_Cv_p2d(ChessBoard b, out double[,] jacobian) {
+            //Todo: Use InputArray on vector3d[] & pin GC
+            Point2d[] imagePoints;
+            Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Cv_rvecs, Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out imagePoints, out jacobian);
+            return imagePoints;
+        }
+        public Point2d[] ProjectBoard_Cv_p2d(ChessBoard b) {
+            //Todo: Use InputArray on vector3d[] & pin GC
+            Point2d[] imagePoints;
+            double[,] jacobian;
+            Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Cv_rvecs, Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out imagePoints, out jacobian);
+            return imagePoints;
+        }
+        public Vector2d[] ProjectBoard_Cvd(ChessBoard b) {
+            return ProjectBoard_Cv_p2d(b).Select(x=>new Vector2d(x.X,x.Y)).ToArray();
+        }
+        public Vector2d[] ProjectBoard_Cvd(ChessBoard b,out double[,] jacobian) {
+            return ProjectBoard_Cv_p2d(b,out jacobian).Select(x => new Vector2d(x.X, x.Y)).ToArray();
+        }
+        public Vector2[] ProjectBoard_Cv(ChessBoard b) {
+            return ProjectBoard_Cv_p2d(b).Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray();
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -19,7 +19,8 @@ namespace CalibratieForms {
         public CameraInfoWindow CalibratedCameraWindow { get; set; }
         public ObservableCollection<ZhangSimulation> Simulations { get { return _simulations; } }
         private ObservableCollection<ZhangSimulation> _simulations = new ObservableCollection<ZhangSimulation>();
-        public reprojectionForm ReprojectionWindow { get; set; }
+
+        public CameraSimulationFrm cameraFrm { get; set; }
         public ZhangSimulationForm() {
             InitializeComponent();
             _simulations.CollectionChanged += _simulations_CollectionChanged;
@@ -31,7 +32,7 @@ namespace CalibratieForms {
 
 
         public void drawList() {
-            lv_Zhang.Clear();
+            lv_Zhang.Items.Clear();
             foreach (var zhangSimulation in Simulations) {
                 var item = new BetterListViewItem();
                 var sub = new BetterListViewSubItem();
@@ -40,7 +41,7 @@ namespace CalibratieForms {
         }
 
         private static BetterListViewItem getSimulationItem(ZhangSimulation s) {
-            var item = new BetterListViewItem(new String[]{
+            var item = new BetterListViewItem(new []{
                 s.Camera.PictureSizeST,
                 s.Camera.ToString(),
                 s.calcMeanDist().ToString(),
@@ -49,15 +50,41 @@ namespace CalibratieForms {
             item.Tag = s;
             return item;
         }
+
+        private static List<BetterListViewItem> getSimulationDetailItem(ZhangSimulation s) {
+            var r = new List<BetterListViewItem>();
+            if (s == null || s.Chessboards.Count == 0) {
+                var item = new BetterListViewItem(new[] {
+                    s == null ? "No Simulation Selected" : "No Chessboards!"
+                });
+                item.Tag = s;
+                r.Add(item);
+                return r;
+            }
+            foreach (ChessBoard board in s.Chessboards) {
+                var item = new BetterListViewItem(new [] {
+                    board.ToString(),
+                    calcAngle(s.Camera,board).ToString(),
+                    (s.Camera.Pos-board.Pos).LengthFast.ToString(),
+                    "reprojerror"
+                });
+                item.Tag = s;
+                r.Add(item);
+
+            }
+            return r;
+        }
         //chessboard,angle,dist,reprojectionerror
         private static BetterListViewItem getDetailItem(ZhangSimulation s,ChessBoard b) {
             var item = new BetterListViewItem(new String[]{
                 String.Format("{0}x{1}({2}mm)",b.ChessboardSize.Width,b.ChessboardSize.Height,b.SquareSizemm),
                 calcAngle(s.Camera,b).ToString(),
                 (s.Camera.Pos-b.Pos).Length.ToString(),
-                "not implemented"
+                "not implemented",
+
             });
             item.Tag = s;
+            
             return item;
         }
 
@@ -71,7 +98,8 @@ namespace CalibratieForms {
             }
             if (InitialCameraWindow != null) { InitialCameraWindow.Camera = simulation.Camera; }
             if (CalibratedCameraWindow != null) { CalibratedCameraWindow.Camera = simulation.CalibratedCamera; }
-            
+
+            redrawZhangDetailList();
         }
 
         private void lv_ZhangDetail_SelectedIndexChanged(object sender, EventArgs e) {
@@ -83,22 +111,24 @@ namespace CalibratieForms {
                 board = simulation.Chessboards[lv_ZhangDetail.SelectedIndices[0]];
             }
             catch {return;}
-            if (ReprojectionWindow != null) {
-                ReprojectionWindow.drawChessboard(simulation.Calc2DProjectionBitmap(board));
+            if (cameraFrm != null) {
+                cameraFrm.Board = board;
+                cameraFrm.Camera = simulation.Camera;
             }
 
         }
 
         private void redrawZhangDetailList() {
-            lv_ZhangDetail.Clear();
+            lv_ZhangDetail.Items.Clear();
             ZhangSimulation simulation;
             try {
-                simulation = (ZhangSimulation)lv_Zhang.SelectedItems[0].Value;
+                simulation = (ZhangSimulation)lv_Zhang.SelectedItems[0].Tag;
             }
             catch {
                 return;
             }
-            
+            lv_ZhangDetail.Items.AddRange(getSimulationDetailItem(simulation));
+
         }
 
 
@@ -116,7 +146,7 @@ namespace CalibratieForms {
             var c = PinholeCamera.getTestCamera();
             var b = new ChessBoard(8,6,20);
             var s = ZhangSimulation.CreateSimulation(c, b, 12,
-                count => Util.gaussDistr(count, .5, .15, .2, 1),
+                count => Util.gaussDistr(count, .5, .20, .2, 1),
                 count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
                 );
             _simulations.Add(s);

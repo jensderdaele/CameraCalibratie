@@ -58,5 +58,10 @@ namespace CalibratieForms {
                 return r.ToArray();
             }
         }
+
+        public override string ToString() {
+            return String.Format("{0}x{1} {2:0}mm", this.ChessboardSize.Width, this.ChessboardSize.Height,
+                this.SquareSizemm);
+        }
     }
 }

@@ -23,6 +23,9 @@ namespace CalibratieForms {
             ZhangSimulationForm simfrm = new ZhangSimulationForm();
             simfrm.Show(dockPanel1);
 
+            CameraSimulationFrm cfrm = new CameraSimulationFrm();
+            cfrm.Show(dockPanel1, DockState.DockRight);
+
             CameraInfoWindow cifo = new CameraInfoWindow();
             var w = cifo.Width;
             cifo.Show(dockPanel1, DockState.DockRight);
@@ -41,6 +44,7 @@ namespace CalibratieForms {
 
             simfrm.InitialCameraWindow = cifo;
             simfrm.CalibratedCameraWindow = cifo2;
+            simfrm.cameraFrm = cfrm;
 
             
             Log.AddReader(logform);
@@ -58,12 +62,8 @@ namespace CalibratieForms {
             b.SquareSizemm = 20;
             b.ChessboardSize = new Size(8, 6);
 
-            var punten2d = s.Calc2DProjectionBitmap(b);
+            var punten2d = s.Calc2DProjection(b);
 
-            reprojectionForm f = new reprojectionForm();
-            f.Show();
-            f.drawChessboard(punten2d);
-            
         }
     }
 }
