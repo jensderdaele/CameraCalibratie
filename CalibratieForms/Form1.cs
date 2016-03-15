@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,27 +19,27 @@ using Size = OpenCvSharp.Size;
 namespace CalibratieForms {
     public partial class Form1 : Form {
         public Form1() {
+
+
             InitializeComponent();
 
             ZhangSimulationForm simfrm = new ZhangSimulationForm();
             simfrm.Show(dockPanel1);
 
-            CameraSimulationFrm cfrm = new CameraSimulationFrm();
-            cfrm.Show(dockPanel1, DockState.DockRight);
+            LogForm logform = new LogForm();
+            logform.Show(simfrm.Pane, DockAlignment.Bottom,.2);
 
             CameraInfoWindow cifo = new CameraInfoWindow();
-            var w = cifo.Width;
-            cifo.Show(dockPanel1, DockState.DockRight);
-            cifo.Width = w;
+            cifo.Show(simfrm.Pane, DockAlignment.Right,.5);
 
+            CameraSimulationFrm cfrm = new CameraSimulationFrm();
+            cfrm.Show(cifo.Pane, DockAlignment.Bottom, .35);
+
+            
             CameraInfoWindow cifo2 = new CameraInfoWindow();
-            w = cifo2.Width;
-            cifo2.Show(dockPanel1, DockState.DockRight);
-            cifo2.Width = w;
+            cifo2.Show(cifo.Pane, DockAlignment.Right,.5);
 
-            LogForm logform = new LogForm();
-            logform.Show(dockPanel1,DockState.DockBottom);
-
+            
             PinholeCamera c = PinholeCamera.getTestCamera();
             cifo.Camera = c;
 
@@ -51,6 +52,8 @@ namespace CalibratieForms {
 
         }
 
+
+
         private void button1_Click(object sender, EventArgs e) {
             ZhangSimulation s = new ZhangSimulation() {
                 Camera = PinholeCamera.getTestCamera(),
@@ -62,8 +65,29 @@ namespace CalibratieForms {
             b.SquareSizemm = 20;
             b.ChessboardSize = new Size(8, 6);
 
-            var punten2d = s.Calc2DProjection(b);
 
+        }
+
+        private void cameraInfoToolStripMenuItem_Click(object sender, EventArgs e) {
+            CameraInfoWindow window = new CameraInfoWindow();
+            window.AllowEndUserDocking = true;
+            window.Show(dockPanel1,DockState.Float);
+        }
+
+        private void zhangSimulationToolStripMenuItem_Click(object sender, EventArgs e) {
+            ZhangSimulationForm window = new ZhangSimulationForm();
+            window.Show(dockPanel1, DockState.Float);
+        }
+
+        private void cameraSimulationToolStripMenuItem_Click(object sender, EventArgs e) {
+            CameraSimulationFrm window = new CameraSimulationFrm();
+            window.Show(dockPanel1, DockState.Float);
+        }
+
+        private void logWindowToolStripMenuItem_Click(object sender, EventArgs e) {
+            var window = new Windows.LogForm();
+            window.Show(dockPanel1, DockState.Float);
+            Log.AddReader(window);
         }
     }
 }

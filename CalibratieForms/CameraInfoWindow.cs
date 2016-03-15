@@ -28,14 +28,17 @@ namespace CalibratieForms {
             updateForm();
         }
 
-        
 
+        public static List<CameraInfoWindow> AllForms = new List<CameraInfoWindow>();
         public CameraInfoWindow() {
             InitializeComponent();
+            AllForms.Add(this);
+            this.Name += " " + AllForms.Count;
+            this.Closed += (s, a) => { AllForms.Remove(this); };
         }
 
         public void updateForm() {
-            if (_camera == null) {
+            if (Camera == null) {
                 richTextBox1.Text = "no camera";
                 return;
             }

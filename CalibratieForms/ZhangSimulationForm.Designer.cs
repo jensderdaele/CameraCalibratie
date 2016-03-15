@@ -37,7 +37,9 @@
             this.betterListViewColumnHeader8 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.button1 = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CameraInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.calibratedCameraInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cameraSimulationViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.lv_Zhang)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -59,9 +61,10 @@
             this.lv_Zhang.Location = new System.Drawing.Point(0, 0);
             this.lv_Zhang.MultiSelect = false;
             this.lv_Zhang.Name = "lv_Zhang";
-            this.lv_Zhang.Size = new System.Drawing.Size(1196, 300);
+            this.lv_Zhang.Size = new System.Drawing.Size(1196, 264);
             this.lv_Zhang.TabIndex = 0;
             this.lv_Zhang.SelectedIndexChanged += new System.EventHandler(this.lv_Zhang_SelectedIndexChanged);
+            this.lv_Zhang.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lv_Zhang_MouseDown);
             // 
             // betterListViewColumnHeader1
             // 
@@ -99,7 +102,7 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.lv_ZhangDetail);
             this.splitContainer1.Size = new System.Drawing.Size(1196, 589);
-            this.splitContainer1.SplitterDistance = 300;
+            this.splitContainer1.SplitterDistance = 264;
             this.splitContainer1.TabIndex = 2;
             // 
             // lv_ZhangDetail
@@ -111,7 +114,7 @@
             this.lv_ZhangDetail.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lv_ZhangDetail.Location = new System.Drawing.Point(0, 0);
             this.lv_ZhangDetail.Name = "lv_ZhangDetail";
-            this.lv_ZhangDetail.Size = new System.Drawing.Size(1196, 285);
+            this.lv_ZhangDetail.Size = new System.Drawing.Size(1196, 321);
             this.lv_ZhangDetail.TabIndex = 1;
             this.lv_ZhangDetail.SelectedIndexChanged += new System.EventHandler(this.lv_ZhangDetail_SelectedIndexChanged);
             // 
@@ -148,15 +151,31 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addToolStripMenuItem});
+            this.CameraInfoToolStripMenuItem,
+            this.calibratedCameraInfoToolStripMenuItem,
+            this.cameraSimulationViewToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 48);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(200, 70);
+            this.contextMenuStrip1.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.contextMenuStrip1_Closing);
+            this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
-            // addToolStripMenuItem
+            // CameraInfoToolStripMenuItem
             // 
-            this.addToolStripMenuItem.Name = "addToolStripMenuItem";
-            this.addToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.addToolStripMenuItem.Text = "Add";
+            this.CameraInfoToolStripMenuItem.Name = "CameraInfoToolStripMenuItem";
+            this.CameraInfoToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.CameraInfoToolStripMenuItem.Text = "camera info";
+            // 
+            // calibratedCameraInfoToolStripMenuItem
+            // 
+            this.calibratedCameraInfoToolStripMenuItem.Name = "calibratedCameraInfoToolStripMenuItem";
+            this.calibratedCameraInfoToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.calibratedCameraInfoToolStripMenuItem.Text = "calibrated camera info";
+            // 
+            // cameraSimulationViewToolStripMenuItem
+            // 
+            this.cameraSimulationViewToolStripMenuItem.Name = "cameraSimulationViewToolStripMenuItem";
+            this.cameraSimulationViewToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.cameraSimulationViewToolStripMenuItem.Text = "camera simulation view";
             // 
             // ZhangSimulationForm
             // 
@@ -194,6 +213,8 @@
         private ComponentOwl.BetterListView.BetterListViewColumnHeader betterListViewColumnHeader8;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CameraInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem calibratedCameraInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cameraSimulationViewToolStripMenuItem;
     }
 }

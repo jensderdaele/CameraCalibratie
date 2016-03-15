@@ -86,6 +86,13 @@
     <Compile Include="CameraSimulationFrm.Designer.cs">
       <DependentUpon>CameraSimulationFrm.cs</DependentUpon>
     </Compile>
+    <Compile Include="LVList.cs" />
+    <Compile Include="MatlabFrm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MatlabFrm.Designer.cs">
+      <DependentUpon>MatlabFrm.cs</DependentUpon>
+    </Compile>
     <Compile Include="PinholeCamera.cs" />
     <Compile Include="CameraInfoWindow.cs">
       <SubType>Form</SubType>
@@ -131,6 +138,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MatlabFrm.resx">
+      <DependentUpon>MatlabFrm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\LogForm.resx">
       <DependentUpon>LogForm.cs</DependentUpon>

@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using cameracallibratie;
+using CalibratieForms.Annotations;
 using OpenCvSharp;
 using OpenTK;
 using SceneManager;
 
 namespace CalibratieForms {
-    public class ZhangSimulation {
-
-        //todo: remove projection funcs & add in PinholeCamera
+    public class ZhangSimulation : INotifyPropertyChanged {
 
         #region ctors
         public static ZhangSimulation CreateSimulation(PinholeCamera c,ChessBoard board,int pictureCount, 
@@ -52,6 +54,7 @@ namespace CalibratieForms {
         //Before calc
         protected List<ChessBoard> _chessboards = new List<ChessBoard>();
         public List<ChessBoard> Chessboards { get { return _chessboards; } }
+
         public PinholeCamera Camera { get; set; }
         //After calc
         public double AvgReprojectionError { get; private set; }
@@ -63,18 +66,6 @@ namespace CalibratieForms {
 
         #endregion
 
-        public Vector2[] Calc2DProjection(ChessBoard b) {
-
-            CreateSimulation(Camera, Chessboards[0], 12,
-                length => MathNet.Numerics.Generate.UniformMap(length, dist => 30 + dist*5),
-                length => MathNet.Numerics.Generate.UniformMap(length, angle => (angle-.5) * Math.PI));
-
-            Vector2[] corners;
-            get2DProjection_OpenCv(b, out corners);
-            return corners;
-
-            
-        }
         
         public double calcMeanDist() {
             return Chessboards.Sum(chessboard => (chessboard.Pos - Camera.Pos).Length/Chessboards.Count);
@@ -105,6 +96,31 @@ namespace CalibratieForms {
             Calibratedtvecs = tvecs;
             Log.WriteLine("zhang simulatie berekenen einde");
         }
+        public void calculateCv2Async(emptyDelegate onCompleted) {
+            new Thread(() => {
+                Log.WriteLine("zhang simulatie new thread berekenen start");
+                List<List<Point2f>> imagePoints = new List<List<Point2f>>();
+                foreach (var chessboard in Chessboards) {
+                    Point2f[] projected;
+                    get2DProjection_OpenCv(chessboard, out projected);
+                    imagePoints.Add(projected.ToList());
+                }
+                Vec3d[] rvecs, tvecs;
+
+                CalibratedCamera = new PinholeCamera();
+                CalibratedCamera.PictureSize = Camera.PictureSize;
+                Log.WriteLine("Cv2.CalibrateCamera");
+                Cv2.CalibrateCamera(CvWorldChessPointsf, imagePoints, Camera.PictureSize,
+                    CalibratedCamera.CameraMatrix.Mat,
+                    CalibratedCamera.Cv_DistCoeffs5, out rvecs, out tvecs);
+                Calibratedrvecs = rvecs;
+                Calibratedtvecs = tvecs;
+                Log.WriteLine("zhang simulatie berekenen einde");
+                onCompleted();
+            }).Start();
+        }
+
+        public delegate void emptyDelegate();
 
         #region 2dprojection
         private void get2DProjection_OpenCv(ChessBoard b, out Point2f[] projected) {
@@ -124,19 +140,12 @@ namespace CalibratieForms {
         }
         #endregion
 
-        #region unused
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        private IEnumerable<IEnumerable<Vector3d>> worldChessPoints {
-            get {
-                return _chessboards.Select(chessboard => chessboard.boardWorldCoordinates);
-            }
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            var handler = PropertyChanged;
+            if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
         }
-        private IEnumerable<IEnumerable<Point3d>> CvWorldChessPoints {
-            get {
-                return _chessboards.Select(chessboard => chessboard.boardWorldCoordinates.Select(x => new Point3d(x.X, x.Y, x.Z)));
-            }
-        }
-        #endregion
-
     }
 }

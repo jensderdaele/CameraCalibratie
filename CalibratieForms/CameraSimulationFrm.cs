@@ -13,13 +13,22 @@ using WeifenLuo.WinFormsUI.Docking;
 
 namespace CalibratieForms {
     public partial class CameraSimulationFrm : DockContent {
+
+        public static List<CameraSimulationFrm> AllForms = new List<CameraSimulationFrm>();
+
+
         public PinholeCamera Camera { get { return _camera; } set { _camera = value; draw(); } }
         private PinholeCamera _camera;
         public ChessBoard Board { get { return _board; } set { _board = value; draw(); } }
         private ChessBoard _board;
         private Bitmap _bitmap;
+
+        public Bitmap BackgroundImg { get; set; }
         public CameraSimulationFrm() {
             InitializeComponent();
+            AllForms.Add(this);
+            this.Name += " " + AllForms.Count;
+            this.Closed += (s, a) => { AllForms.Remove(this); };
         }
 
         public void draw() {
@@ -52,7 +61,7 @@ namespace CalibratieForms {
                     var xx = x + i;
                     var yy = y + j;
                     if (xx < 0 || yy < 0 || xx > b.Width - 1 || yy > b.Height - 1) return;
-                    b.SetPixel(x + i, y + j, Color.Black);
+                    b.SetPixel(xx, yy, Color.Black);
                 }
             }
         }

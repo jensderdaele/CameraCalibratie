@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,17 +18,26 @@ namespace CalibratieForms {
     public partial class ZhangSimulationForm : DockContent {
         public CameraInfoWindow InitialCameraWindow { get;set; }
         public CameraInfoWindow CalibratedCameraWindow { get; set; }
-        public ObservableCollection<ZhangSimulation> Simulations { get { return _simulations; } }
-        private ObservableCollection<ZhangSimulation> _simulations = new ObservableCollection<ZhangSimulation>();
+        
+        public LVList<ZhangSimulation> Simulations { get { return _simulations; } }
+        public LVList<ZhangSimulation> _simulations = new LVList<ZhangSimulation>(); 
 
         public CameraSimulationFrm cameraFrm { get; set; }
+
+        public static List<ZhangSimulationForm> AllForms = new List<ZhangSimulationForm>();
         public ZhangSimulationForm() {
             InitializeComponent();
-            _simulations.CollectionChanged += _simulations_CollectionChanged;
-        }
+            AllForms.Add(this);
+            this.Closed += (s, a) => { AllForms.Remove(this); };
 
-        void _simulations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            drawList();
+
+            _simulations.CollumnDisplay.AddRange(new Func<ZhangSimulation, string>[] {
+                s => s.Camera.PictureSizeST,
+                s => s.Camera.ToString(),
+                s => s.calcMeanDist().ToString(),
+                s => s.AvgReprojectionError.ToString()
+            });
+            _simulations.ParentLV = lv_Zhang;
         }
 
 
@@ -131,11 +141,16 @@ namespace CalibratieForms {
 
         }
 
-
+        /// <summary>
+        /// KLOPT NIET
+        /// </summary>
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <returns></returns>
         private static double calcAngle(SObject obj1, SObject obj2) {
             var q1 = new Quaterniond(obj1.Dir);
             var q2 = new Quaterniond(obj2.Dir);
-            var q = (q1.Normalized() - q2.Normalized()).Normalized();
+            var q = (q1 - q2);
             Vector3d axis;
             double angle;
             q.ToAxisAngle(out axis, out angle);
@@ -151,5 +166,51 @@ namespace CalibratieForms {
                 );
             _simulations.Add(s);
         }
+
+
+        #region contextStrip
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
+            foreach (var cameraInfoWindow in CameraInfoWindow.AllForms) {
+                var item1 = new ToolStripMenuItem() {
+                    Text = cameraInfoWindow.Name,
+                };
+                item1.Click += (s, args) => {
+                    InitialCameraWindow = cameraInfoWindow;
+                };
+
+                var item2 = new ToolStripMenuItem() {
+                    Text = cameraInfoWindow.Name,
+                };
+                item2.Click += (s, args) => {
+                    CalibratedCameraWindow = cameraInfoWindow;
+                };
+                CameraInfoToolStripMenuItem.DropDownItems.Add(item1);
+                calibratedCameraInfoToolStripMenuItem.DropDownItems.Add(item2);
+            }
+
+            foreach (var cameraSimulationFrm in CameraSimulationFrm.AllForms) {
+                var item = new ToolStripMenuItem() {
+                    Text = cameraSimulationFrm.Name,
+                };
+                item.Click += (s, args) => {
+                    cameraFrm = cameraSimulationFrm;
+                };
+                cameraSimulationViewToolStripMenuItem.DropDownItems.Add(item);
+            }
+            
+        }
+
+        private void contextMenuStrip1_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
+            cameraSimulationViewToolStripMenuItem.DropDownItems.Clear();
+            calibratedCameraInfoToolStripMenuItem.DropDownItems.Clear();
+            CameraInfoToolStripMenuItem.DropDownItems.Clear();
+        }
+
+        private void lv_Zhang_MouseDown(object sender, MouseEventArgs e) {
+            if (e.Button == MouseButtons.Right) {
+                contextMenuStrip1.Show(e.Location);
+            }
+        }
+        #endregion
     }
 }
