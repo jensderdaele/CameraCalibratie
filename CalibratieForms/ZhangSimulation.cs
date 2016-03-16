@@ -116,6 +116,7 @@ namespace CalibratieForms {
                 Calibratedrvecs = rvecs;
                 Calibratedtvecs = tvecs;
                 Log.WriteLine("zhang simulatie berekenen einde");
+                OnPropertyChanged();
                 onCompleted();
             }).Start();
         }

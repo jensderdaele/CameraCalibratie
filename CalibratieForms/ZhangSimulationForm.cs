@@ -30,13 +30,15 @@ namespace CalibratieForms {
             AllForms.Add(this);
             this.Closed += (s, a) => { AllForms.Remove(this); };
 
-
-            _simulations.CollumnDisplay.AddRange(new Func<ZhangSimulation, string>[] {
-                s => s.Camera.PictureSizeST,
-                s => s.Camera.ToString(),
-                s => s.calcMeanDist().ToString(),
-                s => s.AvgReprojectionError.ToString()
-            });
+            _simulations.CollumnDisplay2 = (s,item) => {
+                item.Text = s.Camera.PictureSizeST;
+                item.SubItems.AddRange(new[] {
+                    s.Camera.ToString(), 
+                    s.calcMeanDist().ToString(), 
+                    s.AvgReprojectionError.ToString()
+                });
+                item.BackColor = s.Solved ? Color.Aquamarine : Color.PaleVioletRed;
+            };
             _simulations.ParentLV = lv_Zhang;
         }
 

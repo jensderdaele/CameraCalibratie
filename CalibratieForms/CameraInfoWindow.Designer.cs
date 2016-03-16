@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.txt_kc4 = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.txt_kc3 = new System.Windows.Forms.TextBox();
@@ -47,26 +48,21 @@
             this.txt_kc1 = new System.Windows.Forms.TextBox();
             this.txt_fc1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // richTextBox1
             // 
-            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.richTextBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox1.Location = new System.Drawing.Point(12, 12);
+            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.richTextBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.richTextBox1.Location = new System.Drawing.Point(0, 0);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(248, 210);
+            this.richTextBox1.Size = new System.Drawing.Size(272, 222);
             this.richTextBox1.TabIndex = 0;
-            this.richTextBox1.Text = "";
+            this.richTextBox1.Text = "No Camera";
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.label13);
             this.groupBox1.Controls.Add(this.txt_kc4);
             this.groupBox1.Controls.Add(this.label7);
@@ -90,17 +86,28 @@
             this.groupBox1.Controls.Add(this.txt_kc1);
             this.groupBox1.Controls.Add(this.txt_fc1);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Location = new System.Drawing.Point(12, 228);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.groupBox1.Location = new System.Drawing.Point(0, 228);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(248, 205);
+            this.groupBox1.Size = new System.Drawing.Size(272, 217);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Camera Info";
             // 
+            // label13
+            // 
+            this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(160, 25);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(37, 13);
+            this.label13.TabIndex = 26;
+            this.label13.Text = "fc(1) =";
+            // 
             // txt_kc4
             // 
             this.txt_kc4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_kc4.Location = new System.Drawing.Point(179, 147);
+            this.txt_kc4.Location = new System.Drawing.Point(203, 147);
             this.txt_kc4.Name = "txt_kc4";
             this.txt_kc4.Size = new System.Drawing.Size(63, 20);
             this.txt_kc4.TabIndex = 25;
@@ -109,7 +116,7 @@
             // 
             this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(136, 150);
+            this.label7.Location = new System.Drawing.Point(160, 150);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(40, 13);
             this.label7.TabIndex = 24;
@@ -118,7 +125,7 @@
             // txt_kc3
             // 
             this.txt_kc3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_kc3.Location = new System.Drawing.Point(179, 121);
+            this.txt_kc3.Location = new System.Drawing.Point(203, 121);
             this.txt_kc3.Name = "txt_kc3";
             this.txt_kc3.Size = new System.Drawing.Size(63, 20);
             this.txt_kc3.TabIndex = 23;
@@ -128,7 +135,7 @@
             this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(124, 101);
+            this.label12.Location = new System.Drawing.Point(148, 101);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(119, 13);
             this.label12.TabIndex = 22;
@@ -189,7 +196,7 @@
             // 
             this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(133, 51);
+            this.label6.Location = new System.Drawing.Point(157, 51);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(40, 13);
             this.label6.TabIndex = 12;
@@ -207,7 +214,7 @@
             // txt_cc2
             // 
             this.txt_cc2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_cc2.Location = new System.Drawing.Point(179, 48);
+            this.txt_cc2.Location = new System.Drawing.Point(203, 48);
             this.txt_cc2.Name = "txt_cc2";
             this.txt_cc2.Size = new System.Drawing.Size(62, 20);
             this.txt_cc2.TabIndex = 9;
@@ -216,7 +223,7 @@
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(136, 124);
+            this.label4.Location = new System.Drawing.Point(160, 124);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(40, 13);
             this.label4.TabIndex = 8;
@@ -225,7 +232,7 @@
             // txt_fc2
             // 
             this.txt_fc2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_fc2.Location = new System.Drawing.Point(179, 22);
+            this.txt_fc2.Location = new System.Drawing.Point(203, 22);
             this.txt_fc2.Name = "txt_fc2";
             this.txt_fc2.Size = new System.Drawing.Size(63, 20);
             this.txt_fc2.TabIndex = 7;
@@ -284,16 +291,6 @@
             this.label1.Size = new System.Drawing.Size(37, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "fc(1) =";
-            // 
-            // label13
-            // 
-            this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(136, 25);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(37, 13);
-            this.label13.TabIndex = 26;
-            this.label13.Text = "fc(1) =";
             // 
             // CameraInfoWindow
             // 

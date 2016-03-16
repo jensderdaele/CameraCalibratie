@@ -43,9 +43,9 @@ namespace CalibratieForms {
                 return;
             }
             var cm = Camera.CameraMatrix;
-            richTextBox1.Text = String.Format(  "[{0} {1} {2}]\n" +
-                                                "[{3} {4} {5}]\n" +
-                                                "[{6} {7} {8}]"
+            richTextBox1.Text = String.Format("[{0:0.00} {1:0.00} {2:0.00}]\n" +
+                                                "[{3:0.00} {4:0.00} {5:0.00}]\n" +
+                                                "[{6:0.00} {7:0.00} {8:0.00}]"
                                                 , cm.Mat[0, 0], cm.Mat[0, 1], cm.Mat[0, 2]
                                                 , cm.Mat[1, 0], cm.Mat[1, 1], cm.Mat[1, 2]
                                                 , cm.Mat[2, 0], cm.Mat[2, 1], cm.Mat[2, 2]);
