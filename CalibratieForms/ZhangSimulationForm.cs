@@ -37,7 +37,7 @@ namespace CalibratieForms {
                     s.calcMeanDist().ToString(), 
                     s.AvgReprojectionError.ToString()
                 });
-                item.BackColor = s.Solved ? Color.Aquamarine : Color.PaleVioletRed;
+                item.BackColor = s.Solved ? Color.LightGreen : Color.LightCoral;
             };
             _simulations.ParentLV = lv_Zhang;
         }
@@ -162,8 +162,8 @@ namespace CalibratieForms {
         private void button1_Click(object sender, EventArgs e) {
             var c = PinholeCamera.getTestCamera();
             var b = new ChessBoard(8,6,20);
-            var s = ZhangSimulation.CreateSimulation(c, b, 12,
-                count => Util.gaussDistr(count, .5, .20, .2, 1),
+            var s = ZhangSimulation.CreateSimulation(c, b, 24,
+                count => Util.gaussDistr(count, .8, .20, .6, 1.2),
                 count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
                 );
             _simulations.Add(s);
@@ -214,5 +214,12 @@ namespace CalibratieForms {
             }
         }
         #endregion
+
+        private void button2_Click(object sender, EventArgs e) {
+            var items = lv_Zhang.Items.Where(x=>x.Checked).Select(x => (ZhangSimulation) x.Tag);
+            foreach (var zhangSimulation in items) {
+                zhangSimulation.calculateCv2Async();
+            }
+        }
     }
 }

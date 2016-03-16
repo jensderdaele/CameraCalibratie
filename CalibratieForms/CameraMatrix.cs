@@ -12,13 +12,13 @@ namespace cameracallibratie {
     public class CameraMatrix : INotifyPropertyChanged {
 
         public CameraMatrix() {
-            this.CvMat = new MatOfDouble(3, 3);
-            this[3, 3] = 1;
         }
         public CameraMatrix(double[,] mat) {
-            this.CvMat = new MatOfDouble(3, 3, mat);
+            _mat = mat;
         }
-        public Mat CvMat { get; private set;  }
+
+        private double[,] _mat = new double[3,3];
+        public double[,] Mat { get { return _mat; }set { _mat = value; OnPropertyChanged(); } }
 
         public double ac { get { return Mat[1, 0] / fx; } set { Mat[1, 0] = value*fx;OnPropertyChanged();} }
 
@@ -38,18 +38,18 @@ namespace cameracallibratie {
             get { return Mat[2, 1]; }
             set { Mat[2, 1] = value; OnPropertyChanged(); }
         }
-
+        /*
         public double this[int c, int r] {
             get { return CvMat.Get<double>(c, r); }
             set { CvMat.Set(c, r, value); OnPropertyChanged(); }
-        }
-        public double[,] Mat {
+        }*/
+        /*public double[,] Mat {
             get {
                 double[,] r = new double[3, 3];
                 CvMat.GetArray(0, 0, r);
                 return r;
             }
-        }
+        }*/
         public static CameraMatrix FromProjectionMatrix(double[,] pm) {
             double[,] cameraMat, rotMat;
             double[] transVect;

@@ -14,7 +14,7 @@ namespace CalibratieForms.Windows {
         public void WriteLine(string entry) {
             richTextBox1.Invoke((Action)(() => {
                 richTextBox1.AppendText(entry + Environment.NewLine);
-                //rbLogBox.ScrollToCaret();
+                richTextBox1.ScrollToCaret();
             }));
         }
     }

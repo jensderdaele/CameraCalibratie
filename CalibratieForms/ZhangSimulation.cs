@@ -28,7 +28,7 @@ namespace CalibratieForms {
             var distances = distanceGenerator(pictureCount);
             var angles = Angles(pictureCount);
             Random r = new Random();
-            var randomvec = new Vector3d(r.NextDouble(),r.NextDouble(),r.NextDouble()).Normalized();
+            var randomvec = new Vector3d(r.NextDouble(),r.NextDouble(),r.NextDouble()).Normalized(); //IS NIET RANDOM
             for (int i = 0; i < pictureCount; i++) {
                 var pos = c.Pos + c.Dir*distances[i];
                 var q1 = Quaterniond.FromAxisAngle(Vector3d.Cross(c.Dir, randomvec), angles[i]);
@@ -76,6 +76,11 @@ namespace CalibratieForms {
                 return _chessboards.Select(chessboard => chessboard.boardWorldCoordinates.Select(x => new Point3f((float)x.X, (float)x.Y, (float)x.Z)));
             }
         }
+        private IEnumerable<IEnumerable<Point3f>> CvLocalChessPointsf {
+            get {
+                return _chessboards.Select(chessboard => chessboard.boardLocalCoordinates_cv);
+            }
+        }
 
         public void calculateCv2() {
             Log.WriteLine("zhang simulatie berekenen start");
@@ -87,16 +92,26 @@ namespace CalibratieForms {
             }
             Vec3d[] rvecs,tvecs;
 
-            CalibratedCamera = new PinholeCamera();
-            CalibratedCamera.PictureSize = Camera.PictureSize;
+            var camera = new PinholeCamera();
+            camera.PictureSize = Camera.PictureSize;
             Log.WriteLine("Cv2.CalibrateCamera");
-            Cv2.CalibrateCamera(CvWorldChessPointsf, imagePoints, Camera.PictureSize, CalibratedCamera.CameraMatrix.Mat,
-                CalibratedCamera.Cv_DistCoeffs5, out rvecs, out tvecs);
+            try {
+                Cv2.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
+                    camera.CameraMatrix.Mat,
+                    camera.Cv_DistCoeffs5, out rvecs, out tvecs);
+            }
+            catch (Exception e) {
+                Log.WriteLine("Cv2.CalibrateCamera error: " + e.Message);
+                return;
+            }
             Calibratedrvecs = rvecs;
             Calibratedtvecs = tvecs;
+            CalibratedCamera = camera;
             Log.WriteLine("zhang simulatie berekenen einde");
         }
-        public void calculateCv2Async(emptyDelegate onCompleted) {
+
+        private static object lockme = new Object();
+        public void calculateCv2Async() {
             new Thread(() => {
                 Log.WriteLine("zhang simulatie new thread berekenen start");
                 List<List<Point2f>> imagePoints = new List<List<Point2f>>();
@@ -107,17 +122,25 @@ namespace CalibratieForms {
                 }
                 Vec3d[] rvecs, tvecs;
 
-                CalibratedCamera = new PinholeCamera();
-                CalibratedCamera.PictureSize = Camera.PictureSize;
-                Log.WriteLine("Cv2.CalibrateCamera");
-                Cv2.CalibrateCamera(CvWorldChessPointsf, imagePoints, Camera.PictureSize,
-                    CalibratedCamera.CameraMatrix.Mat,
-                    CalibratedCamera.Cv_DistCoeffs5, out rvecs, out tvecs);
+                var camera = new PinholeCamera();
+                camera.PictureSize = Camera.PictureSize;
+                lock (lockme) {
+                    Log.WriteLine("Cv2.CalibrateCamera LOCK");
+                    try {
+                        Cv2.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
+                            camera.CameraMatrix.Mat,
+                            camera.Cv_DistCoeffs5, out rvecs, out tvecs);
+                    }
+                    catch (Exception e) {
+                        Log.WriteLine("Cv2.CalibrateCamera error: " + e.Message);
+                        return;
+                    }
+                }
                 Calibratedrvecs = rvecs;
                 Calibratedtvecs = tvecs;
-                Log.WriteLine("zhang simulatie berekenen einde");
+                CalibratedCamera = camera;
+                Log.WriteLine("zhang simulatie berekenen einde (succes)");
                 OnPropertyChanged();
-                onCompleted();
             }).Start();
         }
 

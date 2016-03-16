@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTKTest", "..\..\..\..\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIConvexHull", "..\..\..\..\Desktop\calibratie\opentk\source\MIConvexHull\MIConvexHull.csproj", "{2337776D-7D0C-40AA-A439-C26C3CE24FAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cameracalibratie", "..\cameracalibratie\cameracalibratie\cameracalibratie.csproj", "{979415E1-4244-43D4-B673-D7DD53E818AD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThemeVS2003", "..\..\..\..\Desktop\calibratie\dockpanelsuite-master\WinFormsUI\ThemeVS2003.csproj", "{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SceneManager", "SceneManager\SceneManager.csproj", "{59279DB9-6D27-4533-97BB-B431C6BD892C}"
@@ -39,10 +37,6 @@ Global
 		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2337776D-7D0C-40AA-A439-C26C3CE24FAB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{979415E1-4244-43D4-B673-D7DD53E818AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{979415E1-4244-43D4-B673-D7DD53E818AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{979415E1-4244-43D4-B673-D7DD53E818AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{979415E1-4244-43D4-B673-D7DD53E818AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{719F0F69-66DA-438D-B5BB-2D883EF4ACE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
