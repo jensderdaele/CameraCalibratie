@@ -130,9 +130,11 @@ namespace CalibratieForms {
                 lock (lockme) {
                     Log.WriteLine("Cv2.CalibrateCamera LOCK");
                     try {
+                        double[] distortie = new double[5];
                         Cv2.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
                             camera.CameraMatrix.Mat,
-                            camera.Cv_DistCoeffs5, out rvecs, out tvecs);
+                            distortie, out rvecs, out tvecs);
+                        camera.Cv_DistCoeffs5 = distortie;
                     }
                     catch (Exception e) {
                         Log.WriteLine("Cv2.CalibrateCamera error: " + e.Message);
@@ -159,7 +161,6 @@ namespace CalibratieForms {
                 for (int i = 0; i < original.Length; i++) {
                     diff[i] = original[i] - reproj[i];
                 }
-
                 var totalErr = diff.Sum(x => x.Length);
                 totalErr /= diff.Length;
                 ReporjectionErrorRMS.Add(totalErr);

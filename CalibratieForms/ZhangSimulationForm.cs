@@ -131,12 +131,9 @@ namespace CalibratieForms {
         /// <param name="obj2"></param>
         /// <returns></returns>
         private static double calcAngle(SObject obj1, SObject obj2) {
-            var q1 = new Quaterniond(obj1.Dir);
-            var q2 = new Quaterniond(obj2.Dir);
-            var q = (q1 - q2);
-            Vector3d axis;
-            double angle;
-            q.ToAxisAngle(out axis, out angle);
+            var q1 = Vector3d.Dot(obj1.Dir, obj2.Dir);
+            var alpha = Math.Acos(q1);
+            double angle = alpha/Math.PI*180;
             return angle;
         }
 
@@ -144,7 +141,7 @@ namespace CalibratieForms {
             var c = PinholeCamera.getTestCamera();
             var b = new ChessBoard(8,6,20);
             var s = ZhangSimulation.CreateSimulation(c, b, 24,
-                count => Util.gaussDistr(count, .8, .20, .6, 1.2),
+                count => Util.gaussDistr(count, .5, .2, .20, .8),
                 count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
                 );
             _simulations.Add(s);
