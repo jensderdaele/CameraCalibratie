@@ -58,6 +58,17 @@ namespace CalibratieForms {
                 return r.ToArray();
             }
         }
+        public Point3d[] boardLocalCoordinates_cvd {
+            get {
+                List<Point3d> r = new List<Point3d>();
+                for (int i = 0; i < ChessboardSize.Height; ++i)
+                    for (int j = 0; j < ChessboardSize.Width; ++j) {
+                        var local = new Point3d((float)(j * SquareSizemm * .001), (float)(i * SquareSizemm * .001), 0);
+                        r.Add(local);
+                    }
+                return r.ToArray();
+            }
+        }
 
         public override string ToString() {
             return String.Format("{0}x{1} {2:0}mm", this.ChessboardSize.Width, this.ChessboardSize.Height,

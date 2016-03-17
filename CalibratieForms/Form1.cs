@@ -16,6 +16,10 @@ using OpenTK;
 using WeifenLuo.WinFormsUI.Docking;
 using Size = OpenCvSharp.Size;
 
+using MathWorks.MATLAB.NET.Arrays;
+using MathWorks.MATLAB.NET.Utility;
+using Vector = MathNet.Numerics.LinearAlgebra.Complex.Vector;
+
 namespace CalibratieForms {
     public partial class Form1 : Form {
         public Form1() {
@@ -55,16 +59,30 @@ namespace CalibratieForms {
 
 
         private void button1_Click(object sender, EventArgs e) {
-            ZhangSimulation s = new ZhangSimulation() {
-                Camera = PinholeCamera.getTestCamera(),
-            };
-            s.Camera.Pos = new Vector3d(-.0422226, -.0878566, .36428266);
-            s.Camera.Orient(Quaternion.FromEulerAngles(new Vector3(-.325198f, .1990075f, .4356749f)));
+            List<Vector2> testdata = new List<Vector2>();
+            for (int i = 0; i < 50; i++) {
+                testdata.Add(new Vector2((float)Util.NextGaussian(0.0, 1.0), (float)Util.NextGaussian(0.0, 3.0)));
+            }
+            Matlab.testScatterPlot(testdata.ToArray());
 
-            ChessBoard b = new ChessBoard();
-            b.SquareSizemm = 20;
-            b.ChessboardSize = new Size(8, 6);
+            /*MLApp.MLApp matlab = new MLApp.MLApp();
+            matlab.Execute(@"x = linspace(0,3*pi,200);
+                        y = cos(x) + rand(1,200);
+                        scatter(x,y)");*/
+            /*MatlabNetLib.testClass c = null;
+            MWNumericArray input = null;
+            MWNumericArray output = null;
+            MWArray[] result = null;
+            
+            try {
+                c = new MatlabNetLib.testClass();
 
+
+                c.testfnc();
+            }
+            catch {
+                throw;
+            }*/
 
         }
 
@@ -88,6 +106,12 @@ namespace CalibratieForms {
             var window = new Windows.LogForm();
             window.Show(dockPanel1, DockState.Float);
             Log.AddReader(window);
+        }
+
+        private void button2_Click(object sender, EventArgs e) {
+            Matlab.ML.Execute(@"x = linspace(0,3*pi,200);
+                        y = cos(x) + rand(1,200);
+                        scatter(x,y)");
         }
     }
 }

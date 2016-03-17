@@ -35,7 +35,7 @@ namespace CalibratieForms {
                 item.SubItems.AddRange(new[] {
                     s.Camera.ToString(), 
                     s.calcMeanDist().ToString(), 
-                    s.AvgReprojectionError.ToString()
+                    s.AvgReprojectionError.ToString(),
                 });
                 item.BackColor = s.Solved ? Color.LightGreen : Color.LightCoral;
             };
@@ -43,25 +43,6 @@ namespace CalibratieForms {
         }
 
 
-        public void drawList() {
-            lv_Zhang.Items.Clear();
-            foreach (var zhangSimulation in Simulations) {
-                var item = new BetterListViewItem();
-                var sub = new BetterListViewSubItem();
-                lv_Zhang.Items.Add(getSimulationItem(zhangSimulation));
-            }
-        }
-
-        private static BetterListViewItem getSimulationItem(ZhangSimulation s) {
-            var item = new BetterListViewItem(new []{
-                s.Camera.PictureSizeST,
-                s.Camera.ToString(),
-                s.calcMeanDist().ToString(),
-                s.AvgReprojectionError.ToString()
-            });
-            item.Tag = s;
-            return item;
-        }
 
         private static List<BetterListViewItem> getSimulationDetailItem(ZhangSimulation s) {
             var r = new List<BetterListViewItem>();
@@ -73,16 +54,16 @@ namespace CalibratieForms {
                 r.Add(item);
                 return r;
             }
-            foreach (ChessBoard board in s.Chessboards) {
-                var item = new BetterListViewItem(new [] {
-                    board.ToString(),
-                    calcAngle(s.Camera,board).ToString(),
-                    (s.Camera.Pos-board.Pos).LengthFast.ToString(),
-                    "reprojerror"
+            var boards = s.Chessboards;
+            for (int i = 0; i < boards.Count; i++) {
+                var item = new BetterListViewItem(new[] {
+                    boards[i].ToString(),
+                    calcAngle(s.Camera,boards[i]).ToString(),
+                    (s.Camera.Pos-boards[i].Pos).LengthFast.ToString(),
+                    s.ReporjectionErrorRMS.Count != boards.Count ? "niet berekend" : s.ReporjectionErrorRMS[i].ToString()
                 });
                 item.Tag = s;
                 r.Add(item);
-
             }
             return r;
         }

@@ -38,6 +38,16 @@
     <Reference Include="MathNet.Numerics">
       <HintPath>..\packages\MathNet.Numerics.3.11.0\lib\net40\MathNet.Numerics.dll</HintPath>
     </Reference>
+    <Reference Include="MatlabNetLib">
+      <HintPath>..\..\..\..\..\Desktop\calibratie\MatlabNetLib\for_testing\MatlabNetLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MatlabNetLibNative">
+      <HintPath>..\..\..\..\..\Desktop\calibratie\MatlabNetLib\for_testing\MatlabNetLibNative.dll</HintPath>
+    </Reference>
+    <Reference Include="MWArray, Version=2.15.1.0, Culture=neutral, PublicKeyToken=e1d84a0da19db86f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\MATLAB\R2015b\toolbox\dotnetbuilder\bin\win64\v2.0\MWArray.dll</HintPath>
+    </Reference>
     <Reference Include="OpenCvSharp">
       <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.dll</HintPath>
     </Reference>
@@ -67,6 +77,13 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="testlibname, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Desktop\calibratie\testlibname\for_redistribution_files_only\testlibname.dll</HintPath>
+    </Reference>
+    <Reference Include="testlibnameNative">
+      <HintPath>..\..\..\..\..\Desktop\calibratie\testlibname\for_redistribution_files_only\testlibnameNative.dll</HintPath>
+    </Reference>
     <Reference Include="WeifenLuo.WinFormsUI.Docking">
       <HintPath>..\packages\DockPanelSuite.2.9.0.0\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
     </Reference>
@@ -86,7 +103,9 @@
     <Compile Include="CameraSimulationFrm.Designer.cs">
       <DependentUpon>CameraSimulationFrm.cs</DependentUpon>
     </Compile>
+    <Compile Include="IRuisProvider.cs" />
     <Compile Include="LVList.cs" />
+    <Compile Include="Matlab.cs" />
     <Compile Include="MatlabFrm.cs">
       <SubType>Form</SubType>
     </Compile>

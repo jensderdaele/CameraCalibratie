@@ -58,11 +58,14 @@ namespace CalibratieForms {
         public PinholeCamera Camera { get; set; }
         //After calc
         public double AvgReprojectionError { get; private set; }
+
         public PinholeCamera CalibratedCamera { get; private set; }
         public Vec3d[] Calibratedrvecs { get; private set; }
         public Vec3d[] Calibratedtvecs { get; private set; }
 
         public bool Solved { get { return CalibratedCamera != null; } }
+
+        public List<double> ReporjectionErrorRMS = new List<double>();
 
         #endregion
 
@@ -136,12 +139,34 @@ namespace CalibratieForms {
                         return;
                     }
                 }
+                
                 Calibratedrvecs = rvecs;
                 Calibratedtvecs = tvecs;
                 CalibratedCamera = camera;
+
+                calcReprojectionError();
                 Log.WriteLine("zhang simulatie berekenen einde (succes)");
                 OnPropertyChanged();
             }).Start();
+        }
+
+        private void calcReprojectionError() {
+            ReporjectionErrorRMS.Clear();
+            foreach (var b in _chessboards) {
+                var original = Camera.ProjectBoard_Cv(b);
+                var reproj = CalibratedCamera.ProjectBoard_Cv(b);
+                var diff = new Vector2[original.Length];
+                for (int i = 0; i < original.Length; i++) {
+                    diff[i] = original[i] - reproj[i];
+                }
+
+                var totalErr = diff.Sum(x => x.Length);
+                totalErr /= diff.Length;
+                ReporjectionErrorRMS.Add(totalErr);
+            }
+            AvgReprojectionError = ReporjectionErrorRMS.Sum(x => x) / ReporjectionErrorRMS.Count;
+            
+            
         }
 
         public delegate void emptyDelegate();
