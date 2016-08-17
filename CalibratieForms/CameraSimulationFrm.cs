@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Calibratie;
 using OpenTK;
 using WeifenLuo.WinFormsUI.Docking;
 
@@ -29,6 +30,10 @@ namespace CalibratieForms {
             AllForms.Add(this);
             this.Name += " " + AllForms.Count;
             this.Closed += (s, a) => { AllForms.Remove(this); };
+        }
+
+        public CameraSimulationFrm(string title) : this() {
+            this.Text = title;
         }
 
         public void draw() {

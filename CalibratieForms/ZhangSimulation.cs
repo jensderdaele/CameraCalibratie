@@ -14,9 +14,13 @@ using CalibratieForms.Annotations;
 using OpenCvSharp;
 using OpenTK;
 using SceneManager;
+using ceresdotnet;
+using Calibratie;
 
 namespace CalibratieForms {
     public class ZhangSimulation : INotifyPropertyChanged {
+
+
 
         #region ctors
         public static ZhangSimulation CreateSimulation(PinholeCamera c,ChessBoard board,int pictureCount, 
@@ -33,7 +37,7 @@ namespace CalibratieForms {
                 var pos = c.Pos + c.Dir*distances[i];
                 var q1 = Quaterniond.FromAxisAngle(Vector3d.Cross(c.Dir, randomvec), angles[i]);
                 var q2 = Quaterniond.FromAxisAngle(c.Dir, r.NextDouble()*Math.PI*2);
-                var q = q1 + q2; //MAG DIT?
+                var q = q1 + q2; 
                 var b = new ChessBoard();
                 b.ChessboardSize = board.ChessboardSize;
                 b.SquareSizemm = board.SquareSizemm;
@@ -42,8 +46,6 @@ namespace CalibratieForms {
                 simulation.Chessboards.Add(b);
             }
 
-
-            
             simulation.Camera = c;
             
             return simulation;
@@ -152,6 +154,8 @@ namespace CalibratieForms {
             }).Start();
         }
 
+        
+
         private void calcReprojectionError() {
             ReporjectionErrorRMS.Clear();
             foreach (var b in _chessboards) {
@@ -172,6 +176,21 @@ namespace CalibratieForms {
 
         public delegate void emptyDelegate();
 
+        public void toCeresInput(out List<CeresMarker> markers, out List<CeresCamera> cameras,
+            out List<CeresPoint> points) {
+
+            markers = new List<CeresMarker>();
+            int imageNr = 0;
+            foreach (var chessboard in Chessboards) {
+                Point2f[] projected;
+                get2DProjection_OpenCv(chessboard, out projected);
+                markers.AddRange(projected.Select((p,track) => new CeresMarker(imageNr, track, p.X, p.Y)));
+                imageNr++;
+            }
+            cameras = Chessboards.Select((x,i)=> new  CeresCamera(new Matrix3d(), new Vector3d(),i)).ToList();
+            points = Chessboards[0].boardLocalCoordinates.Select((x, i) => new CeresPoint(x, i)).ToList();
+        }
+
         #region 2dprojection
         private void get2DProjection_OpenCv(ChessBoard b, out Point2f[] projected) {
             Point2d[] r;
@@ -179,7 +198,6 @@ namespace CalibratieForms {
             projected = r.Select(x => new Point2f((float)x.X, (float)x.Y)).ToArray();
         }
         private void get2DProjection_OpenCv(ChessBoard b, out Point2d[] projected) {
-            //Todo: Use InputArray on vector3d[] & pin GC
             double[,] jabobian;
             Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Camera.Cv_rvecs, Camera.Cv_tvecs, Camera.CameraMatrix.Mat, Camera.Cv_DistCoeffs5, out projected, out jabobian);
         }

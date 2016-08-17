@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ceresdotnet;
+using Calibratie;
 using ComponentOwl.BetterListView;
 using OpenTK;
 using SceneManager;
@@ -50,7 +52,7 @@ namespace CalibratieForms {
                 var item = new BetterListViewItem(new[] {
                     s == null ? "No Simulation Selected" : "No Chessboards!"
                 });
-                item.Tag = s;
+                item.Tag = null;
                 r.Add(item);
                 return r;
             }
@@ -62,23 +64,10 @@ namespace CalibratieForms {
                     (s.Camera.Pos-boards[i].Pos).LengthFast.ToString(),
                     s.ReporjectionErrorRMS.Count != boards.Count ? "niet berekend" : s.ReporjectionErrorRMS[i].ToString()
                 });
-                item.Tag = s;
+                item.Tag = boards[i];
                 r.Add(item);
             }
             return r;
-        }
-        //chessboard,angle,dist,reprojectionerror
-        private static BetterListViewItem getDetailItem(ZhangSimulation s,ChessBoard b) {
-            var item = new BetterListViewItem(new String[]{
-                String.Format("{0}x{1}({2}mm)",b.ChessboardSize.Width,b.ChessboardSize.Height,b.SquareSizemm),
-                calcAngle(s.Camera,b).ToString(),
-                (s.Camera.Pos-b.Pos).Length.ToString(),
-                "not implemented",
-
-            });
-            item.Tag = s;
-            
-            return item;
         }
 
         private void lv_Zhang_SelectedIndexChanged(object sender, EventArgs e) {
@@ -100,8 +89,9 @@ namespace CalibratieForms {
             ZhangSimulation simulation;
             ChessBoard board;
             try {
-                simulation = (ZhangSimulation) lv_ZhangDetail.SelectedItems[0].Tag;
-                board = simulation.Chessboards[lv_ZhangDetail.SelectedIndices[0]];
+                simulation = (ZhangSimulation) lv_Zhang.SelectedItems[0].Tag;
+                board = (ChessBoard)lv_ZhangDetail.SelectedItems[0].Tag;
+                //board = simulation.Chessboards[lv_ZhangDetail.SelectedIndices[0]];
             }
             catch {return;}
             if (cameraFrm != null) {
@@ -124,12 +114,6 @@ namespace CalibratieForms {
 
         }
 
-        /// <summary>
-        /// KLOPT NIET
-        /// </summary>
-        /// <param name="obj1"></param>
-        /// <param name="obj2"></param>
-        /// <returns></returns>
         private static double calcAngle(SObject obj1, SObject obj2) {
             var q1 = Vector3d.Dot(obj1.Dir, obj2.Dir);
             var alpha = Math.Acos(q1);
@@ -139,9 +123,9 @@ namespace CalibratieForms {
 
         private void button1_Click(object sender, EventArgs e) {
             var c = PinholeCamera.getTestCamera();
-            var b = new ChessBoard(8,6,20);
-            var s = ZhangSimulation.CreateSimulation(c, b, 24,
-                count => Util.gaussDistr(count, .5, .2, .20, .8),
+            var b = new ChessBoard(10,4,20);
+            var s = ZhangSimulation.CreateSimulation(c, b, 5,
+                count => Util.gaussDistr(count, .7, .2, .20, 1),
                 count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
                 );
             _simulations.Add(s);
@@ -198,6 +182,30 @@ namespace CalibratieForms {
             foreach (var zhangSimulation in items) {
                 zhangSimulation.calculateCv2Async();
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e) {
+            var item = lv_Zhang.Items.Where(x => x.Checked).Select(x => (ZhangSimulation)x.Tag).First();
+            List<CeresCamera> cameras;
+            List<CeresMarker> markers;
+            List<CeresPoint> points;
+            item.toCeresInput(out markers, out cameras, out points);
+            Matrix3d d;
+
+            
+            double[] intrinsics = item.Camera.toCeresIntrinsics9();
+            var correct = (double[])intrinsics.Clone();
+            var before = (double[])intrinsics.Clone();
+            var r = new Random();
+            for (int i = 0; i < intrinsics.Length; i++) {
+                intrinsics[i] *= 1 + (r.NextDouble() - .5) / 10;
+            }
+
+            ceresdotnet.BundleProblem.EuclideanBundleCommonIntrinsics(markers, 0, 0, intrinsics, cameras, points);
+
+            var diff = before.Select((x, i) => x - intrinsics[i]).ToArray();
+            
+
         }
     }
 }

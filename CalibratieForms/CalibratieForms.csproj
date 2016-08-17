@@ -6,23 +6,39 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B0373318-4718-49C6-B774-7CC2EBEBEE58}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CalibratieForms</RootNamespace>
     <AssemblyName>CalibratieForms</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>20f5d5fc</NuGetPackageImportStamp>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,6 +48,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BetterListViewExpress-net45, Version=3.15.0.0, Culture=neutral, PublicKeyToken=e6c91a3add447be2" />
@@ -103,6 +122,10 @@
     <Compile Include="CameraSimulationFrm.Designer.cs">
       <DependentUpon>CameraSimulationFrm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CeresSimulation.cs" />
+    <Compile Include="CV2E.cs" />
+    <Compile Include="EXT.cs" />
+    <Compile Include="IO.cs" />
     <Compile Include="IRuisProvider.cs" />
     <Compile Include="LVList.cs" />
     <Compile Include="Matlab.cs" />
@@ -112,15 +135,12 @@
     <Compile Include="MatlabFrm.Designer.cs">
       <DependentUpon>MatlabFrm.cs</DependentUpon>
     </Compile>
-    <Compile Include="PinholeCamera.cs" />
     <Compile Include="CameraInfoWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="CameraInfoWindow.Designer.cs">
       <DependentUpon>CameraInfoWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="CameraMatrix.cs" />
-    <Compile Include="ChessBoard.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -128,6 +148,13 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Logging\Log.cs" />
+    <Compile Include="OpenCVNative.cs" />
+    <Compile Include="testbuttons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="testbuttons.Designer.cs">
+      <DependentUpon>testbuttons.cs</DependentUpon>
+    </Compile>
     <Compile Include="Util.cs" />
     <Compile Include="Windows\LogForm.cs">
       <SubType>Form</SubType>
@@ -139,6 +166,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZhangCalibration.cs" />
     <Compile Include="ZhangSimulation.cs" />
     <Compile Include="ZhangSimulationForm.cs">
       <SubType>Form</SubType>
@@ -199,6 +227,18 @@
       <Project>{719f0f69-66da-438d-b5bb-2d883ef4ace2}</Project>
       <Name>ThemeVS2003</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ArUcoNET\ArUcoNET.vcxproj">
+      <Project>{390c417b-622c-4012-b737-6339483f4316}</Project>
+      <Name>ArUcoNET</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Calibratie\Calibratie.csproj">
+      <Project>{08e756d5-dbce-463a-b0d6-0af266636174}</Project>
+      <Name>Calibratie</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ceresdotnet\ceresdotnet.vcxproj">
+      <Project>{d72410c3-ed53-4135-94e2-98dc27bef8f1}</Project>
+      <Name>ceresdotnet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SceneManager\SceneManager.csproj">
       <Project>{59279DB9-6D27-4533-97BB-B431C6BD892C}</Project>
       <Name>SceneManager</Name>
@@ -214,6 +254,23 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

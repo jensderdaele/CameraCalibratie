@@ -10,6 +10,14 @@ using OpenTK.Graphics.OpenGL;
 namespace SceneManager
 {
     public sealed class Scene {
+        public T[] get<T>() where T : SObject {
+            return getIE<T>().ToArray();
+        }
+        public IEnumerable<T> getIE<T>() where T : SObject {
+            return objects.Where(o => o.GetType() == typeof(T)).Cast<T>();
+        }
+
+
         public List<SObject> objects = new List<SObject>();
     }
 }

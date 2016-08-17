@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using cameracallibratie;
+using Calibratie;
 using CalibratieForms.Windows;
 using OpenTK;
 using WeifenLuo.WinFormsUI.Docking;
@@ -18,7 +19,9 @@ using Size = OpenCvSharp.Size;
 
 using MathWorks.MATLAB.NET.Arrays;
 using MathWorks.MATLAB.NET.Utility;
+using OpenCvSharp;
 using Vector = MathNet.Numerics.LinearAlgebra.Complex.Vector;
+
 
 namespace CalibratieForms {
     public partial class Form1 : Form {
@@ -59,31 +62,6 @@ namespace CalibratieForms {
 
 
         private void button1_Click(object sender, EventArgs e) {
-            List<Vector2> testdata = new List<Vector2>();
-            for (int i = 0; i < 50; i++) {
-                testdata.Add(new Vector2((float)Util.NextGaussian(0.0, 1.0), (float)Util.NextGaussian(0.0, 3.0)));
-            }
-            Matlab.testScatterPlot(testdata.ToArray());
-
-            /*MLApp.MLApp matlab = new MLApp.MLApp();
-            matlab.Execute(@"x = linspace(0,3*pi,200);
-                        y = cos(x) + rand(1,200);
-                        scatter(x,y)");*/
-            /*MatlabNetLib.testClass c = null;
-            MWNumericArray input = null;
-            MWNumericArray output = null;
-            MWArray[] result = null;
-            
-            try {
-                c = new MatlabNetLib.testClass();
-
-
-                c.testfnc();
-            }
-            catch {
-                throw;
-            }*/
-
         }
 
         private void cameraInfoToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -112,6 +90,19 @@ namespace CalibratieForms {
             Matlab.ML.Execute(@"x = linspace(0,3*pi,200);
                         y = cos(x) + rand(1,200);
                         scatter(x,y)");
+        }
+
+        private void button3_Click(object sender, EventArgs e) {
+            var scene = Util.bundleAdjustScene();
+
+            //CeresSimulation.ceresSolveAruco();
+            
+            var sim = new CeresSimulation();
+            sim.scene = scene;
+
+            sim.Solve();
+
+
         }
     }
 }

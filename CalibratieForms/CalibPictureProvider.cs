@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -11,7 +13,7 @@ using OpenCvSharp.Extensions;
 
 namespace cameracallibratie {
     public abstract class CalibPictureProvider {
-
+        
         public abstract IEnumerable<Bitmap> pictures8bit { get; }
 
         public IEnumerable<InputArray> picturesCvArray {
@@ -19,7 +21,7 @@ namespace cameracallibratie {
                 return pictures8bit.Select(x => {
                     var m = new MatOfByte(x.Height, x.Width);
                     x.ToMat(m);
-                    return (InputArray)m;
+                    return (InputArray) m;
                 }
                     );
             }
@@ -27,15 +29,68 @@ namespace cameracallibratie {
     }
 
     public class PhotoProvider : CalibPictureProvider {
+        public static InputArray getSingleImage(string path, int scaleDown = 1) {
+            var image = new Bitmap(path);
+            if (scaleDown != 1) {
+                image = ResizeImage(image, image.Width/scaleDown, image.Height/scaleDown);
+            }
+            
+            //var newpathname = path +scaleDown+ "temp.bmp";
+            //image.Save(newpathname,ImageFormat.Bmp);
+            //var mat = Cv2.ImRead(newpathname);
+            //File.Delete(newpathname);
+            //return mat;
+            var image8bit = CopyToBpp(image, 8);
+            var m = new MatOfByte(image8bit.Height, image8bit.Width);
+            image8bit.ToMat(m);
+            
+            return m;
+        }
+        public static InputArray getSingleImage(string path,out OpenCvSharp.Size imSize, int scaleDown = 1) {
+            var image = new Bitmap(path);
+            imSize = new OpenCvSharp.Size(image.Width, image.Height);
+            if (scaleDown != 1) {
+                image = ResizeImage(image, image.Width / scaleDown, image.Height / scaleDown);
+            }
+            
+            //var newpathname = path +scaleDown+ "temp.bmp";
+            //image.Save(newpathname,ImageFormat.Bmp);
+            //var mat = Cv2.ImRead(newpathname);
+            //File.Delete(newpathname);
+            //return mat;
+            var image8bit = CopyToBpp(image, 8);
+            var m = new MatOfByte(image8bit.Height, image8bit.Width);
+            image8bit.ToMat(m);
+            return m;
+        }
+
+        public static Bitmap  getSingleBitmap(string path, int scaleDown = 1) {
+            var image = new Bitmap(path);
+            if (scaleDown > 1) {
+                image = ResizeImage(image, image.Width / scaleDown, image.Height / scaleDown);
+            }
+            return image;
+        }
+
         public string FolderName { get; private set; }
+        public int ScaleDown { get; set; }
 
 
-        public PhotoProvider(string folderName) {
+        public PhotoProvider(string folderName) : this(folderName,1) {}
+        public PhotoProvider(string folderName, int scaleDown) {
             FolderName = folderName;
+            ScaleDown = scaleDown;
         }
 
         public IEnumerable<Bitmap> pictures {
-            get { return getImageFiles().Select(imageFile => new Bitmap(imageFile)); }
+            get {
+                return ScaleDown == 1 ? 
+                    getImageFiles().Select(imageFile => new Bitmap(imageFile)):
+                    getImageFiles().Select(imageFile => {
+                        var original = new Bitmap(imageFile);
+                        return ResizeImage(original, original.Width / ScaleDown, original.Height / ScaleDown);
+                    });
+            }
         }
         public override IEnumerable<Bitmap> pictures8bit {
             get { return pictures.Select(imageFile => CopyToBpp(imageFile, 8)); }
@@ -47,10 +102,40 @@ namespace cameracallibratie {
             return Images.Select(t => String.Format(@"{0}/{1}", FolderName, t.Name));
         }
 
+        /// <summary>
+        /// Resize the image to the specified width and height. 
+        /// van www.stackoverflow.com
+        /// </summary>
+        /// <param name="image">The image to resize.</param>
+        /// <param name="width">The width to resize to.</param>
+        /// <param name="height">The height to resize to.</param>
+        /// <returns>The resized image.</returns>
+        private static Bitmap ResizeImage(Image image, int width, int height) {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage)) {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes()) {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
+        }
+
         #region convert to 8bit
-        private static System.Drawing.Bitmap CopyToBpp(System.Drawing.Bitmap b, int bpp) {
+        private static Bitmap CopyToBpp(Bitmap b, int bpp) {
             if (bpp != 1 && bpp != 8)
-                throw new System.ArgumentException("1 or 8", "bpp");
+                throw new ArgumentException("1 or 8", "bpp");
 
             // Plan: built into Windows GDI is the ability to convert
             // bitmaps from one format to another. Most of the time, this
@@ -115,7 +200,7 @@ namespace cameracallibratie {
             // Now we can do the BitBlt:
             BitBlt(hdc0, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
             // Step (4): convert this monochrome hbitmap back into a Bitmap:
-            System.Drawing.Bitmap b0 = System.Drawing.Bitmap.FromHbitmap(hbm0);
+            Bitmap b0 = Bitmap.FromHbitmap(hbm0);
             //
             // Finally some cleanup.
             DeleteDC(hdc);
@@ -135,7 +220,7 @@ namespace cameracallibratie {
         /// <param name="b">the bitmap to draw on the screen</param>
         /// <param name="x">x screen coordinate</param>
         /// <param name="y">y screen coordinate</param>
-        private static void SplashImage(System.Drawing.Bitmap b, int x, int y) {
+        private static void SplashImage(Bitmap b, int x, int y) {
             // Drawing onto the screen is supported by GDI, but not by the Bitmap/Graphics class.
             // So we use interop:
             // (1) Copy the Bitmap into a GDI hbitmap
@@ -154,39 +239,39 @@ namespace cameracallibratie {
         }
 
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         public static extern bool DeleteObject(IntPtr hObject);
 
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         public static extern IntPtr GetDC(IntPtr hwnd);
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         public static extern int DeleteDC(IntPtr hdc);
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         public static extern int BitBlt(IntPtr hdcDst, int xDst, int yDst, int w, int h, IntPtr hdcSrc, int xSrc,
             int ySrc, int rop);
 
         private static int SRCCOPY = 0x00CC0020;
 
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        [DllImport("gdi32.dll")]
         private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO bmi, uint Usage, out IntPtr bits,
             IntPtr hSection, uint dwOffset);
 
         private static uint BI_RGB = 0;
         private static uint DIB_RGB_COLORS = 0;
 
-        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct BITMAPINFO {
             public uint biSize;
             public int biWidth, biHeight;
@@ -195,7 +280,7 @@ namespace cameracallibratie {
             public int biXPelsPerMeter, biYPelsPerMeter;
             public uint biClrUsed, biClrImportant;
 
-            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValArray,
+            [MarshalAs(UnmanagedType.ByValArray,
                 SizeConst = 256)]
             public uint[] cols;
         }
@@ -204,6 +289,5 @@ namespace cameracallibratie {
             return ((uint)(b & 255)) | ((uint)((r & 255) << 8)) | ((uint)((g & 255) << 16));
         }
         #endregion
-
     }
 }

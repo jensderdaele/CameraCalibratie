@@ -9,7 +9,7 @@ namespace SceneManager {
     public abstract class SObject : SObjectBase {
         public string Name = "";
 
-        public SObject() : base() {
+        protected SObject() : base() {
 			Name = String.Format("Unnamed:{0}",this.GetHashCode());	
 		}
         
@@ -20,6 +20,7 @@ namespace SceneManager {
             get { return _pos; }
             set { _pos = value; this.calcMatFromState(); }
         }
+        
         protected Vector3d _dir;
         public Vector3d Dir { get { return _dir; } }
         protected Vector3d _up;
@@ -36,7 +37,6 @@ namespace SceneManager {
 
 
 
-        // transform matricies
         public Matrix4d localMat;
         public Matrix4d worldMat;
 

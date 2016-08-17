@@ -30,17 +30,18 @@
             this.betterListViewColumnHeader3 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.betterListViewColumnHeader4 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.lv_ZhangDetail = new ComponentOwl.BetterListView.BetterListView();
             this.betterListViewColumnHeader5 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.betterListViewColumnHeader6 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.betterListViewColumnHeader7 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
             this.betterListViewColumnHeader8 = new ComponentOwl.BetterListView.BetterListViewColumnHeader();
-            this.button1 = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CameraInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calibratedCameraInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cameraSimulationViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.lv_Zhang)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -64,6 +65,7 @@
             this.lv_Zhang.MultiSelect = false;
             this.lv_Zhang.Name = "lv_Zhang";
             this.lv_Zhang.Size = new System.Drawing.Size(1196, 264);
+            this.lv_Zhang.SortVirtual = true;
             this.lv_Zhang.TabIndex = 0;
             this.lv_Zhang.SelectedIndexChanged += new System.EventHandler(this.lv_Zhang_SelectedIndexChanged);
             this.lv_Zhang.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lv_Zhang_MouseDown);
@@ -98,6 +100,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.button3);
             this.splitContainer1.Panel1.Controls.Add(this.button2);
             this.splitContainer1.Panel1.Controls.Add(this.button1);
             this.splitContainer1.Panel1.Controls.Add(this.lv_Zhang);
@@ -109,6 +112,26 @@
             this.splitContainer1.SplitterDistance = 264;
             this.splitContainer1.TabIndex = 2;
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(506, 3);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 1;
+            this.button2.Text = "oplossen";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(587, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(90, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "add simulation";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // lv_ZhangDetail
             // 
             this.lv_ZhangDetail.Columns.Add(this.betterListViewColumnHeader5);
@@ -116,7 +139,9 @@
             this.lv_ZhangDetail.Columns.Add(this.betterListViewColumnHeader7);
             this.lv_ZhangDetail.Columns.Add(this.betterListViewColumnHeader8);
             this.lv_ZhangDetail.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lv_ZhangDetail.HeaderStyle = ComponentOwl.BetterListView.BetterListViewHeaderStyle.Sortable;
             this.lv_ZhangDetail.Location = new System.Drawing.Point(0, 0);
+            this.lv_ZhangDetail.MultiSelect = false;
             this.lv_ZhangDetail.Name = "lv_ZhangDetail";
             this.lv_ZhangDetail.Size = new System.Drawing.Size(1196, 321);
             this.lv_ZhangDetail.TabIndex = 1;
@@ -141,16 +166,6 @@
             // 
             this.betterListViewColumnHeader8.Name = "betterListViewColumnHeader8";
             this.betterListViewColumnHeader8.Text = "ReprojectionErr";
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(587, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(90, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "add simulation";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // contextMenuStrip1
             // 
@@ -181,15 +196,15 @@
             this.cameraSimulationViewToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
             this.cameraSimulationViewToolStripMenuItem.Text = "camera simulation view";
             // 
-            // button2
+            // button3
             // 
-            this.button2.Location = new System.Drawing.Point(506, 3);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "oplossen";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.button3.Location = new System.Drawing.Point(683, 3);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(85, 23);
+            this.button3.TabIndex = 2;
+            this.button3.Text = "oplossenCeres";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // ZhangSimulationForm
             // 
@@ -230,5 +245,6 @@
         private System.Windows.Forms.ToolStripMenuItem calibratedCameraInfoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cameraSimulationViewToolStripMenuItem;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
     }
 }

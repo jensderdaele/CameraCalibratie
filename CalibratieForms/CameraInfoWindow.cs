@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using cameracallibratie;
+using Calibratie;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace CalibratieForms {
