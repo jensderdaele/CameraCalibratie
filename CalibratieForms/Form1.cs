@@ -87,9 +87,7 @@ namespace CalibratieForms {
         }
 
         private void button2_Click(object sender, EventArgs e) {
-            Matlab.ML.Execute(@"x = linspace(0,3*pi,200);
-                        y = cos(x) + rand(1,200);
-                        scatter(x,y)");
+            var markers = ArUcoNET.Aruco.FindMarkers(@"C:\Users\jens\Desktop\calibratie\Huawei p9\test.jpg");
         }
 
         private void button3_Click(object sender, EventArgs e) {

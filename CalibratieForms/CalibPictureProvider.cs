@@ -110,7 +110,7 @@ namespace cameracallibratie {
         /// <param name="width">The width to resize to.</param>
         /// <param name="height">The height to resize to.</param>
         /// <returns>The resized image.</returns>
-        private static Bitmap ResizeImage(Image image, int width, int height) {
+        public static Bitmap ResizeImage(Image image, int width, int height) {
             var destRect = new Rectangle(0, 0, width, height);
             var destImage = new Bitmap(width, height);
 

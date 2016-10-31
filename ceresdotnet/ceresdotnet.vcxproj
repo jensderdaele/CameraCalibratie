@@ -147,7 +147,6 @@
   <ItemGroup>
     <ClInclude Include="ceresdotnet.h" />
     <ClInclude Include="managed.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>

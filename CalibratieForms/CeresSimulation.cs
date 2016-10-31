@@ -256,6 +256,7 @@ namespace CalibratieForms {
                 window2.Show();
                 window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
             }
+
             var problem = new ceresdotnet.MultiCameraBundleProblem();
             problem.all_points_managed.AddRange(cerespoints);
             problem.cameras.AddRange(cerescameras);

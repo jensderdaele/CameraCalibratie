@@ -86,9 +86,7 @@ namespace ceresdotnet{
 		~EuclideanCamera(){
 			//delete [] intrinsics; crasht soms
 		}
-
-
-
+		
 		///EuclideanCamera(const EuclideanCamera ^c) : image(c->image), R(c->R), t(c->t) {}
 		int image;
 		Mat3 R;
@@ -133,10 +131,9 @@ namespace ceresdotnet{
 		BUNDLE_NO_CONSTRAINTS = 0,
 		BUNDLE_NO_TRANSLATION = 1,
 	};
-	// The intrinsics need to get combined into a single parameter block; use these
-	// enums to index instead of numeric constants.
 	enum {
-		OFFSET_FOCAL_LENGTH,
+		OFFSET_FOCAL_LENGTH_X,
+		OFFSET_FOCAL_LENGTH_Y,
 		OFFSET_PRINCIPAL_POINT_X,
 		OFFSET_PRINCIPAL_POINT_Y,
 		OFFSET_K1,
@@ -144,17 +141,6 @@ namespace ceresdotnet{
 		OFFSET_K3,
 		OFFSET_P1,
 		OFFSET_P2,
-	};
-	enum {
-		OFFSET2_FOCAL_LENGTH_X,
-		OFFSET2_FOCAL_LENGTH_Y,
-		OFFSET2_PRINCIPAL_POINT_X,
-		OFFSET2_PRINCIPAL_POINT_Y,
-		OFFSET2_K1,
-		OFFSET2_K2,
-		OFFSET2_K3,
-		OFFSET2_P1,
-		OFFSET2_P2,
 	};
 
 	// Returns a pointer to the camera corresponding to a image.
@@ -245,13 +231,14 @@ namespace ceresdotnet{
 		const double observed_y;
 	};
 
+
+
 	typedef void applyOffsetRT(const double* baseR_t,double* outR_t);
 
 	struct ReprojectionError {
 
 		ReprojectionError(const double observed_x, const double observed_y)
 			: observed_x(observed_x), observed_y(observed_y) {};
-
 		struct linkedCameraPos{
 			applyOffsetRT function;
 			double* baseR_t;
@@ -324,6 +311,124 @@ namespace ceresdotnet{
 		const double observed_x;
 		const double observed_y;
 		linkedCameraPos link;
+	};
+
+	
+
+	struct ReprojectionErrorStereo {
+
+		ReprojectionErrorStereo(const Eigen::Array2d observed_1, const Eigen::Array2d observed_2)
+			: observed_1(observed_1), observed_2(observed_2) {};
+
+
+		template <typename T>
+		bool operator()(const T* const intrinsics1, const T* const intrinsics2,
+			const T* const R_t_camera1, const T* const R_t_camera2_rel, const T* const X, T* residuals) const {
+
+			T* R_t_camera2[3];
+			ceres::AngleAxisRotatePoint(R_t_camera2_rel, R_t_camera1[3], R_t_camera2);
+
+			//cam1
+			T* intrinsics = intrinsics1;
+			const T& focal_length_x = intrinsics[OFFSET2_FOCAL_LENGTH_X];
+			const T& focal_length_y = intrinsics[OFFSET2_FOCAL_LENGTH_Y];
+			const T& principal_point_x = intrinsics[OFFSET2_PRINCIPAL_POINT_X];
+			const T& principal_point_y = intrinsics[OFFSET2_PRINCIPAL_POINT_Y];
+			const T& k1 = intrinsics[OFFSET2_K1];
+			const T& k2 = intrinsics[OFFSET2_K2];
+			const T& k3 = intrinsics[OFFSET2_K3];
+			const T& p1 = intrinsics[OFFSET2_P1];
+			const T& p2 = intrinsics[OFFSET2_P2];
+
+			T rotnative[9];
+			T* R_t = R_t_camera1;
+			ceres::AngleAxisToRotationMatrix(R_t, rotnative);
+			const T& r0 = rotnative[0];
+			const T& r1 = rotnative[1];
+			const T& r2 = rotnative[2];
+			const T& r3 = rotnative[3];
+			const T& r4 = rotnative[4];
+			const T& r5 = rotnative[5];
+			const T& r6 = rotnative[6];
+			const T& r7 = rotnative[7];
+			const T& r8 = rotnative[8];
+
+			T x[3];
+			x[0] = X[0] * r0 + X[1] * r3 + X[2] * r6 + R_t[3];
+			x[1] = X[0] * r1 + X[1] * r4 + X[2] * r7 + R_t[4];
+			x[2] = X[0] * r2 + X[1] * r5 + X[2] * r8 + R_t[5];
+
+			// Normaliseren
+			T xn = x[0] / x[2];
+			T yn = x[1] / x[2];
+			T predicted_x, predicted_y;
+
+			ApplyRadialDistortionCameraIntrinsics(focal_length_x,
+				focal_length_y,
+				principal_point_x,
+				principal_point_y,
+				k1, k2, k3,
+				p1, p2,
+				xn, yn,
+				&predicted_x,
+				&predicted_y);
+
+			residuals[0] = predicted_x - T(observed_x);
+			residuals[1] = predicted_y - T(observed_y);
+
+			//cam2
+			intrinsics = intrinsics2;
+			const T& focal_length_x = intrinsics[OFFSET2_FOCAL_LENGTH_X];
+			const T& focal_length_y = intrinsics[OFFSET2_FOCAL_LENGTH_Y];
+			const T& principal_point_x = intrinsics[OFFSET2_PRINCIPAL_POINT_X];
+			const T& principal_point_y = intrinsics[OFFSET2_PRINCIPAL_POINT_Y];
+			const T& k1 = intrinsics[OFFSET2_K1];
+			const T& k2 = intrinsics[OFFSET2_K2];
+			const T& k3 = intrinsics[OFFSET2_K3];
+			const T& p1 = intrinsics[OFFSET2_P1];
+			const T& p2 = intrinsics[OFFSET2_P2];
+
+			ceres::AngleAxisRotatePoint()
+			T rotnative[9];
+			T* R_t = R_t_camera2;
+			ceres::AngleAxisToRotationMatrix(R_t, rotnative);
+			const T& r0 = rotnative[0];
+			const T& r1 = rotnative[1];
+			const T& r2 = rotnative[2];
+			const T& r3 = rotnative[3];
+			const T& r4 = rotnative[4];
+			const T& r5 = rotnative[5];
+			const T& r6 = rotnative[6];
+			const T& r7 = rotnative[7];
+			const T& r8 = rotnative[8];
+
+			T x[3];
+			x[0] = X[0] * r0 + X[1] * r3 + X[2] * r6 + R_t[3];
+			x[1] = X[0] * r1 + X[1] * r4 + X[2] * r7 + R_t[4];
+			x[2] = X[0] * r2 + X[1] * r5 + X[2] * r8 + R_t[5];
+
+			// Normaliseren
+			T xn = x[0] / x[2];
+			T yn = x[1] / x[2];
+			T predicted_x, predicted_y;
+
+			ApplyRadialDistortionCameraIntrinsics(focal_length_x,
+				focal_length_y,
+				principal_point_x,
+				principal_point_y,
+				k1, k2, k3,
+				p1, p2,
+				xn, yn,
+				&predicted_x,
+				&predicted_y);
+
+			residuals[3] = predicted_x - T(observed_x);
+			residuals[4] = predicted_y - T(observed_y);
+
+			return true;
+		}
+		const Eigen::Array2d observed_1;
+		const Eigen::Array2d observed_2;
 	};
 
 	// Print a message to the log which camera intrinsics are gonna to be optimized.

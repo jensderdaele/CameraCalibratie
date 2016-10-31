@@ -19,9 +19,6 @@ using Calibratie;
 
 namespace CalibratieForms {
     public class ZhangSimulation : INotifyPropertyChanged {
-
-
-
         #region ctors
         public static ZhangSimulation CreateSimulation(PinholeCamera c,ChessBoard board,int pictureCount, 
             Func<int,double[]> distanceGenerator ,

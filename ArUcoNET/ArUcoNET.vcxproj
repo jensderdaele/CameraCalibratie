@@ -152,16 +152,17 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArUcoNET.h" />
     <ClInclude Include="Aruco.h" />
+    <ClInclude Include="SIFT.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArUcoNET.cpp" />
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Aruco.cpp" />
+    <ClCompile Include="SIFT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

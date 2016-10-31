@@ -32,6 +32,7 @@ namespace CalibratieForms {
             AllForms.Add(this);
             this.Closed += (s, a) => { AllForms.Remove(this); };
 
+            
             _simulations.CollumnDisplay2 = (s,item) => {
                 item.Text = s.Camera.PictureSizeST;
                 item.SubItems.AddRange(new[] {
@@ -123,9 +124,9 @@ namespace CalibratieForms {
 
         private void button1_Click(object sender, EventArgs e) {
             var c = PinholeCamera.getTestCamera();
-            var b = new ChessBoard(10,4,20);
+            var b = new ChessBoard(8,6,20);
             var s = ZhangSimulation.CreateSimulation(c, b, 5,
-                count => Util.gaussDistr(count, .7, .2, .20, 1),
+                count => Util.gaussDistr(count, .5, .2, .20, 1),
                 count => Util.gaussDistr(count, 0, Math.PI / 4, -Math.PI / 2, Math.PI / 2)
                 );
             _simulations.Add(s);

@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArUcoNET.h">
+    <ClInclude Include="Aruco.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Aruco.h">
+    <ClInclude Include="SIFT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArUcoNET.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Aruco.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SIFT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

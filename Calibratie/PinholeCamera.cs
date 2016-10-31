@@ -104,6 +104,12 @@ namespace Calibratie {
                 OnPropertyChanged();
             }
         }
+        public MatOfDouble Cv_DistCoeffs5_cv {
+            get {
+                var data = new double[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3 };
+                return new MatOfDouble(5,1,data);
+            }
+        }
         public double[] Cv_rvecs { get { return new[] { Dir.X, Dir.Y, Dir.Z }; } }
         public double[] Cv_tvecs { get { return new[] { Pos.X, Pos.Y, Pos.Z }; } }
 

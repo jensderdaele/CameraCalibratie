@@ -4,13 +4,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ArUcoNET;
 using ceresdotnet;
 using Calibratie;
 using OpenCvSharp;
 using OpenTK;
 
 namespace CalibratieForms {
-    public static class EXT {
+    public static partial class EXT {
+        public static Dictionary<string, IEnumerable<ArucoMarker>> getArucoMarkers(IEnumerable<string> files) {
+            return files.ToDictionary(f => f, ArUcoNET.Aruco.FindMarkers);
+        } 
         public static Point2d to2d(this Point2f p) {
             return new Point2d(p.X,p.Y);
         }

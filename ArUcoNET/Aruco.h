@@ -6,6 +6,7 @@
 
 
 #include <opencv2\calib3d\calib3d.hpp>
+#include <opencv2\xfeatures2d\nonfree.hpp>
 
 #include "stdafx.h"
 #include <iostream>
@@ -18,7 +19,7 @@ using namespace std;
 using namespace cv;
 using namespace System::Linq;
 
-
+using namespace cv::xfeatures2d;
 
 
 namespace ArUcoNET {
@@ -28,15 +29,17 @@ namespace ArUcoNET {
 		OpenCvSharp::Point2f Corner1;
 		OpenCvSharp::Point2f Corner2;
 		OpenCvSharp::Point2f Corner3;
+		OpenCvSharp::Point2f Corner4;
 		int ID;
 
 		ArucoMarker(){
 			
 		}
-		ArucoMarker(OpenCvSharp::Point2f^ Corner1, OpenCvSharp::Point2f^ Corner2, OpenCvSharp::Point2f^ Corner3, int id){
+		ArucoMarker(OpenCvSharp::Point2f^ Corner1, OpenCvSharp::Point2f^ Corner2, OpenCvSharp::Point2f^ Corner3, OpenCvSharp::Point2f^ Corner4, int id){
 			this->Corner1 = *Corner1;
 			this->Corner2 = *Corner2;
 			this->Corner3 = *Corner3;
+			this->Corner4 = *Corner4;
 			ID = id;
 		}
 	};
@@ -128,15 +131,77 @@ namespace ArUcoNET {
 		}
 	};
 
+	public ref class sieft{
+	public:
+		
+	};
+
+	static std::string format(const char* fmt, ...){
+		int size = 512;
+		char* buffer = 0;
+		buffer = new char[size];
+		va_list vl;
+		va_start(vl, fmt);
+		int nsize = vsnprintf(buffer, size, fmt, vl);
+		if (size <= nsize){ //fail delete buffer and try again
+			delete[] buffer;
+			buffer = 0;
+			buffer = new char[nsize + 1]; //+1 for /0
+			nsize = vsnprintf(buffer, size, fmt, vl);
+		}
+		std::string ret(buffer);
+		va_end(vl);
+		delete[] buffer;
+		return ret;
+	}
 
 	public ref class Aruco{
-	public:
-		static IEnumerable<ArucoMarker^>^ FindMarkers(System::String^ fileName){
+	private:
 		
+	public:
+		static void CreateMarkerToFile(int id, string path, int pixelSz){
+			cv::Mat markerImage; 
+			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
+			imwrite(path, markerImage);
 			
+		}
+		
+		static System::IntPtr CreateMarker(int id, int pixelSz){
+			cv::Mat markerImage;
+			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
+
+			//cv::imwrite(format("%d.%d.jpg", id, pixelSz), markerImage);
+
+			//System::Drawing::Bitmap^ bitmap = gcnew System::Drawing::Bitmap(pixelSz, pixelSz, 32 * pixelSz, System::Drawing::Imaging::PixelFormat::Format32bppRgb, IntPtr(&markerImage));
 			
+			return IntPtr(&markerImage);
+			
+		}
+
+		static System::IntPtr CreateMarker(int id, int pixelSz, System::String^ saveFile){
+			std::string f = msclr::interop::marshal_as<std::string>(saveFile);
+			cv::Mat markerImage;
+			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
+
+			cv::imwrite(f, markerImage);
+
+			//System::Drawing::Bitmap^ bitmap = gcnew System::Drawing::Bitmap(pixelSz, pixelSz, 32 * pixelSz, System::Drawing::Imaging::PixelFormat::Format32bppRgb, IntPtr(&markerImage));
+
+			return IntPtr(&markerImage);
+
+		}
+		
+		static IEnumerable<ArucoMarker^>^ FindMarkers(System::String^ fileName){
+			return FindMarkers(fileName, "");
+		}
+		static IEnumerable<ArucoMarker^>^ FindMarkers(System::String^ fileName, System::String^ detectedFile){
 			std::string f = msclr::interop::marshal_as<std::string>(fileName);
-			cout << "FindMarkers aruco: " << f << endl;
+			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
+			
+			//cout << "FindMarkers aruco: " << f << endl;
 			int start = GetTickCount();
 			Mat testImage = imread(f, IMREAD_COLOR);
 			
@@ -144,12 +209,81 @@ namespace ArUcoNET {
 			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
 			detectorParams->doCornerRefinement = true;
+			detectorParams->adaptiveThreshWinSizeMin = 140;
+
+			detectorParams->adaptiveThreshWinSizeStep = 30;
+			detectorParams->adaptiveThreshWinSizeMax = 230;
+
+			detectorParams->minMarkerPerimeterRate = 0.08;
+
+			detectorParams->minMarkerDistanceRate = 0.005;
+
+			detectorParams->cornerRefinementWinSize = 6;
+			detectorParams->cornerRefinementMinAccuracy = 0.08;
+			detectorParams->cornerRefinementMaxIterations = 50;
+			detectorParams->polygonalApproxAccuracyRate = 0.05;
 
 			std::vector< std::vector<cv::Point2f> > markerCorners;
 			std::vector< std::vector<cv::Point2f> > rejected;
 			std::vector<int> markerIDs;
 
+
 			cv::aruco::detectMarkers(testImage, markerDictionary, markerCorners, markerIDs, detectorParams, rejected);
+			cv::aruco::drawDetectedMarkers(testImage, markerCorners, markerIDs);
+
+
+
+			if (!System::String::IsNullOrEmpty(detectedFile))
+				cv::imwrite(msclr::interop::marshal_as<std::string>(detectedFile), testImage);
+
+			List<ArucoMarker^>^ markerList = gcnew List<ArucoMarker^>();
+			int sz = markerCorners.size();
+			for (size_t i = 0; i < markerCorners.size(); i++)
+			{
+				OpenCvSharp::Point2f^ corner1 = gcnew OpenCvSharp::Point2f(markerCorners[i][0].x, markerCorners[i][0].y);
+				OpenCvSharp::Point2f^ corner2 = gcnew OpenCvSharp::Point2f(markerCorners[i][1].x, markerCorners[i][1].y);
+				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
+				OpenCvSharp::Point2f^ corner4 = gcnew OpenCvSharp::Point2f(markerCorners[i][3].x, markerCorners[i][3].y);
+				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3, markerIDs[i]));
+			}
+			
+			int timelapse = GetTickCount() - start;
+			//cout << "FindMarkers aruco complete: " << sz << " gevonden in " << timelapse << "ms" << endl;
+			return markerList;
+		}
+		static IEnumerable<ArucoMarker^>^ FindMarkers(System::IntPtr cvimage, System::String^ detectedFile){
+			//std::string f = msclr::interop::marshal_as<std::string>(fileName);
+			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
+			cout << "FindMarkers aruco from intptr " << endl;
+			int start = GetTickCount();
+			Mat testImage = *(Mat*)cvimage.ToPointer();
+
+			cv::Ptr<aruco::DetectorParameters> parameters;
+			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
+			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
+			detectorParams->doCornerRefinement = true;
+			detectorParams->adaptiveThreshWinSizeMin = 10;
+
+			detectorParams->adaptiveThreshWinSizeStep = 20;
+			detectorParams->adaptiveThreshWinSizeMax = 50;
+
+			detectorParams->cornerRefinementWinSize = 18;
+			detectorParams->cornerRefinementMinAccuracy = 0.05;
+			detectorParams->cornerRefinementMaxIterations = 50;
+			detectorParams->polygonalApproxAccuracyRate = 0.03;
+
+			std::vector< std::vector<cv::Point2f> > markerCorners;
+			std::vector< std::vector<cv::Point2f> > rejected;
+			std::vector<int> markerIDs;
+
+
+			cv::aruco::detectMarkers(testImage, markerDictionary, markerCorners, markerIDs, detectorParams, rejected);
+			cv::aruco::drawDetectedMarkers(testImage, markerCorners, markerIDs);
+
+
+
+			if (!System::String::IsNullOrEmpty(detectedFile))
+				cv::imwrite(msclr::interop::marshal_as<std::string>(detectedFile), testImage);
 
 			List<ArucoMarker^>^ markerList = gcnew List<ArucoMarker^>();
 			int sz = markerCorners.size();
@@ -160,6 +294,7 @@ namespace ArUcoNET {
 				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
 				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3, markerIDs[i]));
 			}
+
 			int timelapse = GetTickCount() - start;
 			cout << "FindMarkers aruco complete: " << sz << " gevonden in " << timelapse << "ms" << endl;
 			return markerList;

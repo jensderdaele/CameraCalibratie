@@ -66,7 +66,7 @@ namespace CalibratieForms {
             var s = new Scene(); 
 
             //calibratieruimte 8x4x10m elke 1m een marker, returns List<CalibratieForms::Marker>
-            var ptn3d = createBox(8, 4, 10, 1); 
+            var ptn3d = createBox(8, 4, 10, 0.1); 
             s.objects.AddRange(ptn3d); //markers toevoegen aan scene
 
             Random rnd = new Random();
@@ -85,15 +85,15 @@ namespace CalibratieForms {
                 cameras.Add(c);
             }
             
-            for (int i = 0; i < 5; i++) { //5 foto's met Casio camera
-                var c = PinholeCamera.getTestCameraHuawei();//Casio bepaald via zhang
+            /*for (int i = 0; i < 5; i++) { //5 foto's met Casio camera
+                var c = PinholeCamera.getTestCamera();//Casio bepaald via zhang
                 c.Name = "casio";
                 var Pos = new Vector3d(rnd.Next(2, 6), 2, rnd.Next(3, 7));
                 var target = ptn3d[rnd.Next(ptn3d.Count)];
                 var worldtocamera = Matrix4d.LookAt(Pos, target.Pos, Vector3d.UnitY);
                 c.worldMat = worldtocamera.Inverted();
                 cameras.Add(c);
-            }
+            }*/
             s.objects.AddRange(cameras);
             return s;
         }

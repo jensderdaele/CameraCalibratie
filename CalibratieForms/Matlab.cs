@@ -10,21 +10,24 @@ using OpenTK;
 using MathWorks.MATLAB.NET.Utility;
 using MathWorks.MATLAB.NET.Arrays;
 using OpenCvSharp;
+using MathWorks.MATLAB.NET;
+
 
 
 namespace CalibratieForms {
     public static class Matlab {
-        public static MLApp.MLApp ML;
+        //public static MLApp.MLApp ML;
 
         static Matlab() {
-            ML = new MLApp.MLApp();
-            ML.Execute("workspace");
+           // ML = new MLApp.MLApp();
+            //ML.Execute("workspace");
+            
         }
 
         private static int count = 0;
         private static string workspacename = "base";
         public static void ScatterPlot(Point2d[] data) {
-            double[,] dataArray = new double[2,data.Length];
+           /* double[,] dataArray = new double[2,data.Length];
             double[] xdata = new double[data.Length];
             double[] ydata = new double[data.Length];
             for (int i = 0; i < data.Length; i++) {
@@ -54,11 +57,11 @@ namespace CalibratieForms {
             ML.Execute(String.Format(@" clear x;clear y;
                                         x={0}[0];
                                         y={0}[1];
-                                        scatter(x,y,'x')", dataName));
+                                        scatter(x,y,'x')", dataName));*/
 
         }
         public static void ScatterPlot(List<Point2d[]> dataList,string name) {
-            int index = 1;
+            /*int index = 1;
             string dataName = String.Format("scatter_{0}", name);
             ML.Execute(String.Format(@"figure('{0}','HOLD ON approach')", name));
             
@@ -80,12 +83,12 @@ namespace CalibratieForms {
                 index++;
             }
 
-            
+            */
             
         }
 
         public static void ScatterPlot(double[,] data) {
-            count++;
+            /*count++;
             string dataName = "testScatterPlot" + count;
 
             ML.PutWorkspaceData("test" + count, workspacename, count * 3);
@@ -94,7 +97,7 @@ namespace CalibratieForms {
             ML.Execute(String.Format(@" x={0}[0];
                                         y={0}[1];
                                         scatter(x,y)", dataName));
-
+            */
         }
     }
 }
