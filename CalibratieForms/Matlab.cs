@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.Design.WebControls;
+using Calibratie;
+using CalibratieForms.Properties;
 using MathNet.Numerics.LinearAlgebra.Complex;
 using OpenTK;
 using MathWorks.MATLAB.NET.Utility;
@@ -17,6 +20,13 @@ using MathWorks.MATLAB.NET;
 namespace CalibratieForms {
     public static class Matlab {
         //public static MLApp.MLApp ML;
+        private static string byteToString(byte[] data) {
+            return System.Text.Encoding.ASCII.GetString(data);
+        }
+        public static void VisualizeDistortions(PinholeCamera camera) {
+            var script = byteToString(Resources.visualize_distortions);
+
+        }
 
         static Matlab() {
            // ML = new MLApp.MLApp();

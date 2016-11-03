@@ -1,7 +1,8 @@
 #pragma once
+
 #include "stdafx.h"
 #include "ceresdotnet.h"
-
+#include <vcclr.h>
 
 #pragma managed
 
@@ -54,7 +55,20 @@ namespace ceresdotnet {
 		static T* operator->(Embedded% e) { return e.t; }
 	};
 #pragma endregion
+	
+#pragma region enums
 
+	public enum class IntrinsicsOffsets: int{
+		OFFSET_FOCAL_LENGTH_X,
+		OFFSET_FOCAL_LENGTH_Y,
+		OFFSET_PRINCIPAL_POINT_X,
+		OFFSET_PRINCIPAL_POINT_Y,
+		OFFSET_K1,
+		OFFSET_K2,
+		OFFSET_P1,
+		OFFSET_P2,
+		OFFSET_K3,
+	};
 	[FlagsAttribute]
 	public enum class  BundleIntrinsicsFlags :int
 	{
@@ -64,232 +78,22 @@ namespace ceresdotnet {
 		R2 = 8,
 		P1 = 16,
 		P2 = 32,
-		P3 = 64,
-		ALL = FocalLength & PrincipalP & R1 &R2 &P1&P2&P3
+		R3 = 64,
+		ALL = FocalLength & PrincipalP & R1 &R2 &P1&P2&R3,
+		GeoAutomation = FocalLength & PrincipalP & R1 & R2 & R3
 	};
-
-	public ref class CeresPointOrient{
-	internal:
-		double *_Rt;
-	public:
-		CeresPointOrient(){
-			_Rt = new double[6];
-		};
-		!CeresPointOrient() {
-			if (_Rt != nullptr) {
-				delete [] _Rt;
-				_Rt = nullptr;
-			}
-		}
-		~CeresPointOrient(){
-			this->!CeresPointOrient();
-		};
-
-		property array<double>^ RT {
-			array<double>^ get() {
-				array<double>^ r = gcnew array<double>(6);
-				pin_ptr<double> p = &r[0];
-				memcpy(p, _Rt, 6 * 8);
-				return r;
-			}
-			void set(array<double>^ v){
-				pin_ptr<double> p = &v[0];
-				memcpy(_Rt, p, 6 * 8);
-			}
-		}
-
-		property array<double>^ R_rod {
-			array<double>^ get() {
-				array<double>^ r = gcnew array<double>(3);
-				pin_ptr<double> p = &r[0];
-				memcpy(p, _Rt, 3 * 8);
-				return r;
-			}
-			void set(array<double>^ v){
-				pin_ptr<double> p = &v[0];
-				memcpy(_Rt, p, 3 * 8);
-			}
-		}
-
-		property array<double>^ t {
-			array<double>^ get() {
-				array<double>^ r = gcnew array<double>(3);
-				pin_ptr<double> p = &r[0];
-				memcpy(p, &_Rt[3], 3 * 8);
-				return r;
-			}
-			void set(array<double>^ v){
-				pin_ptr<double> p = &v[0];
-				memcpy(&_Rt[3], p, 3 * 8);
-			}
-		}
-
-		void set(Matrix4d^ worldMat){
-			OpenTK::Matrix4d m = *worldMat;
-
-			Mat3* rmat = new Mat3();
-			(*rmat)(0) = m.M11;
-			(*rmat)(1) = m.M12;
-			(*rmat)(2) = m.M13;
-			(*rmat)(3) = m.M21;
-			(*rmat)(4) = m.M22;
-			(*rmat)(5) = m.M23;
-			(*rmat)(6) = m.M31;
-			(*rmat)(7) = m.M32;
-			(*rmat)(8) = m.M33;
-
-			ceres::RotationMatrixToAngleAxis((double*)rmat, _Rt);
-
-			_Rt[3] = m.M41;
-			_Rt[4] = m.M42;
-			_Rt[5] = m.M43;
-		}
-
-		static CeresPointOrient^ From(Matrix4d^ worldMat){
-			CeresPointOrient^ r = gcnew CeresPointOrient();
-			r->set(worldMat);
-			return r;
-		}
+	[FlagsAttribute]
+	public enum class  BundleWorldCoordinatesFlags :int
+	{
+		None = 0,
+		X = 1,
+		Y = 2,
+		Z = 4,
+		ALL = X & Z & Y
 	};
-	
-	public ref class CeresIntrinsics{
-	internal:
-		double *_intrinsics;// = new double[9];
-	public:
-		CeresIntrinsics(){
-			_intrinsics = new double[9];
-		}; 
-		!CeresIntrinsics() {
-			if (_intrinsics != nullptr) {
-				delete [] _intrinsics;
-				_intrinsics = nullptr;
-			}
-		}
-		~CeresIntrinsics(){
-			this->!CeresIntrinsics();
-		};
+#pragma endregion
 
-
-		property array<double>^ Intrinsics {
-			array<double>^ get() {
-				array<double>^ r = gcnew array<double>(9);
-				pin_ptr<double> p = &r[0];
-				memcpy(p, _intrinsics, 9 * 8);
-				return r;
-			}
-			void set(array<double>^ v){
-				pin_ptr<double> p = &v[0];
-				memcpy(_intrinsics, p, 9 * 8);
-			}
-		}
-
-		property double fx{
-			double get(){
-				return _intrinsics[OFFSET_FOCAL_LENGTH_X];
-			}}
-		property double fy{
-			double get(){
-				return _intrinsics[OFFSET_FOCAL_LENGTH_Y];
-			}}
-		property double ppx{
-			double get(){
-				return _intrinsics[OFFSET_PRINCIPAL_POINT_X];
-			}}
-		property double ppy{
-			double get(){
-				return _intrinsics[OFFSET_PRINCIPAL_POINT_Y];
-			}}
-		property double k1{
-			double get(){
-				return _intrinsics[OFFSET_K1];
-			}}
-		property double k2{
-			double get(){
-				return _intrinsics[OFFSET_K2];
-			}}
-		property double k3{
-			double get(){
-				return _intrinsics[OFFSET_K3];
-			}}
-		property double p1{
-			double get(){
-				return _intrinsics[OFFSET_P1];
-			}}
-		property double p2{
-			double get(){
-				return _intrinsics[OFFSET_P2];
-			}}
-
-	};
-
-	public ref class CeresCamera2{
-	public:
-		initonly CeresPointOrient^ External = gcnew CeresPointOrient();
-		CeresIntrinsics^ Internal = gcnew CeresIntrinsics();
-
-		CeresCamera2(OpenTK::Matrix3d r, OpenTK::Vector3d rvec){
-			Mat3* rmat = new Mat3();
-			(*rmat)(0) = r.M11;
-			(*rmat)(1) = r.M12;
-			(*rmat)(2) = r.M13;
-			(*rmat)(3) = r.M21;
-			(*rmat)(4) = r.M22;
-			(*rmat)(5) = r.M23;
-			(*rmat)(6) = r.M31;
-			(*rmat)(7) = r.M32;
-			(*rmat)(8) = r.M33;
-
-			ceres::RotationMatrixToAngleAxis((double*)rmat, External->_Rt);
-			External->_Rt[3] = rvec.X;
-			External->_Rt[4] = rvec.Y;
-			External->_Rt[5] = rvec.Z;
-		}
-		
-		CeresCamera2(OpenTK::Matrix4d cameraWorldMat){
-			cameraWorldMat.Invert();
-
-			OpenTK::Matrix4d m = cameraWorldMat;
-
-			Mat3* rmat = new Mat3();
-			(*rmat)(0) = m.M11;
-			(*rmat)(1) = m.M12;
-			(*rmat)(2) = m.M13;
-			(*rmat)(3) = m.M21;
-			(*rmat)(4) = m.M22;
-			(*rmat)(5) = m.M23;
-			(*rmat)(6) = m.M31;
-			(*rmat)(7) = m.M32;
-			(*rmat)(8) = m.M33;
-
-			ceres::RotationMatrixToAngleAxis((double*)rmat, External->_Rt);
-
-			External->_Rt[3] = m.M41;
-			External->_Rt[4] = m.M42;
-			External->_Rt[5] = m.M43;
-		}
-
-		static CeresCamera2^ From(PinholeCamera^ pc){
-			CeresCamera2^ r = gcnew CeresCamera2(pc->worldMat);
-			
-			r->Internal->_intrinsics[OFFSET_FOCAL_LENGTH_X] = pc->CameraMatrix->fx;
-			r->Internal->_intrinsics[OFFSET_FOCAL_LENGTH_Y] = pc->CameraMatrix->fx;
-			r->Internal->_intrinsics[OFFSET_PRINCIPAL_POINT_X] = pc->CameraMatrix->cx;
-			r->Internal->_intrinsics[OFFSET_PRINCIPAL_POINT_Y] = pc->CameraMatrix->cy;
-			r->Internal->_intrinsics[OFFSET_K1] = pc->DistortionR1;
-			r->Internal->_intrinsics[OFFSET_K2] = pc->DistortionR2;
-			r->Internal->_intrinsics[OFFSET_K3] = pc->DistortionR3;
-			r->Internal->_intrinsics[OFFSET_P1] = pc->DistortionT1;
-			r->Internal->_intrinsics[OFFSET_P2] = pc->DistortionT2;
-			return r;
-		}
-
-	};
-
-	public ref class CeresObservation{
-	public:
-		IEnumerable<CeresMarker> detectedMarkers;
-	};
-
+#pragma region Slecht
 	public ref class CeresCamera {
 	private:
 		Embedded<EuclideanCamera> camera;
@@ -389,73 +193,6 @@ namespace ceresdotnet {
 				n()->image = i;
 			}
 		}
-
-		static CeresCamera^ From(PinholeCamera^ pc){
-			Matrix4d viewMatrix(pc->worldMat.Inverted());
-			Vector3d^ trans = gcnew Vector3d(viewMatrix.Row3[0],viewMatrix.Row3[1],viewMatrix.Row3[2]);
-			CeresCamera^ r = gcnew CeresCamera(*(gcnew OpenTK::Matrix3d(viewMatrix)),
-				*trans,
-				0);
-			
-			EuclideanCamera* ec = r->n();
-			ec->intrinsics[OFFSET_FOCAL_LENGTH_X] = pc->CameraMatrix->fx;
-			ec->intrinsics[OFFSET_FOCAL_LENGTH_Y] = pc->CameraMatrix->fx;
-			ec->intrinsics[OFFSET_PRINCIPAL_POINT_X] = pc->CameraMatrix->cx;
-			ec->intrinsics[OFFSET_PRINCIPAL_POINT_Y] = pc->CameraMatrix->cy;
-			ec->intrinsics[OFFSET_K1] = pc->DistortionR1;
-			ec->intrinsics[OFFSET_K2] = pc->DistortionR2;
-			ec->intrinsics[OFFSET_K3] = pc->DistortionR3;
-			ec->intrinsics[OFFSET_P1] = pc->DistortionT1;
-			ec->intrinsics[OFFSET_P2] = pc->DistortionT2;
-			return r;
-		}
-
-
-	};
-
-	public interface class ICeresMarker{
-		property double x{double get(); };
-		property double y{double get(); };
-		property double* WorldCoordinates{double* get(); }
-		property int BundleCoordinates{int get(); }
-	};
-	public interface class ICeresCamera{
-		property double* Intrinsics{double* get(); }
-		property int BundleIntrinsics{int get(); }
-		property double* Rt{double* get(); }
-	};
-	public interface class ICeresStereoCamera{
-		property double* Intrinsics1{double* get(); }
-		property double* Intrinsics2{double* get(); }
-		property int BundleIntrinsics1{int get(); }
-		property int BundleIntrinsics2{int get(); }
-		property double* Rt1{double* get(); }
-		property double* Rt2{double* get(); }
-	};
-	public interface class ICeresObservation{
-		property ICeresCamera Camera
-	};
-	public ref class CeresMarker{
-	internal:
-		Embedded<Marker> marker;
-		
-	public:
-		CeresPoint^ Worldcoordinates;
-
-		Marker* getNativeClass(){
-			return &marker;
-		};
-		/*
-		CeresMarker(int image, int track, double x, double y){
-			Marker* m = &marker;
-			m->image = image;
-			m->track = track;
-			m->x = x;
-			m->y = y;
-		}*/
-		CeresMarker(double x, double y,CeresPoint^ worldpoint){
-			Worldcoordinates = worldpoint;
-		}
 	};
 
 	public ref class CeresPoint{
@@ -495,49 +232,355 @@ namespace ceresdotnet {
 		}
 	};
 
-	public ref class CeresStereoCamera{
+	public ref class CeresMarker{
 	internal:
-		Embedded<EuclideanCamera> camera1;
-		Embedded<EuclideanCamera> camera2;
-		bool _intrinsic_linked = false;
+		Embedded<Marker> marker;
 
 	public:
+		CeresPoint^ Worldcoordinates;
+
+		Marker* getNativeClass(){
+			return &marker;
+		};
+		/*
+		CeresMarker(int image, int track, double x, double y){
+		Marker* m = &marker;
+		m->image = image;
+		m->track = track;
+		m->x = x;
+		m->y = y;
+		}*/
+		CeresMarker(double x, double y, CeresPoint^ worldpoint){
+			Worldcoordinates = worldpoint;
+		}
+	};
+
+#pragma endregion
+
+#pragma region Interfaces
+
+	public interface class ICeresMarker{
+		property double x{double get(); };
+		property double y{double get(); };
+		property double* WorldCoordinates{double* get(); }
+		property BundleWorldCoordinatesFlags BundleCoordinates{BundleWorldCoordinatesFlags get(); }
+	};
+	public interface class ICeresCamera{
+		property String^ Name{String^ get(); }
+		property double* Intrinsics{double* get(); }
+		property BundleIntrinsicsFlags BundleIntrinsics{BundleIntrinsicsFlags get(); void set(BundleIntrinsicsFlags); }
+		property double* Rt{double* get(); }
+	};
+	public interface class ICeresStereoCamera{
+		property String^ Name{String^ get(); }
+		property double* Intrinsics1{double* get(); }
+		property double* Intrinsics2{double* get(); }
+		property BundleIntrinsicsFlags BundleIntrinsics1{BundleIntrinsicsFlags get(); }
+		property BundleIntrinsicsFlags BundleIntrinsics2{BundleIntrinsicsFlags get(); }
+		property double* Rt1{double* get(); }
+		property double* Rt2{double* get(); }
+	};
+	public interface class ICeresObservation{
+		property ICeresCamera^ Camera{ICeresCamera^ get(); }
+		property IEnumerable<ICeresMarker^>^ Markers{IEnumerable<ICeresMarker^>^ get(); }
+	};
+	public interface class ICeresStereoObservation{
+		property ICeresStereoCamera^ StereoCamera{ICeresStereoCamera^ get(); }
+		property IEnumerable<ICeresMarker^>^ MarkersFirst{IEnumerable<ICeresMarker^>^ get(); }
+		property IEnumerable<ICeresMarker^>^ MarkersSecond{IEnumerable<ICeresMarker^>^ get(); }
+	};
+
+#pragma endregion
+
+#pragma region classes goed
+
+	public ref class CeresPointOrient{
+	internal:
+		double *_Rt;
+	public:
+		CeresPointOrient(){
+			_Rt = new double[6];
+		};
+		!CeresPointOrient() {
+			if (_Rt != nullptr) {
+				delete[] _Rt;
+				_Rt = nullptr;
+			}
+		}
+		~CeresPointOrient(){
+			this->!CeresPointOrient();
+		};
+
+		property array<double>^ RT {
+			array<double>^ get() {
+				array<double>^ r = gcnew array<double>(6);
+				pin_ptr<double> p = &r[0];
+				memcpy(p, _Rt, 6 * 8);
+				return r;
+			}
+			void set(array<double>^ v){
+				pin_ptr<double> p = &v[0];
+				memcpy(_Rt, p, 6 * 8);
+			}
+		}
+
+		property array<double>^ R_rod {
+			array<double>^ get() {
+				array<double>^ r = gcnew array<double>(3);
+				pin_ptr<double> p = &r[0];
+				memcpy(p, _Rt, 3 * 8);
+				return r;
+			}
+			void set(array<double>^ v){
+				pin_ptr<double> p = &v[0];
+				memcpy(_Rt, p, 3 * 8);
+			}
+		}
+
+		property array<double>^ t {
+			array<double>^ get() {
+				array<double>^ r = gcnew array<double>(3);
+				pin_ptr<double> p = &r[0];
+				memcpy(p, &_Rt[3], 3 * 8);
+				return r;
+			}
+			void set(array<double>^ v){
+				pin_ptr<double> p = &v[0];
+				memcpy(&_Rt[3], p, 3 * 8);
+			}
+		}
+
+		void set(Matrix4d^ worldMat){
+			OpenTK::Matrix4d m = *worldMat;
+
+			Mat3* rmat = new Mat3();
+			(*rmat)(0) = m.M11;
+			(*rmat)(1) = m.M12;
+			(*rmat)(2) = m.M13;
+			(*rmat)(3) = m.M21;
+			(*rmat)(4) = m.M22;
+			(*rmat)(5) = m.M23;
+			(*rmat)(6) = m.M31;
+			(*rmat)(7) = m.M32;
+			(*rmat)(8) = m.M33;
+
+			ceres::RotationMatrixToAngleAxis((double*)rmat, _Rt);
+
+			_Rt[3] = m.M41;
+			_Rt[4] = m.M42;
+			_Rt[5] = m.M43;
+		}
+
+		static CeresPointOrient^ From(Matrix4d^ worldMat){
+			CeresPointOrient^ r = gcnew CeresPointOrient();
+			r->set(worldMat);
+			return r;
+		}
+	};
+
+	public ref class CeresIntrinsics{
+	internal:
+		double *_intrinsics;// = new double[9];
+	public:
+		CeresIntrinsics(){
+			_intrinsics = new double[9];
+		};
+		!CeresIntrinsics() {
+			if (_intrinsics != nullptr) {
+				delete[] _intrinsics;
+				_intrinsics = nullptr;
+			}
+		}
+		~CeresIntrinsics(){
+			this->!CeresIntrinsics();
+		};
+
 
 		property array<double>^ Intrinsics {
 			array<double>^ get() {
 				array<double>^ r = gcnew array<double>(9);
 				pin_ptr<double> p = &r[0];
-				memcpy(p, (&camera1)->intrinsics, 9 * 8);
+				memcpy(p, _intrinsics, 9 * 8);
 				return r;
 			}
 			void set(array<double>^ v){
 				pin_ptr<double> p = &v[0];
-				memcpy((&camera2)->intrinsics, p, 9 * 8);
+				memcpy(_intrinsics, p, 9 * 8);
 			}
 		}
 
+		property double fx{
+			double get(){
+				return _intrinsics[OFFSET_FOCAL_LENGTH_X];
+			}}
+		property double fy{
+			double get(){
+				return _intrinsics[OFFSET_FOCAL_LENGTH_Y];
+			}}
+		property double ppx{
+			double get(){
+				return _intrinsics[OFFSET_PRINCIPAL_POINT_X];
+			}}
+		property double ppy{
+			double get(){
+				return _intrinsics[OFFSET_PRINCIPAL_POINT_Y];
+			}}
+		property double k1{
+			double get(){
+				return _intrinsics[OFFSET_K1];
+			}}
+		property double k2{
+			double get(){
+				return _intrinsics[OFFSET_K2];
+			}}
+		property double k3{
+			double get(){
+				return _intrinsics[OFFSET_K3];
+			}}
+		property double p1{
+			double get(){
+				return _intrinsics[OFFSET_P1];
+			}}
+		property double p2{
+			double get(){
+				return _intrinsics[OFFSET_P2];
+			}}
 
-		static CeresCamera^ From(PinholeCamera^ pc){
-			Matrix4d viewMatrix(pc->worldMat.Inverted());
-			Vector3d^ trans = gcnew Vector3d(viewMatrix.Row3[0], viewMatrix.Row3[1], viewMatrix.Row3[2]);
-			CeresCamera^ r = gcnew CeresCamera(*(gcnew OpenTK::Matrix3d(viewMatrix)),
-				*trans,
-				0);
+	};
 
-			EuclideanCamera* ec = r->n();
-			ec->intrinsics[OFFSET_FOCAL_LENGTH_X] = pc->CameraMatrix->fx;
-			ec->intrinsics[OFFSET_FOCAL_LENGTH_Y] = pc->CameraMatrix->fx;
-			ec->intrinsics[OFFSET_PRINCIPAL_POINT_X] = pc->CameraMatrix->cx;
-			ec->intrinsics[OFFSET_PRINCIPAL_POINT_Y] = pc->CameraMatrix->cy;
-			ec->intrinsics[OFFSET_K1] = pc->DistortionR1;
-			ec->intrinsics[OFFSET_K2] = pc->DistortionR2;
-			ec->intrinsics[OFFSET_K3] = pc->DistortionR3;
-			ec->intrinsics[OFFSET_P1] = pc->DistortionT1;
-			ec->intrinsics[OFFSET_P2] = pc->DistortionT2;
-			return r;
+	public ref class CeresCamera2{
+	public:
+		initonly CeresPointOrient^ External = gcnew CeresPointOrient();
+		CeresIntrinsics^ Internal = gcnew CeresIntrinsics();
+
+		CeresCamera2(OpenTK::Matrix3d r, OpenTK::Vector3d rvec){
+			Mat3* rmat = new Mat3();
+			(*rmat)(0) = r.M11;
+			(*rmat)(1) = r.M12;
+			(*rmat)(2) = r.M13;
+			(*rmat)(3) = r.M21;
+			(*rmat)(4) = r.M22;
+			(*rmat)(5) = r.M23;
+			(*rmat)(6) = r.M31;
+			(*rmat)(7) = r.M32;
+			(*rmat)(8) = r.M33;
+
+			ceres::RotationMatrixToAngleAxis((double*)rmat, External->_Rt);
+			External->_Rt[3] = rvec.X;
+			External->_Rt[4] = rvec.Y;
+			External->_Rt[5] = rvec.Z;
+		}
+
+		CeresCamera2(OpenTK::Matrix4d cameraWorldMat){
+			cameraWorldMat.Invert();
+			OpenTK::Matrix4d m = cameraWorldMat;
+
+			Mat3 rmat;
+			(rmat)(0) = m.M11;
+			(rmat)(1) = m.M12;
+			(rmat)(2) = m.M13;
+			(rmat)(3) = m.M21;
+			(rmat)(4) = m.M22;
+			(rmat)(5) = m.M23;
+			(rmat)(6) = m.M31;
+			(rmat)(7) = m.M32;
+			(rmat)(8) = m.M33;
+
+			ceres::RotationMatrixToAngleAxis((double*)&rmat(0), External->_Rt);
+
+
+			External->_Rt[3] = m.M41;
+			External->_Rt[4] = m.M42;
+			External->_Rt[5] = m.M43;
+
 		}
 	};
 
+
+	public ref class CeresPoint2{
+	internal:
+		Vec3* _vec;
+	public:
+		CeresPoint2(){
+			_vec = new Vec3();
+		}
+		!CeresPoint2() {
+			if (_vec != nullptr) {
+				delete _vec;
+				_vec = nullptr;
+			}
+		}
+		~CeresPoint2(){
+			this->!CeresPoint2();
+		};
+
+		BundleWorldCoordinatesFlags BundleCoordinates;
+		property Vector3d^ Coordinates{ Vector3d^ get(){
+			Vec3 c = *_vec;
+			return gcnew Vector3d(c(0), c(1), c(2));
+		}
+		void set(Vector3d^ value){
+
+			Vec3 c = *_vec;
+			c(0) = value->X;
+			c(1) = value->Y;
+			c(2) = value->Z;
+
+		}
+		}
+		property array<double>^ Coordinates_arr{ array<double>^ get(){
+			Vec3 c = *_vec;
+			return gcnew array < double > {c(0), c(1), c(2)};
+		}
+		void set(array<double>^ value){
+
+			Vec3 c = *_vec;
+			c(0) = value[0];
+			c(1) = value[1];
+			c(2) = value[2];
+
+		}
+		}
+	};
+
+	public ref class CeresMarker2{
+	internal:
+
+	public:
+		CeresPoint2^ Location;
+		double x, y;
+		int id;
+	};
+
+	
+	public ref class CeresStereoCamera{
+	public:
+		enum class BundleStereoCameraFlags{
+			FIX_ROTATION_TRANSLATION,
+			FIX_TRANSLATION
+		};
+		CeresIntrinsics^ Internal1, Internal2;
+		CeresPointOrient^ External_camera1, External_camera2_relative;
+		BundleStereoCameraFlags BundleMethod;
+
+		void get_RTcamera2(){
+		};
+		
+
+
+		
+
+	};
+
+#pragma endregion
+
+#pragma region Ceres Solver imp
+
+	public enum class CeresCallbackReturnType : int{
+		SOLVER_ABORT = ceres::SOLVER_ABORT,
+		SOLVER_CONTINUE = ceres::SOLVER_CONTINUE,
+		SOLVER_TERMINATE_SUCCESSFULLY = ceres::SOLVER_TERMINATE_SUCCESSFULLY
+	};
 
 	public ref class BundleProblem
 	{
@@ -604,6 +647,17 @@ namespace ceresdotnet {
 		};
 	};
 
+	delegate void Iteration(int iterationNr, IEnumerable<ICeresObservation^>^ observations, IEnumerable<ICeresStereoObservation^>^ stereoObservations, CeresCallbackReturnType^% returnType);
+
+	class NativeIterationCallback : public ceres::IterationCallback {
+
+	public:
+		virtual ceres::CallbackReturnType operator()(const
+			ceres::IterationSummary& summary) {
+			//int r = _problem->OnIterationStep(summary.iteration);
+			return (ceres::CallbackReturnType)0;
+		}
+	};
 
 
 	public ref class MultiCameraBundleProblem
@@ -611,15 +665,109 @@ namespace ceresdotnet {
 	private:
 		static void ApplyRT(double* base, double* object){};
 
+		static ceres::SubsetParameterization* GetIntrinsicsParametrization(BundleIntrinsicsFlags bundle_intrinsics){
+			std::vector<int> constant_intrinsics;
+
+#define MAYBE_SET_CONSTANT(bundle_enum, offset) \
+					if (!(bundle_enum.HasFlag(bundle_intrinsics))) { \
+					constant_intrinsics.push_back(offset); \
+					}
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::FocalLength, OFFSET_FOCAL_LENGTH_X);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::FocalLength, OFFSET_FOCAL_LENGTH_Y);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::PrincipalP, OFFSET_PRINCIPAL_POINT_X);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::PrincipalP, OFFSET_PRINCIPAL_POINT_Y);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::R1, OFFSET_K1);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::R2, OFFSET_K2);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::P1, OFFSET_P1);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::P2, OFFSET_P2);
+			MAYBE_SET_CONSTANT(BundleIntrinsicsFlags::R3, OFFSET_K3);
+#undef MAYBE_SET_CONSTANT
+
+			ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(9, constant_intrinsics);
+			return subset_parameterization;
+		}
+
+	internal:
+		IEnumerable<ICeresObservation^>^ observations_currentSolve;
+		IEnumerable<ICeresStereoObservation^>^ stereoObservations_currentSolve;
+		int OnIterationStep(int iteration){
+			CeresCallbackReturnType r;
+			//IterationStep(iteration, observations_currentSolve, stereoObservations_currentSolve, r);
+			return (int)r;
+		}
+
 	public:
-		
+
 		List<CeresCamera^>^ cameras = gcnew List<CeresCamera^>();
 		List<CeresMarker^>^ markers = gcnew List<CeresMarker^>();
 		List<CeresPoint^>^ all_points_managed = gcnew List<CeresPoint^>();
 
-		Dictionary<IntPtr, IEnumerable<CeresCamera^>^>^ getLinkedCameras(){
 
+		event Iteration^ IterationStep;
+
+
+
+		void SolveInterface(IEnumerable<ICeresObservation^>^ observations, IEnumerable<ICeresStereoObservation^>^ stereoObservations) {
+			if (observations != nullptr){
+
+			}
+			ceres::Solver::Options solver_options;
+			ceres::Problem::Options problem_options;
+			ceres::Problem problem(problem_options);
+
+			ceres::Solver::Options options;
+
+			/*NativeIterationCallback callback(this);
+			options.callbacks.push_back(&callback);
+			options.update_state_every_iteration = true;*/
+
+
+			auto obsenum = observations->GetEnumerator();
+			
+			vector<double*> intrinsicsList();
+			vector<double*> worldPointList();
+
+
+
+			while (obsenum->MoveNext()){
+				auto obs = obsenum->Current;
+				ICeresCamera^ camera = obs->Camera;
+				IEnumerator<ICeresMarker^>^ markerenum = obs->Markers->GetEnumerator();
+
+				double* intrinsics = camera->Intrinsics;
+
+				while (markerenum->MoveNext()){
+					ICeresMarker^ marker = markerenum->Current;
+
+					problem.AddResidualBlock(new ceres::AutoDiffCostFunction <
+						ReprojectionError, 2, 9, 6, 3 > (new ReprojectionError(marker->x, marker->y)),
+						NULL,
+						camera->Intrinsics,
+						camera->Rt,
+						marker->WorldCoordinates);
+
+					if (marker->BundleCoordinates == BundleWorldCoordinatesFlags::None){
+						problem.SetParameterBlockConstant(marker->WorldCoordinates);
+					}
+					else if (marker->BundleCoordinates == BundleWorldCoordinatesFlags::ALL)
+					{}
+					else
+					{
+						std::vector<int> constant_coordinates;
+						if (!marker->BundleCoordinates.HasFlag(BundleWorldCoordinatesFlags::X)) constant_coordinates.push_back(0);
+						if (!marker->BundleCoordinates.HasFlag(BundleWorldCoordinatesFlags::Y)) constant_coordinates.push_back(1);
+						if (!marker->BundleCoordinates.HasFlag(BundleWorldCoordinatesFlags::Z)) constant_coordinates.push_back(2);
+
+						ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(3, constant_coordinates);
+						problem.SetParameterization(marker->WorldCoordinates, subset_parameterization);
+					}
+				}
+				ceres::SubsetParameterization* subset_parameterization = GetIntrinsicsParametrization(camera->BundleIntrinsics);
+				problem.SetParameterization(intrinsics, subset_parameterization);
+
+			}
 		}
+	
 
 
 		static Vector2d testProjectPoint(Matrix3d mat, Vector3d trans, double obx, double oby, array<double>^ camera_intrinsics,array<double>^ Rt, Vector3d vec){
@@ -749,7 +897,7 @@ namespace ceresdotnet {
 			for each(CeresMarker^ marker_managed in *markers)
 			{
 				Marker* marker = marker_managed->getNativeClass();
-				CeresCamera^ camera_managed = marker_managed->parentCamera;
+				CeresCamera^ camera_managed;
 				EuclideanCamera* camera = camera_managed->n();
 
 				camera_intrinsics = camera->intrinsics;
@@ -855,7 +1003,7 @@ namespace ceresdotnet {
 			{
 				
 				Marker* marker = marker_managed->getNativeClass();
-				CeresCamera^ camera_managed = marker_managed->parentCamera;
+				CeresCamera^ camera_managed;// = marker_managed->parentCamera;
 				EuclideanCamera* camera = camera_managed->n();
 				
 				camera_intrinsics = camera->intrinsics;
@@ -930,4 +1078,6 @@ namespace ceresdotnet {
 			PrintCameraIntrinsics2("Final intrinsics: ", camera_intrinsics);
 		}
 	};
+
+#pragma endregion
 };

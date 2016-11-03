@@ -175,7 +175,8 @@ namespace CalibratieForms {
 
         public void toCeresInput(out List<CeresMarker> markers, out List<CeresCamera> cameras,
             out List<CeresPoint> points) {
-
+            throw new NotImplementedException();
+            /*
             markers = new List<CeresMarker>();
             int imageNr = 0;
             foreach (var chessboard in Chessboards) {
@@ -186,6 +187,7 @@ namespace CalibratieForms {
             }
             cameras = Chessboards.Select((x,i)=> new  CeresCamera(new Matrix3d(), new Vector3d(),i)).ToList();
             points = Chessboards[0].boardLocalCoordinates.Select((x, i) => new CeresPoint(x, i)).ToList();
+             * */
         }
 
         #region 2dprojection

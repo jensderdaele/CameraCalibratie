@@ -20,16 +20,13 @@ namespace CalibratieForms {
 
         public CameraSelectionForm() {
             InitializeComponent();
-            ComponentOwl.BetterListView.
             _cameras.CollumnDisplay2 = (camera, item) => {
-                item.
                 item.Text = camera.Name;
                 item.SubItems.AddRange(new[] {
                     ""
                 });
             };
             _cameras.ParentLV = betterListView1;
-            this.betterListView1.Items
         }
     }
 }

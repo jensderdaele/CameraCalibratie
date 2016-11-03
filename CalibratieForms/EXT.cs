@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ArUcoNET;
 using ceresdotnet;
 using Calibratie;
+using CalibratieForms.Properties;
 using OpenCvSharp;
 using OpenTK;
 
@@ -61,10 +62,12 @@ namespace CalibratieForms {
         /// <param name="imageID"></param>
         /// <returns></returns>
         public static IEnumerable<CeresMarker> getCeresMarkers(this ArUcoNET.ArucoMarker armarker,int imageID,CeresCamera parentCamera = null) {
+            throw new NotImplementedException();
+            /*
             yield return new CeresMarker(imageID, armarker.ID, armarker.Corner1.X, armarker.Corner1.Y) { parentCamera = parentCamera };
             yield return new CeresMarker(imageID, armarker.ID | (int)ArucoMarkerFlags.Corner2, armarker.Corner2.X, armarker.Corner2.Y) { parentCamera = parentCamera };
             yield return new CeresMarker(imageID, armarker.ID | (int)ArucoMarkerFlags.Corner3, armarker.Corner3.X, armarker.Corner3.Y) { parentCamera = parentCamera };
-        } 
+        */} 
 
         public static double[] toArr(this Vector4d v) {
             return new[] { v.X, v.Y, v.Z, v.W };

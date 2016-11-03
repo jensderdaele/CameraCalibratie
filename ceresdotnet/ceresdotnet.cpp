@@ -90,7 +90,9 @@ namespace ceresdotnet{
 	void PrintCameraIntrinsics(const char *text, const double *camera_intrinsics) {
 
 		std::ostringstream intrinsics_output;
-		intrinsics_output << "f=" << camera_intrinsics[OFFSET_FOCAL_LENGTH];
+		intrinsics_output <<
+			" fx=" << camera_intrinsics[OFFSET_FOCAL_LENGTH_X] <<
+			" fy=" << camera_intrinsics[OFFSET_FOCAL_LENGTH_Y];
 		intrinsics_output <<
 			" cx=" << camera_intrinsics[OFFSET_PRINCIPAL_POINT_X] <<
 			" cy=" << camera_intrinsics[OFFSET_PRINCIPAL_POINT_Y];
@@ -112,22 +114,22 @@ namespace ceresdotnet{
 	void PrintCameraIntrinsics2(const char *text, const double *camera_intrinsics) {
 
 		std::ostringstream intrinsics_output;
-		intrinsics_output << "fx=" << camera_intrinsics[OFFSET2_FOCAL_LENGTH_X];
-		intrinsics_output << "fy=" << camera_intrinsics[OFFSET2_FOCAL_LENGTH_Y];
+		intrinsics_output << "fx=" << camera_intrinsics[OFFSET_FOCAL_LENGTH_X];
+		intrinsics_output << "fy=" << camera_intrinsics[OFFSET_FOCAL_LENGTH_Y];
 		intrinsics_output <<
-			" cx=" << camera_intrinsics[OFFSET2_PRINCIPAL_POINT_X] <<
-			" cy=" << camera_intrinsics[OFFSET2_PRINCIPAL_POINT_Y];
+			" cx=" << camera_intrinsics[OFFSET_PRINCIPAL_POINT_X] <<
+			" cy=" << camera_intrinsics[OFFSET_PRINCIPAL_POINT_Y];
 #define APPEND_DISTORTION_COEFFICIENT(name, offset) \
 									  { \
     if (camera_intrinsics[offset] != 0.0) { \
       intrinsics_output << " " name "=" << camera_intrinsics[offset];  \
 					    } \
 									  } (void)0
-		APPEND_DISTORTION_COEFFICIENT("k1", OFFSET2_K1);
-		APPEND_DISTORTION_COEFFICIENT("k2", OFFSET2_K2);
-		APPEND_DISTORTION_COEFFICIENT("k3", OFFSET2_K3);
-		APPEND_DISTORTION_COEFFICIENT("p1", OFFSET2_P1);
-		APPEND_DISTORTION_COEFFICIENT("p2", OFFSET2_P2);
+		APPEND_DISTORTION_COEFFICIENT("k1", OFFSET_K1);
+		APPEND_DISTORTION_COEFFICIENT("k2", OFFSET_K2);
+		APPEND_DISTORTION_COEFFICIENT("k3", OFFSET_K3);
+		APPEND_DISTORTION_COEFFICIENT("p1", OFFSET_P1);
+		APPEND_DISTORTION_COEFFICIENT("p2", OFFSET_P2);
 #undef APPEND_DISTORTION_COEFFICIENT
 		LOG(INFO) << text << intrinsics_output.str();
 	}
@@ -251,8 +253,9 @@ namespace ceresdotnet{
 #define MAYBE_SET_CONSTANT(bundle_enum, offset) \
     if (!(bundle_intrinsics & bundle_enum)) { \
       constant_intrinsics.push_back(offset); \
-			    }
-			MAYBE_SET_CONSTANT(BUNDLE_FOCAL_LENGTH, OFFSET_FOCAL_LENGTH);
+					    }
+			MAYBE_SET_CONSTANT(BUNDLE_FOCAL_LENGTH, OFFSET_FOCAL_LENGTH_X);
+			MAYBE_SET_CONSTANT(BUNDLE_FOCAL_LENGTH, OFFSET_FOCAL_LENGTH_Y);
 			MAYBE_SET_CONSTANT(BUNDLE_PRINCIPAL_POINT, OFFSET_PRINCIPAL_POINT_X);
 			MAYBE_SET_CONSTANT(BUNDLE_PRINCIPAL_POINT, OFFSET_PRINCIPAL_POINT_Y);
 			MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K1, OFFSET_K1);

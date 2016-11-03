@@ -28,7 +28,7 @@ namespace CalibratieForms {
 
         private static Object lockme = new Object();
 
-
+        /*
         public static unsafe void ceresSolveAruco() {
             string dir = @"C:\Users\jens\Desktop\calibratie\Fotos_gedownload_door_AirDroid (1)\aruco\stereo test\";
             List<CeresMarker> ceresmarkers = new List<CeresMarker>();
@@ -45,7 +45,7 @@ namespace CalibratieForms {
             Action<Object> arucomarkerAction = o => {
                 String file = (string) o;
                 int id = files.IndexOf(file);
-                CeresCamera camera = CeresCamera.From(PinholeCamera.getTestCamera());
+                CeresCamera camera;// = CeresCamera.From(PinholeCamera.getTestCamera());
                 var markers = ArUcoNET.Aruco.FindMarkers(file);
                 markerDictionary.Add(file, markers);
                 if (markers.Any()) {
@@ -203,8 +203,9 @@ namespace CalibratieForms {
 
 
         }
-
+        */
         public void Solve() {
+            /*
             Random rand = new Random();
             var markers3d = scene.get<Marker>();
             var cameras = scene.get<PinholeCamera>();
@@ -263,241 +264,7 @@ namespace CalibratieForms {
             problem.markers.AddRange(ceresmarkers);
 
             //output wordt in Console geschreven door ceresdotnet
-            problem.SolveProblem();
-        }
-        public void test() {
-            var markers = scene.get<Marker>();
-            var cameras = scene.get<PinholeCamera>();
-            var camera = cameras[0];
-            
-            //TEST1
-            //var worldtocamera = Matrix4d.LookAt(camera.Pos, Vector3d.Zero, Vector3d.UnitY);
-            var worldtocamera = camera.worldMat.Inverted();
-
-            var markerstransp = new List<Marker>();
-            foreach (var m in markers) {
-                var pos = m.Pos;
-                var pos1 = Vector3d.TransformPerspective(pos, worldtocamera);
-                var pos2 = Vector3d.Transform(pos, worldtocamera);
-
-                //m.Pos = pos1;
-            }
-
-            var trans = worldtocamera.ExtractTranslation();
-            var rmat = worldtocamera.ExtractRotation();
-            double[] outv;
-            Cv2.Rodrigues(Matrix3d.CreateFromQuaternion(rmat).Normalized().toArr(), out outv);
-            Point3d[] visible3d;
-            /*
-            var persp = Matrix4d.CreatePerspectiveFieldOfView(((double)70 / 180) * Math.PI, (double)4 / (double)3, 0.1, 100);
-            var mvp = persp * worldtocamera;
-
-            var mat4 = mvp;
-            var bla = new double[,] {
-                {mat4.M11, mat4.M21, mat4.M31, mat4.M41},
-                {mat4.M12, mat4.M22, mat4.M32, mat4.M42},
-                {mat4.M13, mat4.M23, mat4.M33, mat4.M43},
-            };
-            double[,] cm, rot,cm2,rot2;
-            double[] t,t2;
-            Cv2.DecomposeProjectionMatrix(bla, out cm, out rot, out t);
-            MatOfDouble projmat = new MatOfDouble(3, 4, bla);
-            Mat cameram = new Mat();
-            Mat rotm = new Mat();
-            Mat transm = new Mat();
-            Cv2.DecomposeProjectionMatrix(projmat,cameram,rotm,transm);
-            Mat rodrm = new Mat();
-            Cv2.Rodrigues(rotm, rodrm);
-            //Cv2.ProjectPoints();
-
-
-            mat4 = camera.worldMat;
-            bla = new double[,] {
-                {mat4.M11, mat4.M21, mat4.M31, mat4.M41},
-                {mat4.M12, mat4.M22, mat4.M32, mat4.M42},
-                {mat4.M13, mat4.M23, mat4.M33, mat4.M43},
-            };
-            
-            
-            Cv2.DecomposeProjectionMatrix(bla, out cm, out rot2, out t2);
-            double[] rodr,rodr2;
-            Cv2.Rodrigues(rot, out rodr);
-            Cv2.Rodrigues(rot2, out rodr2);
-            double[] tv = new[] { t[0] / t[3], t[1] / t[3], t[2] / t[3] };
-            double[] tvmin = new[] { -t[0] / t[3], -t[1] / t[3], -t[2] / t[3] };
-            double[] tv2 = new[] { t2[0] / t2[3], t2[1] / t2[3], t2[2] / t2[3] };
-            
-            var visible_proj =
-                camera.ProjectPoints2D_VisibleOnly2(
-                    markers.Select(x => new Point3d(x.Pos.X, x.Pos.Y, x.Pos.Z)).ToArray(), out visible3d, rodr, tv);
-
-            var window2 = new CameraSimulationFrm();
-            window2.Camera = camera;
-            window2.Show();
-            window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
-            */
-            var visible_proj =
-                camera.ProjectPoints2D_VisibleOnly(
-                    markers.Select(x => new Point3d(x.Pos.X, x.Pos.Y, x.Pos.Z)).ToArray(), out visible3d);//, rodr, tvmin);
-
-            var window2 = new CameraSimulationFrm();
-            window2 = new CameraSimulationFrm();
-            window2.Camera = camera;
-            window2.Show();
-            window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
-            
-
-            var ceresmarkers = visible_proj.Select((x, i) => new CeresMarker(0, i, x.X, x.Y));
-            var intrinsics = camera.toCeresIntrinsics9();
-
-            List<CeresCamera> cerescameras = new List<CeresCamera>();
-            var ccamera = new CeresCamera(Matrix3d.CreateFromQuaternion(worldtocamera.ExtractRotation()), trans, 0);
-            var ccamera2 = new CeresCamera(Matrix3d.CreateFromAxisAngle(Vector3d.UnitY, 0.1), Vector3d.One, 0);
-            cerescameras.Add(ccamera);
-            var cerespoints = visible3d.Select((x, i) => new CeresPoint(new Vector3d(x.X,x.Y,x.Z), i));
-
-            var correct = (double[]) intrinsics.Clone();
-            var before = (double[])correct.Clone();
-            var r = new Random();
-            for (int i = 0; i < intrinsics.Length; i++) {
-                intrinsics[i] *= 1 + (r.NextDouble() - .5)/10;
-            }
-
-
-            var c = PinholeCamera.getTestCamera();
-            var cmat = c.CameraMatrix.Mat;
-            double[] intr = c.Cv_DistCoeffs5;
-            double[] rvecGuess = new double[3], tvecGuess = new double[3];
-            var vis3dfloat = visible3d.Select(x => new Point3f((float) x.X, (float) x.Y, (float) x.Z)).ToList();//.GetRange(0,4).ToList();
-            var vis2dfloat = visible_proj.Select(x => new Point2f((float)x.X, (float)x.Y)).ToList();//.GetRange(0, 4).ToList();
-            //Cv2.SolvePnP(vis3dfloat,vis2dfloat,cmat,intr,out rvecGuess,out tvecGuess,false,SolvePnPFlags.P3P);
-            
-            //ArUcoNET.CV_Native.SolvePnP(vis3dfloat, vis2dfloat,c.CameraMatrix.cvmat,c.CameraMatrix.Mat,intr,SolvePnPFlags.P3P);
-            
-
-            ceresdotnet.BundleProblem.EuclideanBundleCommonIntrinsics(ceresmarkers, (int)(BundleIntrinsics.BUNDLE_ALL), 0, intrinsics, cerescameras,cerespoints);
-            
-            
-            ceresdotnet.MultiCameraBundleProblem mp = new MultiCameraBundleProblem();
-            intrinsics = camera.Ceres_DistCoeffs;
-
-            correct = (double[])correct.Clone();
-            before = (double[])correct.Clone();
-            r = new Random();
-            for (int i = 0; i < intrinsics.Length; i++) {
-                intrinsics[i] *= 1 + (r.NextDouble() - .5) / 10;
-            }
-            camera.Ceres_DistCoeffs = intrinsics;
-
-            
-            
-            var cercam = CeresCamera.From(camera);
-
-            mp.markers = ceresmarkers.ToList();
-            mp.markers.ForEach(x => { x.parentCamera = cercam; });
-            mp.all_points_managed = cerespoints.ToList();
-            cerescameras = new List<CeresCamera>();
-            cerescameras.Add(cercam);
-
-            //cerescameras.Add(new CeresCamera(Matrix3d.CreateFromQuaternion(worldtocamera.ExtractRotation()), trans, 0));
-            mp.cameras = cerescameras;
-            var diff = before.Select((x, i) => x - intrinsics[i]).ToArray();
-
-            var in1 = cercam.Intrinsics;
-            
-
-            mp.Solve();
-            var in2 = cercam.Intrinsics;
-            var cercam2 = CeresCamera.From(camera);
-            var in3 = cercam2.Intrinsics;
-
-            cercam2.LinkIntrinsicsToCamera(cercam);
-            var in4 = cercam2.Intrinsics;
-
-        }
-        public void test3() {
-            var markers = scene.get<Marker>();
-            var cameras = scene.get<PinholeCamera>();
-            var camera = cameras[0];
-            Vector3d[] visible3d;
-
-            var visible_proj =
-                camera.ProjectPointd2D_Manually(markers.Select(x=>x.Pos).ToArray(), out visible3d);//, rodr, tvmin);
-
-            var window2 = new CameraSimulationFrm();
-            window2 = new CameraSimulationFrm();
-            window2.Camera = camera;
-            window2.Show();
-            window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
-
-
-            var ceresmarkers = visible_proj.Select((x, i) => new CeresMarker(0, i, x.X, x.Y));
-            var intrinsics = camera.toCeresIntrinsics9();
-
-            List<CeresCamera> cerescameras = new List<CeresCamera>();
-            var ccamera = new CeresCamera(Matrix3d.CreateFromQuaternion(camera.worldMat.ExtractRotation()), camera.Pos, 0);
-            var ccamera2 = new CeresCamera(Matrix3d.CreateFromAxisAngle(Vector3d.UnitY, 0.1), Vector3d.One, 0);
-            cerescameras.Add(ccamera);
-            var cerespoints = visible3d.Select((x, i) => new CeresPoint(new Vector3d(x.X, x.Y, x.Z), i));
-
-            var correct = (double[])intrinsics.Clone();
-            var before = (double[])correct.Clone();
-            var r = new Random();
-            for (int i = 0; i < intrinsics.Length; i++) {
-                intrinsics[i] *= 1 + (r.NextDouble() - .5) / 10;
-            }
-
-
-            var c = PinholeCamera.getTestCamera();
-            var cmat = c.CameraMatrix.Mat;
-            double[] intr = c.Cv_DistCoeffs5;
-            double[] rvecGuess = new double[3], tvecGuess = new double[3];
-            var vis3dfloat = visible3d.Select(x => new Point3f((float)x.X, (float)x.Y, (float)x.Z)).ToList();//.GetRange(0,4).ToList();
-            var vis2dfloat = visible_proj.Select(x => new Point2f((float)x.X, (float)x.Y)).ToList();//.GetRange(0, 4).ToList();
-            //Cv2.SolvePnP(vis3dfloat,vis2dfloat,cmat,intr,out rvecGuess,out tvecGuess,false,SolvePnPFlags.P3P);
-
-            //ArUcoNET.CV_Native.SolvePnP(vis3dfloat, vis2dfloat,c.CameraMatrix.cvmat,c.CameraMatrix.Mat,intr,SolvePnPFlags.P3P);
-
-
-            ceresdotnet.BundleProblem.EuclideanBundleCommonIntrinsics(ceresmarkers, (int)(BundleIntrinsics.BUNDLE_ALL), 0, intrinsics, cerescameras, cerespoints);
-
-
-            ceresdotnet.MultiCameraBundleProblem mp = new MultiCameraBundleProblem();
-            intrinsics = camera.Ceres_DistCoeffs;
-
-            correct = (double[])correct.Clone();
-            before = (double[])correct.Clone();
-            r = new Random();
-            for (int i = 0; i < intrinsics.Length; i++) {
-                intrinsics[i] *= 1 + (r.NextDouble() - .5) / 10;
-            }
-            camera.Ceres_DistCoeffs = intrinsics;
-
-
-
-            var cercam = CeresCamera.From(camera);
-
-            mp.markers = ceresmarkers.ToList();
-            mp.markers.ForEach(x => { x.parentCamera = cercam; });
-            mp.all_points_managed = cerespoints.ToList();
-            cerescameras = new List<CeresCamera>();
-            cerescameras.Add(cercam);
-
-            //cerescameras.Add(new CeresCamera(Matrix3d.CreateFromQuaternion(worldtocamera.ExtractRotation()), trans, 0));
-            mp.cameras = cerescameras;
-            var diff = before.Select((x, i) => x - intrinsics[i]).ToArray();
-
-            var in1 = cercam.Intrinsics;
-
-
-            mp.Solve();
-            var in2 = cercam.Intrinsics;
-            var cercam2 = CeresCamera.From(camera);
-            var in3 = cercam2.Intrinsics;
-
-            cercam2.LinkIntrinsicsToCamera(cercam);
-            var in4 = cercam2.Intrinsics;
-
+            problem.SolveProblem();*/
         }
         
         

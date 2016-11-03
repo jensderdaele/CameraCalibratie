@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="OpenCvSharp">
       <HintPath>..\..\cameracallibratie\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.dll</HintPath>
     </Reference>
@@ -54,10 +58,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ceresdotnet\ceresdotnet.vcxproj">
+      <Project>{d72410c3-ed53-4135-94e2-98dc27bef8f1}</Project>
+      <Name>ceresdotnet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SceneManager\SceneManager.csproj">
       <Project>{59279db9-6d27-4533-97bb-b431c6bd892c}</Project>
       <Name>SceneManager</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

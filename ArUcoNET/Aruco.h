@@ -244,7 +244,7 @@ namespace ArUcoNET {
 				OpenCvSharp::Point2f^ corner2 = gcnew OpenCvSharp::Point2f(markerCorners[i][1].x, markerCorners[i][1].y);
 				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
 				OpenCvSharp::Point2f^ corner4 = gcnew OpenCvSharp::Point2f(markerCorners[i][3].x, markerCorners[i][3].y);
-				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3, markerIDs[i]));
+				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
 			}
 			
 			int timelapse = GetTickCount() - start;
@@ -292,7 +292,8 @@ namespace ArUcoNET {
 				OpenCvSharp::Point2f^ corner1 = gcnew OpenCvSharp::Point2f(markerCorners[i][0].x, markerCorners[i][0].y);
 				OpenCvSharp::Point2f^ corner2 = gcnew OpenCvSharp::Point2f(markerCorners[i][1].x, markerCorners[i][1].y);
 				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
-				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3, markerIDs[i]));
+				OpenCvSharp::Point2f^ corner4 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
+				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
 			}
 
 			int timelapse = GetTickCount() - start;

@@ -173,9 +173,6 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Calibratie\Calibratie.csproj">
-      <Project>{08e756d5-dbce-463a-b0d6-0af266636174}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\SceneManager\SceneManager.csproj">
       <Project>{59279db9-6d27-4533-97bb-b431c6bd892c}</Project>
     </ProjectReference>

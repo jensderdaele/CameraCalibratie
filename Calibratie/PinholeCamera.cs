@@ -10,6 +10,9 @@ using OpenCvSharp;
 using OpenTK;
 using SceneManager;
 
+using ceresdotnet;
+using System.Runtime.InteropServices;
+
 namespace Calibratie {
     public class PinholeCamera : SObject, INotifyPropertyChanged {
         /// <summary>
@@ -143,87 +146,6 @@ namespace Calibratie {
             if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
         }
 
-        /// <summary>
-        /// projects entire scene, 
-        /// output returns list of double x,y coordinates & each corresponding scenepoint
-        /// </summary>
-        /// <param name="c"></param>
-        public Dictionary<SObject,Point2d> projectScene(Scene scene) {
-            Point2d[] outpoints;
-            double[,] jac;
-            Point3d[] inpoints = scene.objects.Select(o => new Point3d(o.Pos.X, o.Pos.Y, o.Pos.Z)).ToArray();
-            
-            Cv2.ProjectPoints(inpoints,this.Cv_rvecs,this.Cv_tvecs,CameraMatrix.Mat,Cv_DistCoeffs5,out outpoints,out jac);
-
-            Dictionary<SObject, Point2d> r = new Dictionary<SObject, Point2d>();
-            
-
-            for (int i = 0; i < outpoints.Length; i++) {
-                var p = outpoints[i];
-                if (p.X > 0 && p.Y > 0 && p.X <= this.PictureSize.Width && p.Y <= this.PictureSize.Height) {
-                    r.Add(scene.objects[i], p);
-                }
-            }
-
-            return r;
-        }
-
-        /// <summary>
-        /// returns null if not in view
-        /// </summary>
-        /// <param name="c"></param>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public Point2d projectPoint(Point3d point) {
-            Point2d[] outpoints;
-            double[,] jac;
-            Point3d[] inpoints = {point};
-            Cv2.ProjectPoints(inpoints, this.Cv_rvecs, this.Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out outpoints, out jac);
-            return outpoints[0];
-            
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pts"></param>
-        /// <returns></returns>
-        public Point2d[] projectPoints(IEnumerable<Point3d> pts) {
-            Point2d[] outpoints;
-            double[,] jac;
-            Cv2.ProjectPoints(pts, this.Cv_rvecs, this.Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out outpoints, out jac);
-            return outpoints;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pts"></param>
-        /// <returns></returns>
-        public Point2d[] projectPoints(IEnumerable<Vector3d> pts) {
-            Point2d[] outpoints;
-            double[,] jac;
-            var worldtocamera = this.worldMat.Inverted();
-            var t = worldtocamera.ExtractTranslation();
-            double[] tvecs = {t.X,t.Y,t.Z};
-            var r = ToEulerAngles(worldtocamera.ExtractRotation());
-            double[] rvecs = (new double[] { r.X, r.Y, r.Z }).Select(x=>x/Math.PI*360).ToArray();
-
-
-            worldtocamera = this.worldMat;
-            t = worldtocamera.ExtractTranslation();
-            tvecs = new[]{ t.X, t.Y, t.Z };
-            r = ToEulerAngles(worldtocamera.ExtractRotation());
-            rvecs = (new double[] { r.X, r.Y, r.Z }).Select(x => x / Math.PI * 360).ToArray();
-            
-
-            var proj = Matrix4dtoproj(worldtocamera);
-            double[,] outcamera, outrot, outrotmx, outrotmy, outrotmz;
-            double[] outtrans, eulerangles;
-            //Cv2.DecomposeProjectionMatrix(proj, out outcamera, out outrot, out outtrans, out outrotmx, out outrotmy, out outrotmz,out eulerangles);
-
-            Cv2.ProjectPoints(pts.Select(x => new Point3d(x.X, x.Y, x.Z)), rvecs, this.Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out outpoints, out jac);
-            return outpoints;
-        }
-
         public static double[,] Matrix4dtoproj(Matrix4d m) {
             var r = new double[4, 4];
             for (int x = 0; x < 4; x++) {
@@ -269,6 +191,7 @@ namespace Calibratie {
             
             return pitchYawRoll;
         }
+
         public Point2d ProjectPointd2D_Manually(Vector3d vector3D) {
             var axisangle = this.worldMat.ExtractRotation().ToAxisAngle();
 
@@ -305,7 +228,6 @@ namespace Calibratie {
                 }
                 return new Point2d();
         }
-
         public Point2d[] ProjectPointd2D_Manually(Vector3d[] points3d, out Vector3d[] visible) {
             var r = new List<Point2d>();
             var vis = new List<Vector3d>();
@@ -401,54 +323,72 @@ namespace Calibratie {
             }
             return r;
         }
-        public Point2d[] ProjectPoints2D_VisibleOnly2(Point3d[] points3d, out Point3d[] visible, double[] rvec,double[] tvec) {
-            var worldtocamera = worldMat.Inverted();
-            var mat4 = worldtocamera;
-            
-            var trans = mat4.ExtractTranslation();
-            var rmat = mat4.ExtractRotation();
-            double[] outv;
-            Cv2.Rodrigues(Matrix3d.CreateFromQuaternion(rmat).Normalized().toArr(), out outv);
-
-            var tvecs = trans.toArr();
-            double[,] jacob;
-            Point2d[] proje;
-
-            Point3d[] old = null;
-            if (points3d.Length % 2 == 1) { //bij oneven aantal punten werkt Cv2.projectpoints niet (omdat deze ook een jacobiaan output) snelle, onefficiente, fix
-                old = points3d;
-                var points3dnew = new Point3d[points3d.Length + 1];
-                for (int i = 0; i < points3d.Length; i++) {
-                    points3dnew[i] = points3d[i];
-                }
-                points3dnew[points3dnew.Length - 1] = new Point3d(0, 0, 0);
-                points3d = points3dnew;
-            }
-
-            Cv2.ProjectPoints(points3d, rvec, tvec, this.CameraMatrix.Mat, this.Cv_DistCoeffs5, out proje, out jacob);
-
-            if (old != null) {
-                points3d = old;
-                proje = proje.Take(proje.Length - 1).ToArray();
-            }
-            List<int> correctIndex = new List<int>();
-            for (int i = 0; i < proje.Length; i++) {
-                if (IsinBounds(proje[i])) {
-                    correctIndex.Add(i);
-                }
-            }
-            var r = new Point2d[correctIndex.Count];
-            visible = new Point3d[correctIndex.Count];
-            for (int i = 0; i < correctIndex.Count; i++) {
-                var index = correctIndex[i];
-                r[i] = proje[index];
-                visible[i] = points3d[index];
-            }
-            return r;
-        }
 
         private bool IsinBounds(Point2d p) {
             return (p.X >= 0 && p.X <= this.PictureSize.Width && p.Y >= 0 && p.Y <= PictureSize.Height);
         }
+
+        /*
+        ~PinholeCamera() {
+            if (_Rt != IntPtr.Zero) Marshal.FreeHGlobal(_Rt);
+            if (_Intrinsics != IntPtr.Zero) Marshal.FreeHGlobal(_Intrinsics);
+        }
+
+        
+        #region ICERESCAMERA
+        private IntPtr _Rt;
+        private IntPtr _Intrinsics;
+
+        private void updateCeresRtValues() {
+            var projMat = worldMat.Inverted();
+            Vector3d axis;
+            double angle;
+            projMat.ExtractRotation().ToAxisAngle(out axis, out angle);
+            axis.Normalize();
+            axis = axis * angle;
+            Marshal.Copy(axis.toArr(), 0, _Rt, 3);
+        }
+
+        private unsafe void updateCeresIntrinsics() {
+            var ptr = (double*)_Intrinsics.ToPointer();
+            ptr[(int)IntrinsicsOffsets.OFFSET_FOCAL_LENGTH_X] = this.CameraMatrix.fx;
+            ptr[(int)IntrinsicsOffsets.OFFSET_FOCAL_LENGTH_Y] = this.CameraMatrix.fy;
+            ptr[(int)IntrinsicsOffsets.OFFSET_PRINCIPAL_POINT_X] = this.CameraMatrix.cx;
+            ptr[(int)IntrinsicsOffsets.OFFSET_PRINCIPAL_POINT_Y] = this.CameraMatrix.cy;
+            ptr[(int)IntrinsicsOffsets.OFFSET_K1] = this.DistortionR1;
+            ptr[(int)IntrinsicsOffsets.OFFSET_K2] = this.DistortionR2;
+            ptr[(int)IntrinsicsOffsets.OFFSET_P1] = this.DistortionT1;
+            ptr[(int)IntrinsicsOffsets.OFFSET_P2] = this.DistortionT2;
+            ptr[(int)IntrinsicsOffsets.OFFSET_K3] = this.DistortionR3;
+        }
+
+
+        unsafe double* ICeresCamera.Rt {
+            get {
+                if (_Rt == IntPtr.Zero) {
+                    _Rt = Marshal.AllocHGlobal(sizeof(double) * 6);
+                    updateCeresRtValues();
+                }
+                return (double*)_Rt;
+            }
+        }
+
+        BundleIntrinsicsFlags ICeresCamera.BundleIntrinsics { get; set; }
+
+        unsafe double* ICeresCamera.Intrinsics {
+            get {
+                if (_Intrinsics == IntPtr.Zero) {
+                    _Intrinsics = Marshal.AllocHGlobal(sizeof(double) * 9);
+                    updateCeresIntrinsics();
+                }
+                return (double*)_Intrinsics;
+            }
+        }
+
+        string ICeresCamera.Name {
+            get { return this.Name; }
+        }
+        #endregion
+         * */
     }
 }

@@ -35,7 +35,6 @@ typedef unsigned __int32 uint32_t;
 using namespace OpenTK;
 using namespace System;
 using namespace System::Collections::Generic;
-using namespace Calibratie;
 using namespace SceneManager;
 using namespace System::Runtime::CompilerServices;
 
@@ -138,9 +137,9 @@ namespace ceresdotnet{
 		OFFSET_PRINCIPAL_POINT_Y,
 		OFFSET_K1,
 		OFFSET_K2,
-		OFFSET_K3,
 		OFFSET_P1,
 		OFFSET_P2,
+		OFFSET_K3
 	};
 
 	// Returns a pointer to the camera corresponding to a image.
@@ -197,7 +196,7 @@ namespace ceresdotnet{
 		template <typename T>
 		bool operator()(const T* const intrinsics,const T* const R_t,const T* const X,	T* residuals) const {
 
-			const T& focal_length = intrinsics[OFFSET_FOCAL_LENGTH];
+			const T& focal_length = intrinsics[OFFSET_FOCAL_LENGTH_X];
 			const T& principal_point_x = intrinsics[OFFSET_PRINCIPAL_POINT_X];
 			const T& principal_point_y = intrinsics[OFFSET_PRINCIPAL_POINT_Y];
 			const T& k1 = intrinsics[OFFSET_K1];
@@ -247,15 +246,15 @@ namespace ceresdotnet{
 		template <typename T>
 		bool operator()(const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) const {
 
-			const T& focal_length_x = intrinsics[OFFSET2_FOCAL_LENGTH_X];
-			const T& focal_length_y = intrinsics[OFFSET2_FOCAL_LENGTH_Y];
-			const T& principal_point_x = intrinsics[OFFSET2_PRINCIPAL_POINT_X];
-			const T& principal_point_y = intrinsics[OFFSET2_PRINCIPAL_POINT_Y];
-			const T& k1 = intrinsics[OFFSET2_K1];
-			const T& k2 = intrinsics[OFFSET2_K2];
-			const T& k3 = intrinsics[OFFSET2_K3];
-			const T& p1 = intrinsics[OFFSET2_P1];
-			const T& p2 = intrinsics[OFFSET2_P2];
+			const T& focal_length_x = intrinsics[OFFSET_FOCAL_LENGTH_X];
+			const T& focal_length_y = intrinsics[OFFSET_FOCAL_LENGTH_Y];
+			const T& principal_point_x = intrinsics[OFFSET_PRINCIPAL_POINT_X];
+			const T& principal_point_y = intrinsics[OFFSET_PRINCIPAL_POINT_Y];
+			const T& k1 = intrinsics[OFFSET_K1];
+			const T& k2 = intrinsics[OFFSET_K2];
+			const T& k3 = intrinsics[OFFSET_K3];
+			const T& p1 = intrinsics[OFFSET_P1];
+			const T& p2 = intrinsics[OFFSET_P2];
 
 			T rotnative[9];
 			
