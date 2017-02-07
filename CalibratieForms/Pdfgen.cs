@@ -6,7 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using CalibratieForms.Annotations;
+using OpenCvSharp;
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -33,6 +34,89 @@ namespace CalibratieForms {
         public class MarkerPage {
             public PdfPage Page = new PdfPage();
             internal readonly List<drawAction> _draws = new List<drawAction>(); 
+        }
+
+        static int toPT(int mm) {
+            return (int)(mm * MMTOPT);
+        }
+        static int toMM(int pt) {
+            return (int)(pt * PTTOMM);
+        }
+        public static void createChessboard(ref int rectangleSz_mm, ref int hmax, ref int wmax, string savefile, int margin_mm = 10, PageSize pgeSz = PageSize.A4) {
+            
+            int rectangleSz_pt = (int)(rectangleSz_mm*MMTOPT+.5);
+            double rectangleSz_mm_dbl = rectangleSz_pt*PTTOMM;
+            var doc = new PdfDocument();
+            
+                var page = doc.AddPage();
+
+                page.Size = pgeSz;
+
+                page.Orientation = PageOrientation.Landscape;
+
+            var h = page.Height - margin_mm*MMTOPT*2;
+            var w = page.Width - margin_mm*MMTOPT*2;
+            
+            var rectanglesh = (int)(h/rectangleSz_pt);
+            var rectanglesw = (int)(w/rectangleSz_pt);
+
+            var maxcornersh = rectanglesh - 1;
+            var maxcornersw = rectanglesw - 1;
+
+            if (maxcornersh > hmax) {
+                maxcornersh = hmax;
+                rectanglesh = maxcornersh + 1;
+            }
+            if (maxcornersw > wmax) {
+                maxcornersw = wmax;
+                rectanglesw = maxcornersw + 1;
+            }
+            int xpt = toPT(margin_mm);
+            int ypt = xpt;
+
+            
+            var gfx = XGraphics.FromPdfPage(page);
+            XBrush brush = new XSolidBrush(XColor.FromKnownColor(KnownColor.Black));
+            bool fill = true;
+
+            for (int y = 0; y < rectanglesh; y++) {
+                for (int x = 0; x < rectanglesw; x++) {
+                    if (fill) {
+                        gfx.DrawRectangle(brush,xpt,ypt,rectangleSz_pt,rectangleSz_pt);
+                    }
+                    fill = !fill;
+
+                    xpt += rectangleSz_pt;
+                }
+                xpt = toPT(margin_mm);
+                ypt += rectangleSz_pt;
+                if (rectanglesw % 2 == 0)
+                    fill = !fill;
+            }
+
+            var filename = string.Format("chess {0}.{1}x{2}.{3}mm.pdf", pgeSz, maxcornersh, maxcornersw, rectangleSz_mm);
+            savefile = Path.Combine(savefile, filename);
+            XBrush brushtxt = new XSolidBrush(XColor.FromKnownColor(KnownColor.GrayText));
+            var font = new XFont(FontFamily.GenericMonospace.Name, 18);
+            var txt = string.Format("Calibratie Patroon {4} {0}x{1} {2}pt ({3}mm)", maxcornersh, maxcornersw,
+                rectangleSz_pt,
+                rectangleSz_mm_dbl, pgeSz.ToString());
+
+            ypt += rectangleSz_pt;
+            gfx.DrawString(txt, font, brushtxt, new PointF(margin_mm * (float)MMTOPT + 3 , ypt - 2*rectangleSz_pt/3));
+            try {
+                File.Delete(savefile);
+            }
+            catch { }
+            try {
+                doc.Save(savefile);
+            }
+            catch {
+                doc.Save(savefile+new Random().Next()+".pdf");
+            }
+
+
+
         }
         
 

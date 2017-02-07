@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,51 @@ using OpenCvSharp;
 using OpenTK;
 
 namespace CalibratieForms {
+    public class EqualityComparer<T> : IEqualityComparer<T> {
+        public EqualityComparer(Func<T, T, bool> cmp) {
+            this.cmp = cmp;
+        }
+        public bool Equals(T x, T y) {
+            return cmp(x, y);
+        }
+
+        public int GetHashCode(T obj) {
+            return obj.GetHashCode();
+        }
+
+        public Func<T, T, bool> cmp { get; set; }
+    }
     public static partial class EXT {
+
+        public static Mat PointsToMat(this IEnumerable<Point3d> pts) {
+            var point3Ds = pts as Point3d[] ?? pts.ToArray();
+            Mat r = new Mat(1, point3Ds.Count(), MatType.CV_64FC2);
+            r.SetArray(0, 0, point3Ds.ToArray());
+            return r;
+        }
+        public static Mat PointsToMat(this IEnumerable<Point3f> pts) {
+            var point3Ds = pts as Point3f[] ?? pts.ToArray();
+            Mat r = new Mat(1, point3Ds.Count(), MatType.CV_32FC2);
+            r.SetArray(0, 0, point3Ds.ToArray());
+            return r;
+        }
+
+        public static Dictionary<T, T> getIntersection<T>(this IEnumerable<T> list1, IEnumerable<T> list2,
+            IEqualityComparer<T> comparer,int maxItems = 0) {
+            var r = new Dictionary<T,T>();
+            var enumerable = list2 as T[] ?? list2.ToArray();
+            int c = 0;
+            foreach (var obj1 in list1) {
+                foreach (var obj2 in enumerable) {
+                    if (comparer.Equals(obj1, obj2)) {
+                        r.Add(obj1, obj2);
+                        if (c++ >= maxItems && maxItems != 0) { return r; }
+                    }
+                }
+            }
+            return r;
+        }
+
         public static Dictionary<string, IEnumerable<ArucoMarker>> getArucoMarkers(IEnumerable<string> files) {
             return files.ToDictionary(f => f, ArUcoNET.Aruco.FindMarkers);
         } 
@@ -83,9 +128,9 @@ namespace CalibratieForms {
                 c.CameraMatrix.cy,
                 c.DistortionR1,
                 c.DistortionR2,
-                c.DistortionR3,
                 c.DistortionT1,
                 c.DistortionT2,
+                c.DistortionR3,
             };
             return intrinsics;
             
@@ -111,21 +156,5 @@ namespace CalibratieForms {
             return new[] {attitude,heading, bank};
         }
 
-        public static unsafe double[,] toArr(this Matrix3d mat) {
-            double[,] ret = new double[3, 3];
-            fixed (double* retp = ret) {
-                CopyMemory(retp, &mat, 9*8);
-            }
-            return ret;
-        }
-
-        public static unsafe double[,] toArr(this Matrix3x4d mat) {
-            double[,] ret = new double[3, 4];
-            fixed (double* retp = ret) {
-                CopyMemory(retp, &mat, 3*4 * 8);
-            }
-            return ret;
-        }
-        
     }
 }

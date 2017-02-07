@@ -50,12 +50,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CameraCollection.cs" />
     <Compile Include="CameraMatrix.cs" />
     <Compile Include="Chessboard.cs" />
     <Compile Include="EXT.cs" />
     <Compile Include="Marker.cs" />
     <Compile Include="PinholeCamera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization.cs" />
+    <Compile Include="StereoCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ceresdotnet\ceresdotnet.vcxproj">

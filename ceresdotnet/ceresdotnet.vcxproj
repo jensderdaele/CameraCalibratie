@@ -146,12 +146,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ceresdotnet.h" />
+    <ClInclude Include="ceresfunctions.h" />
     <ClInclude Include="managed.h" />
+    <ClInclude Include="SlechteCode.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="ceresdotnet.cpp" />
+    <ClCompile Include="ceresfunctions.cpp" />
     <ClCompile Include="managed.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>

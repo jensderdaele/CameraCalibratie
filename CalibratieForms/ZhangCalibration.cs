@@ -27,15 +27,16 @@ namespace CalibratieForms {
         }
 
         public List<CalibImage> images = new List<CalibImage>();
+
+        public List<CalibImage> images2 = new List<CalibImage>();
         private static Object lockme = new object();
-        public void LoadImages(string dir,Size csize) {
-            //async werkt niet -> opencv reageert raar wanneer meerdere threads FindChessboardCorners() uitvoeren
+        public void LoadImages(string dir,Size csize, List<string> filenames  = null, List<string> badfiles= null) {
             images.Clear();
             PhotoProvider prov = new PhotoProvider(dir);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(100); //max 8 threads
-
+            SemaphoreSlim throttler = new SemaphoreSlim(8); //max 8 threads
+            
             Action<Object> findCornerAction = o => {
                 String imageFile = (String)o;
                 var im = new CalibImage(imageFile);
@@ -53,15 +54,21 @@ namespace CalibratieForms {
                         return;
                     }
                     catch {
+                        if (badfiles != null) {
+                            images.Add(null);
+                            badfiles.Add(imageFile);
+                            break;
+                        }
                         Console.WriteLine(string.Format("no chessboard found: {0} at scale 1/{1}", im.Filename, scale));
                         scale *= 2;
                         continue;
                     }
                 }
+
                 throttler.Release();
             };
 
-            var files = prov.getImageFiles().ToList();
+            var files = filenames ?? prov.getImageFiles().ToList();
             foreach (var imageFile in files) {
                 throttler.Wait();
                 Log.WriteLine(string.Format("searching pattern in {0}", imageFile));
@@ -70,6 +77,143 @@ namespace CalibratieForms {
                 allTasks.Add(t);
             }
             Task.WhenAll(allTasks).Wait();
+        }
+
+        public void LoadImages(List<string> files, Size csize) {
+            LoadImages(null, csize, files);
+        }
+        public void LoadImages2(string dir, Size csize, List<string> filenames = null,List<string> badfiles= null) {
+            //async werkt niet -> opencv reageert raar wanneer meerdere threads FindChessboardCorners() uitvoeren
+            images2.Clear();
+            PhotoProvider prov = new PhotoProvider(dir);
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(100); //max 8 threads
+
+            Action<Object> findCornerAction = o => {
+                String imageFile = (String)o;
+                var im = new CalibImage(imageFile);
+                int scale = 1;
+                while (scale <= 4) {
+                    try {
+                        Size imSize;
+                        var pic = PhotoProvider.getSingleImage(im.Path, out imSize, scale);
+                        var chessBoard = FindChessboardCorners(pic, csize);
+                        Console.WriteLine(string.Format("found {0} at scale 1/{1}", im.Filename, scale));
+                        im.ImagePoints = chessBoard.Select(f => new Point2f(f.X * scale, f.Y * scale)).ToArray();
+                        im.imageSize = imSize;
+                        images2.Add(im);
+                        throttler.Release();
+                        return;
+                    }
+                    catch {
+                        if (badfiles != null) {
+                            images2.Add(null);
+                            badfiles.Add(imageFile);
+                            break;
+                        }
+                        Console.WriteLine(string.Format("no chessboard found: {0} at scale 1/{1}", im.Filename, scale));
+                        scale *= 2;
+                        continue;
+                    }
+                }
+                throttler.Release();
+            };
+
+            var files = filenames ?? prov.getImageFiles().ToList();
+            foreach (var imageFile in files) {
+                throttler.Wait();
+                Log.WriteLine(string.Format("searching pattern in {0}", imageFile));
+                Task t = new Task(findCornerAction, imageFile);
+                t.Start();
+                allTasks.Add(t);
+            }
+            Task.WhenAll(allTasks).Wait();
+        }
+        public static void calibrateStereoCalibrateCV() {
+            
+        }
+
+        public void StereoCalibrateCV(ChessBoard cb) {
+            var worldCoordinates = cb.boardLocalCoordinates_cv;
+
+
+            List<List<Point3f>> worldpoints = new List<List<Point3f>>();
+            List<InputArray> worldpointscv = new List<InputArray>();
+            List<Mat> worldpointscvmat = new List<Mat>();
+            for (int i = 0; i < images.Count; i++) {
+                worldpoints.Add(cb.boardLocalCoordinates_cv.Select(x=>new Point3f(x.X,x.Y,x.Z)).ToList());
+                var mat = new MatOfPoint3f(1,cb.boardLocalCoordinates_cv.Length,cb.boardLocalCoordinates_cv);
+                worldpointscvmat.Add(mat);
+                worldpointscv.Add(mat);
+            }
+
+
+            double[,] cameraMat = new double[3, 3];
+            
+            double[,] cameraMat2 = new double[3, 3];
+            Vec3d[] rvecs2, tvecs2;
+            var distc5 = new double[5];
+            var distc5_2 = new double[5];
+            
+            
+            Mat camMat = new Mat();
+            Mat camMat2 = new Mat();
+
+            Mat distcoeffs = new Mat(1,5,MatType.CV_64F);
+            Mat distcoeffs2 = new Mat(1, 5, MatType.CV_64F);
+            Mat[] rvecs, tvecs;
+            
+            Mat R = new Mat();
+            Mat T = new Mat();
+            Mat E = new Mat();
+            Mat F = new Mat();
+
+            var imp = images.Select(x => x.ImagePoints.ToList()).ToList();
+
+            List<InputArray> impcv = new List<InputArray>();
+            List<Mat> impcvmat = new List<Mat>();
+            foreach (var tl in imp) {
+                var t = tl.ToArray();
+                var mat = new Mat(t.Length, 1, MatType.CV_32FC2);
+                mat.SetArray(0, 0, t);
+                impcv.Add(mat);
+                impcvmat.Add(mat);
+            }
+
+            var imp2 = images2.Select(x => x.ImagePoints.ToList()).ToList();
+            List<InputArray> impcv2 = new List<InputArray>();
+            List<Mat> impcv2mat = new List<Mat>();
+            foreach (var tl in imp2) {
+
+                var t = tl.ToArray();
+                var mat = new Mat(t.Length, 1, MatType.CV_32FC2);
+                
+                mat.SetArray(0, 0, t);
+                impcv2.Add(mat);
+                impcv2mat.Add(mat);
+            }
+
+            Cv2.CalibrateCamera(worldpointscvmat, impcv2mat, new Size(1920, 1080), camMat, distcoeffs, out rvecs, out  tvecs);
+
+            Cv2.CalibrateCamera(worldpointscvmat, impcvmat, new Size(1920, 1080), camMat2, distcoeffs2, out rvecs, out  tvecs);
+
+            double[] dist = new double[5];
+            double[,] cammat = new double[3, 3];
+            camMat.GetArray(0, 0, cammat);
+            distcoeffs.GetArray(0, 0, dist);
+
+            double[] dist2 = new double[5];
+            double[,] cammat2 = new double[3, 3];
+            camMat2.GetArray(0, 0, cammat2);
+            distcoeffs2.GetArray(0, 0, dist2);
+
+            ArUcoNET.CV_Native.StereoCalibrate(imp, imp2, worldpoints);
+            Cv2.StereoCalibrate(worldpointscv, impcv, impcv2, camMat, distcoeffs, camMat2, distcoeffs2,
+                new Size(1920, 1080), R, T, E, F, CalibrationFlags.FixIntrinsic);
+
+
+
         }
 
         public void CalibrateCV(ChessBoard cb, out Mat cameraMat, out Mat distCoeffs) {

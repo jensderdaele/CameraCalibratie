@@ -46,6 +46,59 @@ namespace ArUcoNET {
 	
 	public ref class CV_Native{
 	public:
+		static void StereoCalibrate(List<List<OpenCvSharp::Point2f>^>^ imagesleft, List<List<OpenCvSharp::Point2f>^>^ imagesright, List<List<OpenCvSharp::Point3f>^>^ worldpoints){
+			
+
+			
+			vector<vector<Point2f> > imagePoints[2];
+			imagePoints[0].resize(imagesleft->Count);
+			imagePoints[1].resize(imagesleft->Count);
+
+			vector<vector<Point3f> > objectPoints;
+			objectPoints.resize(worldpoints->Count);
+
+			for (size_t i = 0; i < imagesleft->Count; i++)
+			{
+				int leftcount = (*imagesleft)[i]->Count;
+				int rightcount = (*imagesright)[i]->Count;
+				int worldcount = (*worldpoints)[i]->Count;
+
+				imagePoints[0][i].resize(leftcount);
+				imagePoints[1][i].resize(rightcount);
+				objectPoints[i].resize(worldcount);
+
+				for (size_t j = 0; j < leftcount; j++)
+				{
+					imagePoints[0][i][j].x = (*(*imagesleft)[i])[j].X;
+					imagePoints[0][i][j].y = (*(*imagesleft)[i])[j].Y;
+				}
+				
+				for (size_t j = 0; j < rightcount; j++)
+				{
+					imagePoints[1][i][j].x = (*(*imagesright)[i])[j].X;
+					imagePoints[1][i][j].y = (*(*imagesright)[i])[j].Y;
+				}
+				
+				for (size_t j = 0; j < worldcount; j++)
+				{
+					objectPoints[i][j].x = (*(*worldpoints)[i])[j].X;
+					objectPoints[i][j].y = (*(*worldpoints)[i])[j].Y;
+					objectPoints[i][j].z = (*(*worldpoints)[i])[j].Z;
+				}
+			}
+
+			Mat cameraMatrix[2], distCoeffs[2];
+
+			Mat R, T, E, F;
+
+			cv::Size size(1920, 1080);
+
+			double r = cv::stereoCalibrate(objectPoints, imagePoints[0], imagePoints[1], cameraMatrix[0], distCoeffs[0], cameraMatrix[1], distCoeffs[1], size,
+				R, T, E, F, 0);
+			
+			int ef = 4;
+			int efs = 4;
+		}
 		static void SolvePnP(IEnumerable<OpenCvSharp::Point3f>^ objPoints,
 			IEnumerable<OpenCvSharp::Point2f>^ imPoints,
 			OpenCvSharp::InputArray^ cameraMat,array<double,2>^ cameraMatArr,

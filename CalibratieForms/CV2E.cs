@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +22,38 @@ namespace CalibratieForms {
                 return;
             }
             Cv2.ProjectPoints(points, rvec, tvec, cameramat, distcoeffs, out imagePoints, out jacob);
+        }
+        /// <summary>
+        /// not tested
+        /// </summary>
+        /// <param name="cvMat"></param>
+        /// <returns></returns>
+        public static Image GetImage(this Mat cvMat) {
+            var buffer = cvMat.ImEncode(".png", new ImageEncodingParam(ImwriteFlags.PngCompression, 0));
+            Image r;
+            using (MemoryStream m = new MemoryStream(buffer)) {
+                r = Image.FromStream(m);
+            }
+            return r;
+        }
+        /// <summary>
+        /// USE Cv.Imread if possible
+        /// </summary>
+        /// <returns></returns>
+        public static Mat GetCvMatColor(this Image image) {
+            using (var ms = new MemoryStream()) {
+                image.Save(ms, image.RawFormat);
+                return Cv2.ImDecode(ms.ToArray(), ImreadModes.Color);
+            }
+        }/// <summary>
+        /// USE Cv.Imread if possible
+        /// </summary>
+        /// <returns></returns>
+        public static Mat GetCvMatGray(this Image image) {
+            using (var ms = new MemoryStream()) {
+                image.Save(ms, image.RawFormat);
+                return Cv2.ImDecode(ms.ToArray(), ImreadModes.GrayScale);
+            }
         }
     }
 }

@@ -12,8 +12,10 @@ using SceneManager;
 
 using ceresdotnet;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace Calibratie {
+    [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
     public class PinholeCamera : SObject, INotifyPropertyChanged {
         /// <summary>
         /// echt geteste camera Casio EX-Z120
@@ -67,29 +69,7 @@ namespace Calibratie {
         public double DistortionT1 { get { return _distortionT1; } set { _distortionT1 = value; OnPropertyChanged(); } }
         public double DistortionT2 { get { return _distortionT2; } set { _distortionT2 = value; OnPropertyChanged(); } }
 
-        public double[] Ceres_DistCoeffs {
-            get {
-                return new double[] { CameraMatrix.fx, CameraMatrix.fy, 
-                    CameraMatrix.cx, CameraMatrix.cy, 
-                    DistortionR1, DistortionR2,DistortionR3 , 
-                    DistortionT1,DistortionT2  };
-            }
-            set {
-                if (value.Length != 9) {
-                    throw new ArgumentException("wrong size");
-                }
-                CameraMatrix.fx = value[0];
-                CameraMatrix.fy = value[1];
-                CameraMatrix.cx = value[2];
-                CameraMatrix.cy = value[3];
-                _distortionR1 = value[4];
-                _distortionR2 = value[5];
-                _distortionR3 = value[6];
-                _distortionT1 = value[7];
-                _distortionT2 = value[8];
-                OnPropertyChanged();
-            }
-        }
+       
 
         public double[] Cv_DistCoeffs5 {
             get {
@@ -146,15 +126,6 @@ namespace Calibratie {
             if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
         }
 
-        public static double[,] Matrix4dtoproj(Matrix4d m) {
-            var r = new double[4, 4];
-            for (int x = 0; x < 4; x++) {
-                for (int y = 0; y < 4; y++) {
-                    r[x, y] = m[x, y];
-                }
-            }
-            return r;
-        }
 
         /// <summary>
         /// van internet
@@ -228,49 +199,7 @@ namespace Calibratie {
                 }
                 return new Point2d();
         }
-        public Point2d[] ProjectPointd2D_Manually(Vector3d[] points3d, out Vector3d[] visible) {
-            var r = new List<Point2d>();
-            var vis = new List<Vector3d>();
-
-           var axisangle =  this.worldMat.ExtractRotation().ToAxisAngle();
-            
-            
-           
-            foreach (var vector3D in points3d) {
-                var transf = this.worldMat.Inverted();
-                var camcoord = Vector3d.TransformPerspective(vector3D, transf);
-
-                if (camcoord.Z < 0) {
-                    continue;
-                }
-
-                var testx = camcoord.X / camcoord.Z * this.CameraMatrix.fx + this.CameraMatrix.cx;
-                var testy = camcoord.Y / camcoord.Z * this.CameraMatrix.fy + this.CameraMatrix.cy;
-
-
-                var x =camcoord.X/camcoord.Z;
-                var y = camcoord.Y/camcoord.Z;
-
-                var r2 = x*x + y*y;
-                var r4 = r2 * r2;
-                var r6 = r4 * r2;
-                var r_coeff = ((1) + this.DistortionR1 * r2 + this.DistortionR2 * r4 + this.DistortionR3 * r6);
-                var tdistx = 2*this.DistortionT1*x*y + this.DistortionT2*(r2 + 2*x*x);
-                var tdisty = 2*this.DistortionT2*x*y + this.DistortionT1*(r2 + 2*y*y);
-                var xd = x * r_coeff + tdistx;
-                var yd = y * r_coeff + tdisty;
-
-                var im_x = this.CameraMatrix.fx * xd + this.CameraMatrix.cx;
-                var im_y = this.CameraMatrix.fy * yd + this.CameraMatrix.cy;
-
-                if (im_x >= 0 && im_x <= this.PictureSize.Width && im_y >= 0 && im_y <= PictureSize.Height) {
-                    vis.Add(vector3D);
-                    r.Add(new Point2d(im_x,im_y));
-                }
-            }
-            visible = vis.ToArray();
-            return r.ToArray();
-        }
+        
 
         /// <summary>
         /// Project via OpenCV punten in cameracoordinaten
@@ -390,5 +319,52 @@ namespace Calibratie {
         }
         #endregion
          * */
+    }
+
+    public class PinholeCameraConverter : JsonConverter {
+        public override bool CanConvert(Type objectType) {
+            return objectType == typeof(PinholeCamera);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+            var camera = value as PinholeCamera;
+            /*
+            writer.WriteStartObject();
+            writer.WritePropertyName("id");
+            writer.WriteValue(camera.id);
+            writer.WritePropertyName("name");
+            writer.WriteValue(camera.name);
+
+            foreach (var item in camera.fields) {
+                writer.WritePropertyName(item.Key);
+                writer.WriteValue(item.Value);
+            }*/
+            writer.WriteEndObject();
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+            var product = existingValue as PinholeCamera ?? new PinholeCamera();
+            /*
+            while (reader.Read()) {
+                if (reader.TokenType == JsonToken.EndObject)
+                    continue;
+
+                var value = reader.Value.ToString();
+                switch (value) {
+                    case "id":
+                        product.id = reader.ReadAsString();
+                        break;
+                    case "name":
+                        product.name = reader.ReadAsString();
+                        break;
+                    default:
+                        product.fields.Add(value, reader.ReadAsString());
+                        break;
+                }
+
+            }*/
+
+            return product;
+        }
     }
 }

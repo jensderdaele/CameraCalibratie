@@ -48,5 +48,13 @@ namespace Calibratie {
         public static double[] toArr(this Vector3d v) {
             return new[] { v.X, v.Y, v.Z };
         }
+
+        public static TResult AddMember<TResult, T>(this IEnumerable<T> ie,  Func<T, TResult> selector,Func<TResult, TResult, TResult> add) {
+            var r = default(TResult);
+            foreach (T item in ie) {
+                r = add(r, selector(item));
+            }
+            return r;
+        }
     }
 }

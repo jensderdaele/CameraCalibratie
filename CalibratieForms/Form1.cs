@@ -17,8 +17,6 @@ using OpenTK;
 using WeifenLuo.WinFormsUI.Docking;
 using Size = OpenCvSharp.Size;
 
-using MathWorks.MATLAB.NET.Arrays;
-using MathWorks.MATLAB.NET.Utility;
 using OpenCvSharp;
 using Vector = MathNet.Numerics.LinearAlgebra.Complex.Vector;
 
@@ -91,14 +89,21 @@ namespace CalibratieForms {
         }
 
         private void button3_Click(object sender, EventArgs e) {
-            var scene = Util.bundleAdjustScene();
 
-            //CeresSimulation.ceresSolveAruco();
+            var scene = Util.bundleAdjustScene();
+            var multiscene = Util.bundleAdjustSceneMultiCollection();
             
             var sim = new CeresSimulation();
             sim.scene = scene;
 
+            
+
             sim.Solve();
+
+            sim.scene = multiscene;
+
+            sim.SolveMultiCollection();
+
 
 
         }

@@ -202,7 +202,9 @@ namespace CalibratieForms {
                 intrinsics[i] *= 1 + (r.NextDouble() - .5) / 10;
             }
 
-            ceresdotnet.BundleProblem.EuclideanBundleCommonIntrinsics(markers, 0, 0, intrinsics, cameras, points);
+            //ceresdotnet.BundleProblem.EuclideanBundleCommonIntrinsics(markers, 0, 0, intrinsics, cameras, points);
+
+            
 
             var diff = before.Select((x, i) => x - intrinsics[i]).ToArray();
             

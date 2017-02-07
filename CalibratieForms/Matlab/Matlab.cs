@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,34 +11,42 @@ using Calibratie;
 using CalibratieForms.Properties;
 using MathNet.Numerics.LinearAlgebra.Complex;
 using OpenTK;
-using MathWorks.MATLAB.NET.Utility;
-using MathWorks.MATLAB.NET.Arrays;
 using OpenCvSharp;
-using MathWorks.MATLAB.NET;
 
 
 
 namespace CalibratieForms {
+
+    public class MatlabResource<T> {
+        
+    }
     public static class Matlab {
-        //public static MLApp.MLApp ML;
+        
+        public static MLApp.MLApp ML;
         private static string byteToString(byte[] data) {
             return System.Text.Encoding.ASCII.GetString(data);
+            
         }
         public static void VisualizeDistortions(PinholeCamera camera) {
             var script = byteToString(Resources.visualize_distortions);
+            const string fx = "%fx%";
 
         }
 
         static Matlab() {
-           // ML = new MLApp.MLApp();
-            //ML.Execute("workspace");
+            ML = new MLApp.MLApp();
+           ML.Execute("workspace");
+            
+        }
+
+        public static void ViewReprojectionError(List<PointF> error) {
             
         }
 
         private static int count = 0;
         private static string workspacename = "base";
         public static void ScatterPlot(Point2d[] data) {
-           /* double[,] dataArray = new double[2,data.Length];
+            double[,] dataArray = new double[2,data.Length];
             double[] xdata = new double[data.Length];
             double[] ydata = new double[data.Length];
             for (int i = 0; i < data.Length; i++) {
@@ -61,17 +70,17 @@ namespace CalibratieForms {
                 d[i, 1] = data[i].Y;
             }
             
-            //ML.PutWorkspaceData(dataName, workspacename, d);
-            //ML.PutFullMatrix("testScatterPlotMATRIX" + count, workspacename, d, d);
+            ML.PutWorkspaceData(dataName, workspacename, d);
+            ML.PutFullMatrix("testScatterPlotMATRIX" + count, workspacename, d, d);
             
             ML.Execute(String.Format(@" clear x;clear y;
                                         x={0}[0];
                                         y={0}[1];
-                                        scatter(x,y,'x')", dataName));*/
+                                        scatter(x,y,'x')", dataName));
 
         }
         public static void ScatterPlot(List<Point2d[]> dataList,string name) {
-            /*int index = 1;
+            int index = 1;
             string dataName = String.Format("scatter_{0}", name);
             ML.Execute(String.Format(@"figure('{0}','HOLD ON approach')", name));
             
@@ -93,12 +102,12 @@ namespace CalibratieForms {
                 index++;
             }
 
-            */
+            
             
         }
 
         public static void ScatterPlot(double[,] data) {
-            /*count++;
+            count++;
             string dataName = "testScatterPlot" + count;
 
             ML.PutWorkspaceData("test" + count, workspacename, count * 3);
@@ -107,7 +116,7 @@ namespace CalibratieForms {
             ML.Execute(String.Format(@" x={0}[0];
                                         y={0}[1];
                                         scatter(x,y)", dataName));
-            */
+            
         }
     }
 }

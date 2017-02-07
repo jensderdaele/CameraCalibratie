@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using ArUcoNET;
 using ceresdotnet;
 using Calibratie;
@@ -13,7 +15,7 @@ using ComponentOwl.BetterListView;
 using OpenCvSharp;
 using OpenTK;
 using SceneManager;
-
+using Size = OpenCvSharp.Size;
 
 
 namespace CalibratieForms {
@@ -28,42 +30,175 @@ namespace CalibratieForms {
 
         private static Object lockme = new Object();
 
-        /*
+        public class stereoPair {
+            public Dictionary<ArucoMarker, ArucoMarker> intersection;
+            public string image1;
+            public string image2;
+        }
+
+        public static List<stereoPair> findImagePairsMinMarkers(Dictionary<string, IEnumerable<ArucoMarker>> markersDict,
+            int minIdenticalMarkers) {
+            List<string> excludedFiles = new List<string>();
+
+            List<stereoPair> pairs = new List<stereoPair>();
+
+            foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp in markersDict) {
+                foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp2 in markersDict) {
+                    if (kvp.Key.Equals(kvp2.Key)) continue;
+                    stereoPair pair;
+                    var intersect = kvp.Value.getIntersection(kvp2.Value, new EqualityComparer<ArucoMarker>((marker, arucoMarker) => marker.ID == arucoMarker.ID));
+                    if (intersect.Count() >= minIdenticalMarkers) {
+                        pairs.Add(new stereoPair {
+                            image1 = kvp.Key,
+                            image2 = kvp2.Key,
+                            intersection = intersect
+                        });
+                    }
+                }
+            }
+            return pairs;
+        }
+        
+        public static void findImagePairsMinMarkersBestFit(Dictionary<string, IEnumerable<ArucoMarker>> markersDict,
+            int minIdenticalMarkers) {
+            List<string> excludedFiles = new List<string>();
+            foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp in markersDict) {
+                foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp2 in markersDict) {
+                    if (!kvp.Key.Equals(kvp2.Key)) {
+                        var intersect = kvp.Value.Intersect(kvp2.Value, new EqualityComparer<ArucoMarker>((marker, arucoMarker) => marker.ID == arucoMarker.ID));
+                    }
+                }
+            }
+
+            
+        }
+        
         public static unsafe void ceresSolveAruco() {
-            string dir = @"C:\Users\jens\Desktop\calibratie\Fotos_gedownload_door_AirDroid (1)\aruco\stereo test\";
+            var phc = PinholeCamera.getTestCameraHuawei();
+            string dir = @"C:\Users\jens\Desktop\calibratie\Huawei p9\aruco\stereo test\";
             List<CeresMarker> ceresmarkers = new List<CeresMarker>();
             List<CeresCamera> cerescameras = new List<CeresCamera>();
             var files = Directory.GetFiles(dir).ToList();
 
-            
-            
-            List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(4); //max 4 threads
 
-            Dictionary<string, IEnumerable<ArucoMarker>> markerDictionary = new Dictionary<string, IEnumerable<ArucoMarker>>();
+            //8 punten nodig
+            var markerDictionary = Aruco.findArucoMarkers(files, Path.Combine(dir, "aruco_detected\\"),1);
+            var pairs = findImagePairsMinMarkers(markerDictionary, 8);
 
-            Action<Object> arucomarkerAction = o => {
-                String file = (string) o;
-                int id = files.IndexOf(file);
-                CeresCamera camera;// = CeresCamera.From(PinholeCamera.getTestCamera());
-                var markers = ArUcoNET.Aruco.FindMarkers(file);
-                markerDictionary.Add(file, markers);
-                if (markers.Any()) {
-                    foreach (var arucoMarker in markers) {
-                        ceresmarkers.AddRange(arucoMarker.getCeresMarkers(id, camera));
+            Mat K = phc.CameraMatrix.cvmat;
+            
+
+
+            Mat W = new Mat(3, 3, MatType.CV_64FC1, new double[] {
+                0.0D, -1.0D, 0.0D,
+                1.0D, 0.0D, 0.0D,
+                0.0D, 0.0D, 1.0D
+            });
+            Mat Wt = new Mat(3, 3, MatType.CV_64FC1, new double[] {
+                0.0D, 1.0D, 0.0D,
+                -1.0D, 0.0D, 0.0D,
+                0.0D, 0.0D, 1.0D
+            });
+            Mat Z = new Mat(3, 3, MatType.CV_64FC1, new double[] {
+                0.0D, 1.0D, 0.0D,
+                -1.0D, 0.0D, 0.0D,
+                0.0D, 0.0D, 0D
+            });
+
+            Mat diag = new Mat(3, 3, MatType.CV_64FC1, new double[] {
+                1.0D, 0.0D, 0.0D,
+                0.0D, 1.0D, 0.0D,
+                0.0D, 0.0D, 0.0D
+            });
+
+
+            foreach (var stereoPair in pairs) {
+                var points_count = stereoPair.intersection.Count;
+                Point2d[] punten1px = new Point2d[points_count];
+                Point2d[] punten2px = new Point2d[points_count];
+
+                {
+                    int i = 0;
+                    foreach (KeyValuePair<ArucoMarker, ArucoMarker> kvp in stereoPair.intersection) {
+                        punten1px[i] = (kvp.Key.Corner1.to2d());
+                        punten2px[i] = (kvp.Value.Corner2.to2d());
+                        i++;
                     }
                 }
-                cerescameras.Add(camera);
-                throttler.Release();
-            };
+                
+                var F = Cv2.FindFundamentalMat(punten1px,punten2px);
 
-            foreach (var file in files) {
-                throttler.Wait();
-                var t = new Task(arucomarkerAction, file);
-                t.Start();
-                allTasks.Add(t);
+
+
+                
+                Mat essential = K.T() * F * K;
+                SVD decomp = new SVD(essential);
+                Mat U = decomp.U;
+                Mat Vt = decomp.Vt;
+
+                Mat R1 = U * W * Vt;
+                Mat R2 = U * W.T() * Vt;
+                Mat T1 = U.Col[2];
+                Mat T2 = -U.Col[2];
+
+                Mat[] Ps = new Mat[4];
+
+                for (int i = 0; i < 4; i++)
+                    Ps[i] = new Mat(3, 4, MatType.CV_64FC1);
+
+                Cv2.HConcat(R1, T1, Ps[0]);
+                Cv2.HConcat(R1, T2, Ps[1]);
+                Cv2.HConcat(R2, T1, Ps[2]);
+                Cv2.HConcat(R2, T2, Ps[3]);
+
+                var mat0001 = new Mat(1, 4, MatType.CV_64F, new double[] { 0, 0, 0, 1 });
+
+                var KPs = new Mat[4];
+                KPs[0] = K * Ps[0];
+                KPs[1] = K * Ps[1];
+                KPs[2] = K * Ps[2];
+                KPs[3] = K * Ps[3];
+
+                
+                var KP0 = K*Mat.Eye(3, 4, MatType.CV_64FC1);
+
+                for (int i = 0; i < 4; i++) {
+
+                    var punten1px_cv = new MatOfPoint2d(1, punten1px.Length, punten1px);
+                    var punten2px_cv = new MatOfPoint2d(1, punten2px.Length, punten2px);
+                    
+
+                    Mat output_hom = new Mat();
+                    Cv2.TriangulatePoints(KP0, KPs[i], punten1px_cv, punten2px_cv, output_hom);
+
+                    
+                    List<Point3d> testList = new List<Point3d>();
+                    Mat output = new Mat();
+                    for (int j = 0; j < punten1px.Length; j++) {
+                        var phom = output_hom.Get<Vec4d>(j);
+                        var pt = new Point3d {
+                            X = phom.Item0/phom.Item3,
+                            Y = phom.Item1/phom.Item3,
+                            Z = phom.Item2/phom.Item3
+                        };
+                        testList.Add(pt);
+                    }
+                    
+                    
+                    testList.writePoints(string.Format(@"C:\Users\jens\Desktop\calibratie\output3d\out{0}.txt", i));
+                    if (testList.Where(x => x.Z < 0).Count() == 0) {
+                        var puntenin3d = testList;
+                    }
+
+                }
+
+                Mat S = U*diag*W*U.T();
+
+                Mat R = U*W*decomp.Vt;
+
+
             }
-            Task.WhenAll(allTasks).Wait();
+            
 
             //init calibratie
             ZhangCalibration zcalibration = new ZhangCalibration();
@@ -75,7 +210,6 @@ namespace CalibratieForms {
             var l1 = markerDictionary.Values.First();
             var l2 = markerDictionary.Values.Last();
 
-            Mat K = cam.CameraMatrix.cvmat;
             Mat distcoeffs = new MatOfDouble(1,5,cam.Cv_DistCoeffs5);
 
             var zelfde = l1.selectSame(l2, (a, b) => a.ID == b.ID);
@@ -87,13 +221,14 @@ namespace CalibratieForms {
             Mat cam1pnts = new Mat(1, punten1.Count(), MatType.CV_32FC2);
             cam0pnts.SetArray(0, 0, punten1.Select(x=>new Point2f((float)x.X,(float)x.Y)).ToArray());
             cam1pnts.SetArray(0, 0, punten2.Select(x => new Point2f((float)x.X, (float)x.Y)).ToArray());
-
+            
             Mat cam0pntsnorm = new Mat();
             Mat cam1pntsnorm = new Mat();
             Cv2.UndistortPoints(cam0pnts, cam0pntsnorm, K, distcoeffs,null,K);
             Cv2.UndistortPoints(cam1pnts, cam1pntsnorm, K, distcoeffs,null,K);
 
-            ArUcoNET.CV_Native.TestFmat(cam0pnts,cam1pnts,K);
+
+            
 
             Mat cam0pntshom = new Mat(), cam1pntshom = new Mat();
             Cv2.ConvertPointsToHomogeneous(cam0pnts, cam0pntshom);
@@ -120,34 +255,10 @@ namespace CalibratieForms {
 
             
 
-            Mat essential = K.T() * fundamentalMatrix * K;
-
-            
-            
-
-            SVD decomp = new SVD(essential);
-
-            Mat W = new Mat(3, 3, MatType.CV_64FC1, new double[] {
-                0.0D, -1.0D, 0.0D,
-                1.0D, 0.0D, 0.0D,
-                0.0D, 0.0D, 1.0D
-            });
-            Mat Wt = new Mat(3, 3, MatType.CV_64FC1, new double[] {
-                0.0D, 1.0D, 0.0D,
-                -1.0D, 0.0D, 0.0D,
-                0.0D, 0.0D, 1.0D
-            });
-
-            Mat diag = new Mat(3, 3, MatType.CV_64FC1, new double[] {
-                1.0D, 0.0D, 0.0D,
-                0.0D, 1.0D, 0.0D,
-                0.0D, 0.0D, 0.0D
-            });
-
-            Mat Er = decomp.U * diag * decomp.Vt;
+            Mat Er = null;// = decomp.U * diag * decomp.Vt;
 
             SVD svd = new SVD(Er);
-
+            
 
             Mat Winv = new Mat(3, 3, MatType.CV_64FC1, new double[] {
                 0.0D, 1.0D, 0.0D,
@@ -155,100 +266,232 @@ namespace CalibratieForms {
                 0.0D, 0.0D, 1.0D
             });
 
-            Mat R1 = svd.U * W * svd.Vt;
-            Mat T1 = svd.U.Col[2];
-            Mat R2 = svd.U * Winv * svd.Vt;
-            Mat T2 = -svd.U.Col[2];
-
-            Mat[] Ps = new Mat[4];
-
-            for (int i = 0; i < 4; i++)
-                Ps[i] = new Mat(3, 4, MatType.CV_64FC1);
-
-            Cv2.HConcat(R1, T1, Ps[0]);
-            Cv2.HConcat(R1, T2, Ps[1]);
-            Cv2.HConcat(R2, T1, Ps[2]);
-            Cv2.HConcat(R2, T2, Ps[3]);
-
-
-            Mat P0 = new Mat(3, 4, MatType.CV_64FC1, new double[] {
-                1D, 0D, 0.0D , 0D,
-                0D, 1D, 0.0D , 0D,
-                0D, 0D, 1.0D , 0D,
-            });
             
-            List<Point3d> list3d = new List<Point3d>();
-            Mat outputMat = new Mat();
-            for (int i = 0; i < 4; i++) {
-                Mat cam0pntsf = new Mat();
-                cam0pnts.ConvertTo(cam0pntsf,MatType.CV_32FC1);
-                Mat cam1pntsf = new Mat();
-                cam1pnts.ConvertTo(cam1pntsf, MatType.CV_32FC1);
-                Cv2.TriangulatePoints(P0, Ps[i], cam0pntsf, cam1pntsf, outputMat);
-                Mat hom = outputMat.Reshape(4);
-                Mat pnts3D = new Mat();
-                Cv2.ConvertPointsFromHomogeneous(hom, pnts3D);
 
-                List<Point3d> testList = new List<Point3d>();
-                for (int j = 0; j < punten1.Count(); j++) {
-                    var p = pnts3D.Get<Point3d>(j);
-                    testList.Add(p);
-                }
-                testList.writePoints(string.Format(@"C:\Users\jens\Desktop\calibratie\output3d\out{0}.txt", i));
-                if (testList.Where(x => x.Z < 0).Count() == 0) {
-                    list3d = testList;
-                }
-                
-            }
+
+            
+            
 
 
         }
-        */
-        public void Solve() {
-            /*
-            Random rand = new Random();
+        /*
+        public List<CeresCameraCollection> toCeresColl(List<CameraCollection> colls) {
+            Dictionary<PinholeCamera, CeresCamera> usedCameras = new  Dictionary<PinholeCamera, CeresCamera>();
+            Dictionary<String, CeresIntrinsics> usedIntrinsics = new Dictionary<String, CeresIntrinsics>();
+
+            List<CeresCameraCollection> cerescolls = new List<CeresCameraCollection>();
+            foreach (var coll in colls) {
+
+                CeresCameraCollection ccol = new CeresCameraCollection();
+                ccol.Cameras = new List<CeresCamera>();
+                foreach (var pinholecamera in coll) {
+                    CeresCamera cc;
+                    if (usedCameras.ContainsKey(pinholecamera)) {
+                        cc = usedCameras[pinholecamera];
+                    }
+                    else {
+                        CeresIntrinsics intr;
+                        if (usedIntrinsics.ContainsKey(pinholecamera.Name)) {
+                            intr = usedIntrinsics[pinholecamera.Name];
+                        }
+                        else {
+                            intr = new CeresIntrinsics(pinholecamera.toCeresIntrinsics9());
+                            usedIntrinsics.Add(pinholecamera.Name, intr);
+                        }
+                        cc = new CeresCamera(pinholecamera.worldMat) {Internal = intr};
+                        usedCameras.Add(pinholecamera, cc);
+                    }
+
+                    
+                }
+                    
+            }
+
+        } */
+
+
+
+        public void SolveMultiCollection() {
+            
+            var collections = scene.get<CameraCollection>();
             var markers3d = scene.get<Marker>();
             var cameras = scene.get<PinholeCamera>();
 
-            Dictionary<string, CeresCamera> uniekeIntrinsics = new Dictionary<string, CeresCamera>();
+
+
+
+            var collec = new CameraCollection(cameras);
+
+            collections = new[] {collec};
+
+            var intri = new CeresIntrinsics {
+                BundleFlags = BundleIntrinsicsFlags.ALL,
+                Intrinsics = cameras.First().toCeresIntrinsics9()
+               
+            };
+
+            var ccoll = new CeresCameraCollection();
+            ccoll.Cameras.AddRange(cameras.Select(x => {
+                var cc = new CeresCamera(x.worldMat) {
+                    Internal = intri
+                };
+                return cc;
+            }));
+            ccoll.CreateSecondPositionCopy();
+
+            var bundler =  new ceresdotnet.CeresCameraMultiCollectionBundler();
+
+            
+
+
+            Dictionary<CeresCameraCollection,Dictionary<CeresCamera, List<CeresMarker>>> observations = new Dictionary<CeresCameraCollection, Dictionary<CeresCamera, List<CeresMarker>>>();
+            
+
 
             List<CeresCamera> cerescameras = new List<CeresCamera>();
-            List<CeresMarker> ceresmarkers = new List<CeresMarker>();
-            //x = marker
-            List<CeresPoint> cerespoints = markers3d.Select(x => new CeresPoint(x.Pos, x.ID)).ToList();
+            List<CeresCameraCollection> cerescameracollections = new List<CeresCameraCollection>(); 
+
             int cameraID = -1;
+            
+            
+            foreach (var collection in collections) {
+                var intr = new CeresIntrinsics {
+                    BundleFlags = BundleIntrinsicsFlags.ALL,
+                    Intrinsics = collection.First().toCeresIntrinsics9()
+                };
+                var cerescollection = new CeresCameraCollection();
+                var collectionobservations = new Dictionary<CeresCamera, List<CeresMarker>>();
+
+                foreach (var camera in collection) {
+                    List<CeresMarker> ceresmarkers = new List<CeresMarker>();
+                    cameraID++;
+                    Dictionary<Vector3d, Marker> puntenCv = markers3d.ToDictionary(m => m.Pos);
+                    Vector3d[] visible3d;
+                    var visible_proj = camera.ProjectPointd2D_Manually(puntenCv.Keys.ToArray(), out visible3d);
+                    var cc = new CeresCamera(camera.worldMat) {
+                        Internal = intr
+                    };
+
+
+                    //in een cerescamera worden interne parameters opgeslaan volgens array v doubles
+
+                    //Per interne parameters kan men bepalen wat dient gebundeld te worden
+                    //ook combinatie zijn mogelijk
+
+                    cerescameras.Add(cc);
+
+
+                    for (int i = 0; i < visible3d.Length; i++) {
+                        var proj = visible_proj[i];
+
+                        var marker = new CeresMarker() {
+                            id = puntenCv[visible3d[i]].ID,
+                            Location = new CeresPoint {
+                                BundleFlags = BundleWorldCoordinatesFlags.None,
+                                Coordinates_arr = visible3d[i].toArr()
+                            },
+                            x = proj.X,
+                            y = proj.Y
+                        };
+                        var res = ceresdotnet.CeresCameraCollectionBundler.testProjectPoint(cc,
+                            new CeresPointOrient() { RT = new[] { 0D, 0, 0, 0, 0, 0 } }, marker);
+                        proj.X -= res[0];
+                        proj.Y -= res[1];
+                        marker.x = proj.X;
+                        marker.y = proj.Y;
+                        ceresmarkers.Add(marker);
+                    }
+                    collectionobservations.Add(cc, ceresmarkers);
+
+                    //gesimuleerde foto weergeven
+                    var window2 = new CameraSimulationFrm(string.Format("Camera {0}: {1}", cameraID, camera.Name)) {
+                        Camera = camera
+                    };
+                    window2.Show();
+                    window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
+                }
+                observations.Add(cerescollection,collectionobservations);
+            }
+            
+
+            double[] rodr;
+            var test = new double[,] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+            Cv2.Rodrigues(test, out rodr);
+
+            CeresCameraMultiCollectionBundler.MarkersFromCameraDelegate findObservationsFunc = (camera, coll) => observations[coll][camera];
+            bundler.MarkersFromCamera = findObservationsFunc;
+            bundler.CollectionList = cerescameracollections;
+            
+
+            bundler.bundleCollections(iterationCallbackHandler);
+
+        }
+
+        protected CeresCallbackReturnType iterationCallbackHandler(int iterationNr) {
+            return CeresCallbackReturnType.SOLVER_CONTINUE;
+        }
+        
+        public void Solve() {
+            var markers3d = scene.get<Marker>();
+            var cameras = scene.get<PinholeCamera>();
+
+            var cameraCollecion = new CameraCollection(cameras);
+
+            //cameraCollecion.SetCollectionCenter_MidCameras();
+            
+            List<CeresCamera> cerescameras = new List<CeresCamera>();
+            Dictionary<CeresCamera, List<CeresMarker>> observations = new Dictionary<CeresCamera, List<CeresMarker>>();
+            
+            int cameraID = -1;
+
+            var intr = new CeresIntrinsics {
+                BundleFlags = BundleIntrinsicsFlags.ALL,
+                Intrinsics = cameras.First().toCeresIntrinsics9()
+            };
+            
             foreach (var camera in cameras) {
+                List<CeresMarker> ceresmarkers = new List<CeresMarker>();
                 cameraID++;
                 Dictionary<Vector3d, Marker> puntenCv = markers3d.ToDictionary(m => m.Pos);
-                //bevat zichtbare punten
                 Vector3d[] visible3d;
-                //alle zichtbare punten worden geprojecteerd. andere worden verwijderd:
-                //  punten die in cameracoordinaten een negatieve Z-waarde hebben staan achter de camera
-                //  punten die buiten het sensorbereik vallen 
                 var visible_proj = camera.ProjectPointd2D_Manually(puntenCv.Keys.ToArray(), out visible3d);
-                var cc = CeresCamera.From(camera);
-                //in een cerescamera worden interne parameters opgeslaan volgens array v doubles
-                cc.Intrinsics = camera.toCeresIntrinsics9();
-                cc.id = cameraID;
+                var cc = new CeresCamera(camera.worldMat) {
+                    Internal = intr
+                };
 
+                
+                //in een cerescamera worden interne parameters opgeslaan volgens array v doubles
+                
                 //Per interne parameters kan men bepalen wat dient gebundeld te worden
                 //ook combinatie zijn mogelijk
-                cc.bundle_intrinsics = (int) BundleIntrinsics.BUNDLE_ALL; 
-                if (uniekeIntrinsics.ContainsKey(camera.Name)) {
-                    //De software zal voor alle zelfde camera 1 paar 
-                    //intrinsieke parameters (9 waarden) hanteren & optimaliseren
-                    cc.LinkIntrinsicsToCamera(uniekeIntrinsics[camera.Name]); 
-                }
+ 
                 cerescameras.Add(cc);
 
+                var obs2 = new List<Tuple<int, System.Drawing.PointF>>();
                 for (int i = 0; i < visible3d.Length; i++) {
                     var proj = visible_proj[i];
-                    ceresmarkers.Add(new CeresMarker(cameraID, puntenCv[visible3d[i]].ID,
-                        proj.X,
-                        proj.Y) {
-                        parentCamera = cc //elke marker bevat de bijhorende camera & 3Dpunt
-                    }); 
+
+                    var marker = new CeresMarker() {
+                        id = puntenCv[visible3d[i]].ID,
+                        Location = new CeresPoint {
+                            BundleFlags = BundleWorldCoordinatesFlags.None,
+                            Coordinates_arr = visible3d[i].toArr()
+                        },
+                        x = proj.X,
+                        y = proj.Y
+                    };
+                    obs2.Add(new Tuple<int, PointF>(marker.id, new PointF((float)marker.x, (float)marker.y)));
+                    var res = ceresdotnet.CeresCameraCollectionBundler.testProjectPoint(cc,
+                        new CeresPointOrient() { RT = new[] { 0D, 0, 0, 0, 0, 0 } }, marker);
+                    proj.X -= res[0];
+                    proj.Y -= res[1];
+                    marker.x = proj.X;
+                    marker.y = proj.Y;
+                    ceresmarkers.Add(marker); 
                 }
+                
+                Util.SolvePnP(scene,camera,obs2);
+                observations.Add(cc, ceresmarkers);
                 
                 //gesimuleerde foto weergeven
                 var window2 = new CameraSimulationFrm(string.Format("Camera {0}: {1}", cameraID, camera.Name)) {
@@ -257,14 +500,23 @@ namespace CalibratieForms {
                 window2.Show();
                 window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
             }
+            var bundler = new ceresdotnet.CeresCameraCollectionBundler();
 
-            var problem = new ceresdotnet.MultiCameraBundleProblem();
-            problem.all_points_managed.AddRange(cerespoints);
-            problem.cameras.AddRange(cerescameras);
-            problem.markers.AddRange(ceresmarkers);
+            double[] rodr;
+            var test = new double[,] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+            Cv2.Rodrigues(test, out rodr);
+            bundler.Collection = new CeresCameraCollection() {
+                Cameras = cerescameras,
+                Position = new CeresPointOrient() {
+                    Bundle = false,
+                    R_rod = rodr,
+                    t = new[] { 0D, 0, 0 }
+                }
+            };
+            bundler.Observations = observations;
 
-            //output wordt in Console geschreven door ceresdotnet
-            problem.SolveProblem();*/
+            bundler.bundleCollection(iterationCallbackHandler);
+            
         }
         
         

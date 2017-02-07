@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Calibratie;
 using OpenCvSharp;
 using OpenTK;
 
@@ -43,6 +44,33 @@ namespace CalibratieForms {
             }
             return r.ToArray();
         }
+
+        public static List<Marker> MarkersFromFile(string file) {
+            var r = new List<Marker>();
+            var stream = new FileStream(file, FileMode.Open);
+            var reader = new StreamReader(stream, Encoding.UTF8);
+            var txt = reader.ReadToEnd();
+            var split = txt.Split(new[] {',','\n','\t','\r'}, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < split.Length; i++) {
+                int id;
+                if (!int.TryParse(split[i++], out id)) {
+                    i += 2;
+                    continue;
+                }
+                double x, y, z;
+                if (double.TryParse(split[i], NumberStyles.AllowDecimalPoint,NumberFormatInfo.InvariantInfo, out x)
+                    && double.TryParse(split[i + 1], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo, out y) &&
+                    double.TryParse(split[i + 2], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo, out z)) {
+                    r.Add(new Marker(id, new Vector3d(x, y, z)));
+                    i += 2;
+                }
+                else {
+                    i += 2;
+                    continue;
+                }
+            }
+            return r;
+        } 
 
 
         public static void writePoints(this List<Point3d> pts, string file) {

@@ -24,6 +24,12 @@
     <ClInclude Include="managed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ceresfunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SlechteCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ceresdotnet.cpp">
@@ -36,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="managed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ceresfunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

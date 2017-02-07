@@ -19,5 +19,12 @@ namespace SceneManager
 
 
         public List<SObject> objects = new List<SObject>();
+
+        public void Add<T>(T item) where T : SObject {
+            objects.Add(item);
+        }
+        public void AddRange<T>(IEnumerable<T> items) where T : SObject {
+            objects.AddRange(items);
+        }
     }
 }
