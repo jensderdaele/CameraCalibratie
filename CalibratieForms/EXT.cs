@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -9,6 +10,7 @@ using ArUcoNET;
 using ceresdotnet;
 using Calibratie;
 using CalibratieForms.Properties;
+using Emgu.CV;
 using OpenCvSharp;
 using OpenTK;
 
@@ -29,18 +31,6 @@ namespace CalibratieForms {
     }
     public static partial class EXT {
 
-        public static Mat PointsToMat(this IEnumerable<Point3d> pts) {
-            var point3Ds = pts as Point3d[] ?? pts.ToArray();
-            Mat r = new Mat(1, point3Ds.Count(), MatType.CV_64FC2);
-            r.SetArray(0, 0, point3Ds.ToArray());
-            return r;
-        }
-        public static Mat PointsToMat(this IEnumerable<Point3f> pts) {
-            var point3Ds = pts as Point3f[] ?? pts.ToArray();
-            Mat r = new Mat(1, point3Ds.Count(), MatType.CV_32FC2);
-            r.SetArray(0, 0, point3Ds.ToArray());
-            return r;
-        }
 
         public static Dictionary<T, T> getIntersection<T>(this IEnumerable<T> list1, IEnumerable<T> list2,
             IEqualityComparer<T> comparer,int maxItems = 0) {
@@ -58,11 +48,9 @@ namespace CalibratieForms {
             return r;
         }
 
-        public static Dictionary<string, IEnumerable<ArucoMarker>> getArucoMarkers(IEnumerable<string> files) {
-            return files.ToDictionary(f => f, ArUcoNET.Aruco.FindMarkers);
-        } 
-        public static Point2d to2d(this Point2f p) {
-            return new Point2d(p.X,p.Y);
+
+        public static IEnumerable<Tuple<T, T2>> ToTupleList<T, T2>(this Dictionary<T, T2> dict) {
+            return dict.Select(kvp => new Tuple<T, T2>(kvp.Key,kvp.Value));
         }
 
         /// <summary>
@@ -99,20 +87,25 @@ namespace CalibratieForms {
             Corner3 = 0x8000
         }
 
-        /// <summary>
-        /// CERESMARKERID = ARUCOID + ArucoMarkerFlags!
-        /// GEBRUIK .first() voor 1 corner (LB)
-        /// </summary>
-        /// <param name="armarker"></param>
-        /// <param name="imageID"></param>
-        /// <returns></returns>
-        public static IEnumerable<CeresMarker> getCeresMarkers(this ArUcoNET.ArucoMarker armarker,int imageID,CeresCamera parentCamera = null) {
-            throw new NotImplementedException();
-            /*
-            yield return new CeresMarker(imageID, armarker.ID, armarker.Corner1.X, armarker.Corner1.Y) { parentCamera = parentCamera };
-            yield return new CeresMarker(imageID, armarker.ID | (int)ArucoMarkerFlags.Corner2, armarker.Corner2.X, armarker.Corner2.Y) { parentCamera = parentCamera };
-            yield return new CeresMarker(imageID, armarker.ID | (int)ArucoMarkerFlags.Corner3, armarker.Corner3.X, armarker.Corner3.Y) { parentCamera = parentCamera };
-        */} 
+        public static void IntersectLists<T>(this List<T> list1, List<T> list2,
+           Func<T, T, bool> compare) {
+            List<T> remove1 = new List<T>(), remove2 = new List<T>();
+            foreach (var t1 in list1) {
+                foreach (T t2 in list2) {
+                    if (!compare(t1, t2)) {
+                        remove1.Add(t1);
+                        remove2.Add(t2);
+                    }
+                }
+            }
+            foreach (var VARIABLE in remove1) {
+                list1.Remove(VARIABLE);
+            }
+            foreach (var VARIABLE in remove2) {
+                list2.Remove(VARIABLE);
+            }
+        }
+
 
         public static double[] toArr(this Vector4d v) {
             return new[] { v.X, v.Y, v.Z, v.W };
@@ -120,6 +113,19 @@ namespace CalibratieForms {
         public static double[] toArr(this Vector3d v) {
             return new[] { v.X, v.Y, v.Z };
         }
+
+        public static Matrix<double> toMatrixD(this PointF p) {
+            return new Matrix<double>(p.toArrD());
+        }
+        public static Matrix<float> toMatrixF(this PointF p) {
+            return new Matrix<float>(p.toArrF());
+        }
+        public static double[] toArrD(this PointF p) {
+            return new double[] { p.X, p.Y };
+        }
+        public static float[] toArrF(this PointF p) {
+            return new [] { p.X, p.Y };
+        } 
         public static double[] toCeresIntrinsics9(this PinholeCamera c) {
             double[] intrinsics = {
                 c.CameraMatrix.fx,

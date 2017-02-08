@@ -146,9 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Reference Include="OpenCvSharp">
-      <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />

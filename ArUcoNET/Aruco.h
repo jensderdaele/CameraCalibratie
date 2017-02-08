@@ -26,16 +26,16 @@ namespace ArUcoNET {
 	
 	public ref class ArucoMarker{
 	public:
-		OpenCvSharp::Point2f Corner1;
-		OpenCvSharp::Point2f Corner2;
-		OpenCvSharp::Point2f Corner3;
-		OpenCvSharp::Point2f Corner4;
+		System::Drawing::PointF Corner1;
+		System::Drawing::PointF Corner2;
+		System::Drawing::PointF Corner3;
+		System::Drawing::PointF Corner4;
 		int ID;
 
 		ArucoMarker(){
 			
 		}
-		ArucoMarker(OpenCvSharp::Point2f^ Corner1, OpenCvSharp::Point2f^ Corner2, OpenCvSharp::Point2f^ Corner3, OpenCvSharp::Point2f^ Corner4, int id){
+		ArucoMarker(System::Drawing::PointF^ Corner1, System::Drawing::PointF^ Corner2, System::Drawing::PointF^ Corner3, System::Drawing::PointF^ Corner4, int id){
 			this->Corner1 = *Corner1;
 			this->Corner2 = *Corner2;
 			this->Corner3 = *Corner3;
@@ -43,10 +43,11 @@ namespace ArUcoNET {
 			ID = id;
 		}
 	};
-	
+
+	/* GARBAGE
 	public ref class CV_Native{
 	public:
-		static void StereoCalibrate(List<List<OpenCvSharp::Point2f>^>^ imagesleft, List<List<OpenCvSharp::Point2f>^>^ imagesright, List<List<OpenCvSharp::Point3f>^>^ worldpoints){
+		static void StereoCalibrate(List<List<System::Drawing::PointF>^>^ imagesleft, List<List<System::Drawing::PointF>^>^ imagesright, List<List<System::Drawing::PointF>^>^ worldpoints){
 			
 
 			
@@ -100,7 +101,7 @@ namespace ArUcoNET {
 			int efs = 4;
 		}
 		static void SolvePnP(IEnumerable<OpenCvSharp::Point3f>^ objPoints,
-			IEnumerable<OpenCvSharp::Point2f>^ imPoints,
+			IEnumerable<System::Drawing::PointF>^ imPoints,
 			OpenCvSharp::InputArray^ cameraMat,array<double,2>^ cameraMatArr,
 			array<double>^ distcffs5, OpenCvSharp::SolvePnPFlags flags){
 
@@ -112,7 +113,7 @@ namespace ArUcoNET {
 			std::vector<Point3f*>* objectpointspp = new std::vector<Point3f*>();
 
 			IEnumerator<OpenCvSharp::Point3f>^ objpointsenum =  objPoints->GetEnumerator();
-			IEnumerator<OpenCvSharp::Point2f>^ impointsenum = imPoints->GetEnumerator();
+			IEnumerator<System::Drawing::PointF>^ impointsenum = imPoints->GetEnumerator();
 
 			int i = 0;
 			while (objpointsenum->MoveNext()){
@@ -183,11 +184,7 @@ namespace ArUcoNET {
 			OpenCvSharp::Mat^ mmm = gcnew OpenCvSharp::Mat(IntPtr(&R));
 		}
 	};
-
-	public ref class sieft{
-	public:
-		
-	};
+	*/
 
 	static std::string format(const char* fmt, ...){
 		int size = 512;
@@ -293,10 +290,10 @@ namespace ArUcoNET {
 			int sz = markerCorners.size();
 			for (size_t i = 0; i < markerCorners.size(); i++)
 			{
-				OpenCvSharp::Point2f^ corner1 = gcnew OpenCvSharp::Point2f(markerCorners[i][0].x, markerCorners[i][0].y);
-				OpenCvSharp::Point2f^ corner2 = gcnew OpenCvSharp::Point2f(markerCorners[i][1].x, markerCorners[i][1].y);
-				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
-				OpenCvSharp::Point2f^ corner4 = gcnew OpenCvSharp::Point2f(markerCorners[i][3].x, markerCorners[i][3].y);
+				System::Drawing::PointF^ corner1 = gcnew System::Drawing::PointF(markerCorners[i][0].x, markerCorners[i][0].y);
+				System::Drawing::PointF^ corner2 = gcnew System::Drawing::PointF(markerCorners[i][1].x, markerCorners[i][1].y);
+				System::Drawing::PointF^ corner3 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
+				System::Drawing::PointF^ corner4 = gcnew System::Drawing::PointF(markerCorners[i][3].x, markerCorners[i][3].y);
 				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
 			}
 			
@@ -342,10 +339,10 @@ namespace ArUcoNET {
 			int sz = markerCorners.size();
 			for (size_t i = 0; i < markerCorners.size(); i++)
 			{
-				OpenCvSharp::Point2f^ corner1 = gcnew OpenCvSharp::Point2f(markerCorners[i][0].x, markerCorners[i][0].y);
-				OpenCvSharp::Point2f^ corner2 = gcnew OpenCvSharp::Point2f(markerCorners[i][1].x, markerCorners[i][1].y);
-				OpenCvSharp::Point2f^ corner3 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
-				OpenCvSharp::Point2f^ corner4 = gcnew OpenCvSharp::Point2f(markerCorners[i][2].x, markerCorners[i][2].y);
+				System::Drawing::PointF^ corner1 = gcnew System::Drawing::PointF(markerCorners[i][0].x, markerCorners[i][0].y);
+				System::Drawing::PointF^ corner2 = gcnew System::Drawing::PointF(markerCorners[i][1].x, markerCorners[i][1].y);
+				System::Drawing::PointF^ corner3 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
+				System::Drawing::PointF^ corner4 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
 				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
 			}
 

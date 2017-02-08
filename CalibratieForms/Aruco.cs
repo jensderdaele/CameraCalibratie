@@ -15,12 +15,15 @@ namespace CalibratieForms {
 
 
         private static object lockme = new Object();
+        private static object lockme2 = new Object();
         public static Dictionary<string, IEnumerable<ArUcoNET.ArucoMarker>> findArucoMarkers(IEnumerable<string> files, string outputDir = null, int maxThreads = 8) {
             maxThreads = maxThreads > files.Count() ? files.Count() : maxThreads;
             SemaphoreSlim throttler = new SemaphoreSlim(maxThreads);
             List<Task> alltasks = new List<Task>();
             int count = 0;
-            Directory.CreateDirectory(outputDir);
+            if (!string.IsNullOrEmpty(outputDir)) {
+                Directory.CreateDirectory(outputDir);
+            }
             Dictionary<string, IEnumerable<ArucoMarker>> dict = new Dictionary<string, IEnumerable<ArucoMarker>>();
             Action<Object> findarucomarkersaction = o => {
                 String f = (String)o;
@@ -33,14 +36,11 @@ namespace CalibratieForms {
                 }
                 var picture = Bitmap.FromFile(f);
                 IEnumerable<ArucoMarker> markers;
-                if (string.IsNullOrEmpty(outputDir)) {
-                    markers = ArUcoNET.Aruco.FindMarkers(f);
+                string detectedfile = Path.Combine(outputDir, fname + "detected.jpg");
+                markers = string.IsNullOrEmpty(outputDir) ? ArUcoNET.Aruco.FindMarkers(f) : ArUcoNET.Aruco.FindMarkers(f, detectedfile);
+                lock (lockme2) {
+                    dict.Add(detectedfile, markers);
                 }
-                else {
-                    markers = ArUcoNET.Aruco.FindMarkers(f, Path.Combine(outputDir, fname + "detected.jpg"));
-                }
-
-                dict.Add(f, markers);
                 throttler.Release();
             };
             foreach (var f in files) {

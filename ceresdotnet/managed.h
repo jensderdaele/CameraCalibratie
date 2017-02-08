@@ -473,7 +473,7 @@ namespace ceresdotnet {
 
 
 #pragma endregion
-
+	
 
 #pragma region "Calibratie" CSharp wrappers
 
@@ -718,6 +718,13 @@ namespace ceresdotnet {
 			return r;
 		}
 		static array<double>^ testProjectPoint(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
+			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
+			array<double>^ resi = gcnew array<double>(2);
+			pin_ptr<double> res = &resi[0];
+			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
+			return resi;
+		}
+		static array<double>^ testProjectPoint3(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
 			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
 			array<double>^ resi = gcnew array<double>(2);
 			pin_ptr<double> res = &resi[0];

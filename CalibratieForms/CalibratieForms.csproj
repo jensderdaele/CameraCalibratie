@@ -67,18 +67,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OpenCvSharp">
-      <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenCvSharp.Blob">
-      <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.Blob.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenCvSharp.Extensions">
-      <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenCvSharp.UserInterface">
-      <HintPath>..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\lib\net45\OpenCvSharp.UserInterface.dll</HintPath>
-    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTK.1.1.2225.0\lib\net20\OpenTK.dll</HintPath>
     </Reference>
@@ -137,7 +125,6 @@
     </Compile>
     <Compile Include="CeresEXT.cs" />
     <Compile Include="CeresSimulation.cs" />
-    <Compile Include="CV2E.cs" />
     <Compile Include="Emgufeat.cs" />
     <Compile Include="EXT.cs" />
     <Compile Include="IO.cs" />
@@ -164,6 +151,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="StereoCalc.cs" />
+    <Compile Include="SVD.cs" />
     <Compile Include="testbuttons.cs">
       <SubType>Form</SubType>
     </Compile>
