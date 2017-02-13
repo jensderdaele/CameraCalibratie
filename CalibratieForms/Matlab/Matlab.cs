@@ -11,8 +11,8 @@ using Calibratie;
 using CalibratieForms.Properties;
 using MathNet.Numerics.LinearAlgebra.Complex;
 using OpenTK;
-using OpenCvSharp;
 
+using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 
 
 namespace CalibratieForms {

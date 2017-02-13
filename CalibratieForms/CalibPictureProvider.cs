@@ -8,60 +8,44 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
+using Emgu.CV;
+using Emgu.CV.Structure;
 
 namespace cameracallibratie {
     public abstract class CalibPictureProvider {
         
         public abstract IEnumerable<Bitmap> pictures8bit { get; }
 
-        public IEnumerable<InputArray> picturesCvArray {
-            get {
-                return pictures8bit.Select(x => {
-                    var m = new MatOfByte(x.Height, x.Width);
-                    x.ToMat(m);
-                    return (InputArray) m;
-                }
-                    );
-            }
+        public IEnumerable<IInputArray> picturesCvArray {
+            get { return pictures8bit.Select(x => new Image<Gray, Byte>(x)); }
         }
     }
 
     public class PhotoProvider : CalibPictureProvider {
-        public static InputArray getSingleImage(string path, int scaleDown = 1) {
-            var image = new Bitmap(path);
+        public static IInputArray getSingleImage(string path, int scaleDown = 1) {
             if (scaleDown != 1) {
+                var image = new Bitmap(path);
                 image = ResizeImage(image, image.Width/scaleDown, image.Height/scaleDown);
+                return new Image<Gray, Byte>(image);
+            }
+            else {
+                return new Image<Gray, Byte>(path);
             }
             
-            //var newpathname = path +scaleDown+ "temp.bmp";
-            //image.Save(newpathname,ImageFormat.Bmp);
-            //var mat = Cv2.ImRead(newpathname);
-            //File.Delete(newpathname);
-            //return mat;
-            var image8bit = CopyToBpp(image, 8);
-            var m = new MatOfByte(image8bit.Height, image8bit.Width);
-            image8bit.ToMat(m);
-            
-            return m;
         }
-        public static InputArray getSingleImage(string path,out OpenCvSharp.Size imSize, int scaleDown = 1) {
-            var image = new Bitmap(path);
-            imSize = new OpenCvSharp.Size(image.Width, image.Height);
-            if (scaleDown != 1) {
-                image = ResizeImage(image, image.Width / scaleDown, image.Height / scaleDown);
-            }
+        public static IInputArray getSingleImage(string path,out Size imSize, int scaleDown = 1) {
             
-            //var newpathname = path +scaleDown+ "temp.bmp";
-            //image.Save(newpathname,ImageFormat.Bmp);
-            //var mat = Cv2.ImRead(newpathname);
-            //File.Delete(newpathname);
-            //return mat;
-            var image8bit = CopyToBpp(image, 8);
-            var m = new MatOfByte(image8bit.Height, image8bit.Width);
-            image8bit.ToMat(m);
-            return m;
+            if (scaleDown != 1) {
+                var image = new Bitmap(path);
+                image = ResizeImage(image, image.Width / scaleDown, image.Height / scaleDown);
+                imSize = new Size(image.Width, image.Height);
+                return new Image<Gray, Byte>(image);
+            }
+            else {
+                var r =  new Image<Gray, Byte>(path);
+                imSize = new Size(r.Width, r.Height);
+                return r;
+            }
         }
 
         public static Bitmap  getSingleBitmap(string path, int scaleDown = 1) {

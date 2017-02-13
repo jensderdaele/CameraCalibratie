@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using OpenCvSharp;
 using OpenTK;
 
 namespace Calibratie {
@@ -16,10 +15,6 @@ namespace Calibratie {
                 {obj.M31,obj.M32,obj.M33,obj.M34},
                 //{obj.M41,obj.M42,obj.M43,obj.M44}
             };
-        }
-
-        public static Mat tocvmat(this Matrix4d o) {
-            return new MatOfDouble(4,4,o.toArray());
         }
 
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]

@@ -40,12 +40,25 @@ namespace CalibratieForms {
             if (_camera == null || _board == null) return;
             drawChessboard(_camera.ProjectBoard_Cv(_board));
         }
-        
+
         public void drawChessboard(Vector2[] points) {
             _bitmap = new Bitmap(_camera.PictureSize.Width, _camera.PictureSize.Height);
             var g = Graphics.FromImage(_bitmap);
             g.Clear(Color.White);
-            
+
+            foreach (var p in points) {
+                drawCorner(_bitmap, p);
+            }
+            this.pictureBox1.Image = _bitmap;
+            pictureBox1.Show();
+            this.Update();
+            pictureBox1.Update();
+        }
+        public void drawChessboard(PointF[] points) {
+            _bitmap = new Bitmap(_camera.PictureSize.Width, _camera.PictureSize.Height);
+            var g = Graphics.FromImage(_bitmap);
+            g.Clear(Color.White);
+
             foreach (var p in points) {
                 drawCorner(_bitmap, p);
             }
@@ -56,7 +69,10 @@ namespace CalibratieForms {
         }
 
         public static void drawCorner(Bitmap b, Vector2 point) {
-            drawCorner(b,(int)point.X, (int)point.Y);
+            drawCorner(b, (int)point.X, (int)point.Y);
+        }
+        public static void drawCorner(Bitmap b, PointF point) {
+            drawCorner(b, (int)point.X, (int)point.Y);
         }
         public static void drawCorner(Bitmap b, int x, int y) {
             int px = 10;

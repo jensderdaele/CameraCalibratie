@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using cameracallibratie;
 using CalibratieForms.Logging;
-using OpenCvSharp;
 using OpenTK;
-using Size = OpenCvSharp.Size;
 
 using System.Runtime.InteropServices;
 using System.Reflection;
@@ -30,26 +28,22 @@ using Emgu.CV.Features2D;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using MathNet.Numerics;
-using OpenCvSharp.Extensions;
 using PdfSharp;
 using SceneManager;
 using Color = System.Drawing.Color;
-using Mat = OpenCvSharp.Mat;
-using CVI = Emgu.CV.CvInvoke;
 using Pen = System.Drawing.Pen;
+
+using Matrix = Emgu.CV.Matrix<double>;
+using CVI = Emgu.CV.CvInvoke;
+using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
+using Point3f = Emgu.CV.Structure.MCvPoint3D32f;
+using Vector3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 
 namespace CalibratieForms {
 
     static class Program {
 
-        static void CalibrateCeresSolver(List<Tuple<Point3f,Point2f>> punten, PinholeCamera camera) {
-            var m = camera.CameraMatrix.Mat;
-
-            double[] rvec, tvec;
-            Cv2.SolvePnP(punten.Select(x => x.Item1), punten.Select(x => x.Item2), m,null,out rvec,out tvec,false,SolvePnPFlags.UPNP);
-
-        }
         public static object lockme = new Object();
         // "C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2
         public static Dictionary<string, string> GetLRFrames(string dirL,string dirR,int KeyFrameL, int KeyFrameR, double LR, int intervalL,int startL, int stopL) {
@@ -132,12 +126,17 @@ namespace CalibratieForms {
 
                 float width = 10;
                 float height = 10;
+                if (p.X > 0 && p.X < bitmap.Width && p.Y > 0 && p.Y < bitmap.Height) {
 
-                pen.Brush = new SolidBrush(pen.Color);
-                gfx.DrawEllipse(pen,p.X - width/2,p.Y  - height/2,width,height);
+                    pen.Brush = new SolidBrush(pen.Color);
+                    gfx.DrawEllipse(pen, p.X - width/2, p.Y - height/2, width, height);
+                    pen.Width = 3;
+                    gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y + e.Y);
+                }
+                else {
+                    
+                }
 
-                pen.Width = 3;
-                gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y + e.Y);
                 //gfx.DrawLine(pen, p.X, p.Y, p.X - e.X, p.Y - e.Y);
                 //gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y - e.Y);
                 //gfx.DrawLine(pen, p.X, p.Y, p.X - e.X, p.Y + e.Y);
@@ -156,6 +155,7 @@ namespace CalibratieForms {
 
             var markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname1.txt");
             var markers2 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname2.txt");
+            markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname_123.txt");
             scene1.AddRange(markers1);
             scene2.AddRange(markers2);
 
@@ -187,7 +187,7 @@ namespace CalibratieForms {
                     }
                 };
             var detectedStereos = detectedAruco as Tuple<Tuple<string, List<ArucoMarker>>, Tuple<string, List<ArucoMarker>>>[] ?? detectedAruco.ToArray();
-            intersect(detectedStereos);
+            //intersect(detectedStereos);
             
             Func<IEnumerable<Marker>, IEnumerable<ArucoMarker>, IEnumerable<Tuple<MCvPoint3D32f, PointF>>> find =
                 (markers3d, arucomarkers) => {
@@ -313,17 +313,15 @@ namespace CalibratieForms {
             var ess = new Matrix<double>(3, 3);
             var fundamental = new Matrix<double>(3, 3);
             MCvTermCriteria termcriteria = new MCvTermCriteria();
-            CVI.StereoCalibrate(
+
+            /*CVI.StereoCalibrate(
                 points.Select(x=>x.Item1.Item2.Select(y=>y.Item1).ToArray()).ToArray(),
                 points.Select(x => x.Item1.Item2.Select(y => y.Item2).ToArray()).ToArray(),
                 points.Select(x=>x.Item2.Item2.Select(y=>y.Item2).ToArray()).ToArray(),
                 camMat_left, dist_left, camMat_right, dist_right,
                 new System.Drawing.Size(1920, 1080), rot, trans, ess, fundamental,
-                CalibType.UserIntrinsicGuess, termcriteria);
+                CalibType.UserIntrinsicGuess, termcriteria);*/
 
-
-            StereoCamera stcm = new StereoCamera();
-            ceresdotnet.CeresCameraMultiCollectionBundler bundler = new CeresCameraMultiCollectionBundler();
             
             
         }
@@ -408,7 +406,7 @@ namespace CalibratieForms {
                 
             }
 
-            stereotest.StereoCalibrateCV(new ChessBoard(6, 9, 55.03333333333));
+
 
             
 
@@ -450,58 +448,8 @@ namespace CalibratieForms {
             var files = Directory.GetFiles(dir);
                 
             var res = Aruco.findArucoMarkers(files, Path.Combine(Path.GetDirectoryName(files[0]), "detected"),8);
-            /*var res2 = Aruco.findArucoMarkersAsync(files, Path.Combine(Path.GetDirectoryName(files[0])), 8,
-                (file, outputDir, markers) => {
-                    Console.WriteLine("{0} markers found ({1})", file, markers.Count());
-                });
-            
-
-            var result = res2.Result;*/
-            //var res = t.Result;
-            //t.Wait();
-            //res = t.Result;
-            var testfile = @"C:\Users\jens\Desktop\calibratie\fotos paneel\testh\im.jpg";
-            var immat = Cv2.ImRead(testfile);
-            Mat m = new Mat();
-            var ph = PinholeCamera.getTestCameraHuawei();
-
-            Cv2.Undistort(immat, m, ph.CameraMatrix.cvmat,ph.Cv_DistCoeffs5_cv);
 
 
-            var undistf = @"C:\Users\jens\Desktop\calibratie\fotos paneel\testh\im.undistorted.jpg";
-            m.SaveImage(undistf);
-            var pwereld = new List<Point2d> {
-                new Point2d(0, 0),
-                new Point2d(2440, 0)*2,
-                new Point2d(2440, 1220)*2,
-                new Point2d(0,1220)*2,
-            };
-            var ppixel = new List<Point2d> {
-                new Point2d(77, 2163),
-                new Point2d(3940, 2559),
-                new Point2d(3892, 391),
-                new Point2d(797,898),
-            };
-            var pwereldf = new List<Point2f> {
-                new Point2f(0, 0)*2,
-                new Point2f(2440, 0)*2,
-                new Point2f(2440, 1220)*2,
-                new Point2f(0,1220)*2,
-            };
-            var ppixelf = new List<Point2f> {
-                new Point2f(77, 2163),
-                new Point2f(3940, 2559),
-                new Point2f(3892, 391),
-                new Point2f(797,898),
-            };
-            var H = Cv2.FindHomography(ppixel, pwereld, HomographyMethods.LMedS);
-            Mat outp = new Mat();
-            Cv2.WarpPerspective(m, outp,H,new Size(m.Size().Width*2,m.Size().Height*2));
-
-            var outputfile = @"C:\Users\jens\Desktop\calibratie\fotos paneel\testh\im.outp.jpg";
-            outp.SaveImage(@"C:\Users\jens\Desktop\calibratie\fotos paneel\testh\im.outp.jpg");
-
-            var markersRectified = ArUcoNET.Aruco.FindMarkers(outputfile, outputfile + "detected.jpg");
             
 
             return;
@@ -516,10 +464,10 @@ namespace CalibratieForms {
             foreach (var m in markers) {
                 if (markerPos.ContainsKey(m.ID)) {
                     wereld.Add(markerPos[m.ID]);
-                    pixel.Add(m.Corner1.to2d());
+                    //pixel.Add(m.Corner1.to2d());
                 }
             }
-            var H = Cv2.FindHomography(pixel, wereld, HomographyMethods.LMedS);
+            //var H = Cv2.FindHomography(pixel, wereld, HomographyMethods.LMedS);
         }
 
 

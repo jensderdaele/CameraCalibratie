@@ -42,6 +42,8 @@ namespace SceneManager {
 
         private SObject parent;
 
+        
+
         public void Orient(Quaternion orientation) {
             Matrix4 newOrientation = Matrix4.CreateFromQuaternion(orientation);
             this._dir = new Vector3d(newOrientation.M31, newOrientation.M32, newOrientation.M33);

@@ -19,6 +19,7 @@ using Emgu.CV;
 
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using OpenTK;
 using Matrix = Emgu.CV.Matrix<double>;
 using CVI = Emgu.CV.CvInvoke;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
@@ -286,8 +287,8 @@ namespace CalibratieForms {
                 foreach (var camera in collection) {
                     List<CeresMarker> ceresmarkers = new List<CeresMarker>();
                     cameraID++;
-                    Dictionary<Vector3d, Marker> puntenCv = markers3d.ToDictionary(m => m.Pos);
-                    Vector3d[] visible3d;
+                    var puntenCv = markers3d.ToDictionary(m => new MCvPoint3D32f((float)m.Pos.X, (float)m.Pos.Y, (float)m.Pos.Z));
+                    MCvPoint3D32f[] visible3d;
                     var visible_proj = camera.ProjectPointd2D_Manually(puntenCv.Keys.ToArray(), out visible3d);
                     var cc = new CeresCamera(camera.worldMat) {
                         Internal = intr
@@ -309,15 +310,15 @@ namespace CalibratieForms {
                             id = puntenCv[visible3d[i]].ID,
                             Location = new CeresPoint {
                                 BundleFlags = BundleWorldCoordinatesFlags.None,
-                                Coordinates_arr = visible3d[i].toArr()
+                                Coordinates_arr = visible3d[i].toArrD()
                             },
                             x = proj.X,
                             y = proj.Y
                         };
                         var res = ceresdotnet.CeresCameraCollectionBundler.testProjectPoint(cc,
                             new CeresPointOrient() { RT = new[] { 0D, 0, 0, 0, 0, 0 } }, marker);
-                        proj.X -= res[0];
-                        proj.Y -= res[1];
+                        proj.X -= (float)res[0];
+                        proj.Y -= (float)res[1];
                         marker.x = proj.X;
                         marker.y = proj.Y;
                         ceresmarkers.Add(marker);
@@ -349,7 +350,9 @@ namespace CalibratieForms {
             return CeresCallbackReturnType.SOLVER_CONTINUE;
         }
         
+        [Obsolete()]
         public void Solve() {
+            /*
             var markers3d = scene.get<Marker>();
             var cameras = scene.get<PinholeCamera>();
 
@@ -432,7 +435,7 @@ namespace CalibratieForms {
             bundler.Observations = observations;
 
             bundler.bundleCollection(iterationCallbackHandler);
-            
+            */
         }
         
 

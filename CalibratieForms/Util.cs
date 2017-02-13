@@ -13,7 +13,6 @@ using ceresdotnet;
 using Calibratie;
 using Emgu.CV;
 using Emgu.CV.Structure;
-using OpenCvSharp;
 using OpenTK;
 using SceneManager;
 
@@ -301,10 +300,6 @@ namespace CalibratieForms {
                 r[i] = NextGaussian(mean, standard_deviation, min, max);
             }
             return r;
-        }
-
-        public static double[] toArray(this Vec3d v) {
-            return new[] {v.Item0, v.Item1, v.Item2};
         }
 
 

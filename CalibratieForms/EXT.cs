@@ -11,7 +11,7 @@ using ceresdotnet;
 using Calibratie;
 using CalibratieForms.Properties;
 using Emgu.CV;
-using OpenCvSharp;
+using Emgu.CV.Structure;
 using OpenTK;
 
 namespace CalibratieForms {
@@ -106,11 +106,23 @@ namespace CalibratieForms {
             }
         }
 
+        public static Matrix<double> tocv(this Matrix4d tk) {
+            return new Matrix<double>(tk.toArray());
+        }
 
+        public static float[] toArr(this MCvPoint3D32f v) {
+            return new[] { v.X, v.Y, v.Z };
+        }
+        public static double[] toArrD(this MCvPoint3D32f v) {
+            return new double [] { v.X, v.Y, v.Z };
+        }
         public static double[] toArr(this Vector4d v) {
             return new[] { v.X, v.Y, v.Z, v.W };
         }
         public static double[] toArr(this Vector3d v) {
+            return new[] { v.X, v.Y, v.Z };
+        }
+        public static double[] toArr(this MCvPoint3D64f v) {
             return new[] { v.X, v.Y, v.Z };
         }
 

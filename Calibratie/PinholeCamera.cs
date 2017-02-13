@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using OpenCvSharp;
 using OpenTK;
 using SceneManager;
 
 using ceresdotnet;
 using System.Runtime.InteropServices;
+using Emgu.CV;
 using Newtonsoft.Json;
+
+using Size = System.Drawing.Size;
+using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 
 namespace Calibratie {
     [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
@@ -69,7 +73,7 @@ namespace Calibratie {
         public double DistortionT1 { get { return _distortionT1; } set { _distortionT1 = value; OnPropertyChanged(); } }
         public double DistortionT2 { get { return _distortionT2; } set { _distortionT2 = value; OnPropertyChanged(); } }
 
-       
+
 
         public double[] Cv_DistCoeffs5 {
             get {
@@ -87,33 +91,21 @@ namespace Calibratie {
                 OnPropertyChanged();
             }
         }
-        public MatOfDouble Cv_DistCoeffs5_cv {
+        public Matrix<double> Cv_DistCoeffs4 {
             get {
-                var data = new double[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3 };
-                return new MatOfDouble(5,1,data);
+                return new Matrix<double>(new [] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
             }
         }
-        public double[] Cv_rvecs { get { return new[] { Dir.X, Dir.Y, Dir.Z }; } }
-        public double[] Cv_tvecs { get { return new[] { Pos.X, Pos.Y, Pos.Z }; } }
+        public Matrix<double> Rvecs { get { return new Matrix<double>(new[] { Dir.X, Dir.Y, Dir.Z }); } }
+        public Matrix<double> Tvecs { get { return new Matrix<double>(new[] { Pos.X, Pos.Y, Pos.Z }); } }
 
-        public Point2d[] ProjectBoard_Cv_p2d(ChessBoard b, out double[,] jacobian) {
+        public PointF[] ProjectBoard_Cv_p2d(ChessBoard b) {
             //Todo: Use InputArray on vector3d[] & pin GC
             Point2d[] imagePoints;
-            Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Cv_rvecs, Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out imagePoints, out jacobian);
-            return imagePoints;
-        }
-        public Point2d[] ProjectBoard_Cv_p2d(ChessBoard b) {
-            //Todo: Use InputArray on vector3d[] & pin GC
-            Point2d[] imagePoints;
-            double[,] jacobian;
-            Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Cv_rvecs, Cv_tvecs, CameraMatrix.Mat, Cv_DistCoeffs5, out imagePoints, out jacobian);
-            return imagePoints;
+            return CvInvoke.ProjectPoints(b.boardLocalCoordinates_cv, Rvecs, Tvecs, CameraMatrix.cvmat, Cv_DistCoeffs4);
         }
         public Vector2d[] ProjectBoard_Cvd(ChessBoard b) {
             return ProjectBoard_Cv_p2d(b).Select(x => new Vector2d(x.X, x.Y)).ToArray();
-        }
-        public Vector2d[] ProjectBoard_Cvd(ChessBoard b, out double[,] jacobian) {
-            return ProjectBoard_Cv_p2d(b, out jacobian).Select(x => new Vector2d(x.X, x.Y)).ToArray();
         }
         public Vector2[] ProjectBoard_Cv(ChessBoard b) {
             return ProjectBoard_Cv_p2d(b).Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray();
@@ -201,57 +193,7 @@ namespace Calibratie {
         }
         
 
-        /// <summary>
-        /// Project via OpenCV punten in cameracoordinaten
-        /// </summary>
-        /// <param name="points3d"></param>
-        /// <returns></returns>
-        public Point2d[] ProjectPoints2D_VisibleOnly(Point3d[] points3d,out Point3d[] visible ) {
-            var worldtocamera = worldMat.Inverted();
-            var mat4 = worldtocamera;
-            var trans = mat4.ExtractTranslation();
-            var rmat = mat4.ExtractRotation();
-            double[] outv;
-            Cv2.Rodrigues(Matrix3d.CreateFromQuaternion(rmat).Normalized().toArr(), out outv);
-
-            double[] outvmin = new[] {outv[0], outv[1], outv[2]};
-
-            var tvecs = trans.toArr();
-            double[,] jacob;
-            Point2d[] proje;
-
-            Point3d[] old = null;
-            if (points3d.Length%2 == 1) { //bij oneven aantal punten werkt Cv2.projectpoints niet (omdat deze ook een jacobiaan output) snelle, onefficiente, fix
-                old = points3d;
-                var points3dnew = new Point3d[points3d.Length+1];
-                for (int i = 0; i < points3d.Length; i++) {
-                    points3dnew[i] = points3d[i];
-                }
-                points3dnew[points3dnew.Length-1] = new Point3d(0,0,0);
-                points3d = points3dnew;
-            }
-
-            Cv2.ProjectPoints(points3d, outvmin, tvecs, this.CameraMatrix.Mat, this.Cv_DistCoeffs5, out proje, out jacob);
-
-            if (old != null) {
-                points3d = old;
-                proje = proje.Take(proje.Length - 1).ToArray();
-            }
-            List<int> correctIndex = new List<int>();
-            for (int i = 0; i < proje.Length; i++) {
-                if (IsinBounds(proje[i])) {
-                    correctIndex.Add(i);
-                }
-            }
-            var r = new Point2d[correctIndex.Count];
-            visible = new Point3d[correctIndex.Count];
-            for (int i = 0; i < correctIndex.Count; i++) {
-                var index = correctIndex[i];
-                r[i] = proje[index];
-                visible[i] = points3d[index];
-            }
-            return r;
-        }
+        
 
         private bool IsinBounds(Point2d p) {
             return (p.X >= 0 && p.X <= this.PictureSize.Width && p.Y >= 0 && p.Y <= PictureSize.Height);

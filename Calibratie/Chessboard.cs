@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenCvSharp;
 using OpenTK;
 using SceneManager;
+
+using Point3d = Emgu.CV.Structure.MCvPoint3D64f;
+using Point3f = Emgu.CV.Structure.MCvPoint3D32f;
 
 namespace Calibratie {
     public class ChessBoard : SObject {
@@ -20,8 +23,8 @@ namespace Calibratie {
         }
 
 
-        public Point3d[] boardWorldCoordinated_Cv {
-            get { return boardWorldCoordinates.Select(x => new Point3d(x.X, x.Y, x.Z)).ToArray(); }
+        public Point3f[] boardWorldCoordinated_Cv {
+            get { return boardWorldCoordinates.Select(x => new Point3f((float)x.X, (float)x.Y, (float)x.Z)).ToArray(); }
         }
         public List<Vector3d> boardWorldCoordinates {
             get {

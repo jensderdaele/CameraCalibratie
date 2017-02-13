@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ArUcoNET;
-using OpenCvSharp;
 
 namespace CalibratieForms {
     public static class Aruco {

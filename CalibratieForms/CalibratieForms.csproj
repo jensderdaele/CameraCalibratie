@@ -150,7 +150,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="StereoCalc.cs" />
     <Compile Include="SVD.cs" />
     <Compile Include="testbuttons.cs">
       <SubType>Form</SubType>

@@ -15,9 +15,6 @@ using Calibratie;
 using CalibratieForms.Windows;
 using OpenTK;
 using WeifenLuo.WinFormsUI.Docking;
-using Size = OpenCvSharp.Size;
-
-using OpenCvSharp;
 using Vector = MathNet.Numerics.LinearAlgebra.Complex.Vector;
 
 

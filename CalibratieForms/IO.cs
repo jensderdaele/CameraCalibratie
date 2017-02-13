@@ -7,8 +7,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Calibratie;
-using OpenCvSharp;
 using OpenTK;
+
+using Point3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 namespace CalibratieForms {
     public static class IO {

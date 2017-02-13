@@ -11,11 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using cameracallibratie;
 using CalibratieForms.Annotations;
-using OpenCvSharp;
 using OpenTK;
 using SceneManager;
 using ceresdotnet;
 using Calibratie;
+
+
+using Matrix = Emgu.CV.Matrix<double>;
+using CVI = Emgu.CV.CvInvoke;
+using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
+using Point3f = Emgu.CV.Structure.MCvPoint3D32f;
+using Vector3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 namespace CalibratieForms {
     public class ZhangSimulation : INotifyPropertyChanged {
@@ -23,7 +29,8 @@ namespace CalibratieForms {
         public static ZhangSimulation CreateSimulation(PinholeCamera c,ChessBoard board,int pictureCount, 
             Func<int,double[]> distanceGenerator ,
             Func<int,double[]> Angles) {
-
+            throw new NotImplementedException();
+            /*
             ZhangSimulation simulation = new ZhangSimulation();
 
             var distances = distanceGenerator(pictureCount);
@@ -46,6 +53,7 @@ namespace CalibratieForms {
             simulation.Camera = c;
             
             return simulation;
+             * */
         }
 #endregion
 
@@ -59,8 +67,8 @@ namespace CalibratieForms {
         public double AvgReprojectionError { get; private set; }
 
         public PinholeCamera CalibratedCamera { get; private set; }
-        public Vec3d[] Calibratedrvecs { get; private set; }
-        public Vec3d[] Calibratedtvecs { get; private set; }
+        public Matrix[] Calibratedrvecs { get; private set; }
+        public Matrix[] Calibratedtvecs { get; private set; }
 
         public bool Solved { get { return CalibratedCamera != null; } }
 
@@ -84,11 +92,14 @@ namespace CalibratieForms {
             }
         }
 
+        [Obsolete("werkt niet")]
         public void calculateCv2() {
+            throw new NotImplementedException();
+            /*
             Log.WriteLine("zhang simulatie berekenen start");
-            List<List<Point2f>> imagePoints = new List<List<Point2f>>();
+            List<List<PointF>> imagePoints = new List<List<PointF>>();
             foreach (var chessboard in Chessboards) {
-                Point2f[] projected;
+                PointF[] projected;
                 get2DProjection_OpenCv(chessboard, out projected);
                 imagePoints.Add(projected.ToList());
             }
@@ -98,7 +109,7 @@ namespace CalibratieForms {
             camera.PictureSize = Camera.PictureSize;
             Log.WriteLine("Cv2.CalibrateCamera");
             try {
-                Cv2.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
+                CVI.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
                     camera.CameraMatrix.Mat,
                     camera.Cv_DistCoeffs5, out rvecs, out tvecs);
             }
@@ -110,15 +121,21 @@ namespace CalibratieForms {
             Calibratedtvecs = tvecs;
             CalibratedCamera = camera;
             Log.WriteLine("zhang simulatie berekenen einde");
+             * */
         }
 
         private static object lockme = new Object();
+
+
+        [Obsolete("werkt niet")]
         public void calculateCv2Async() {
+            throw new NotImplementedException();
+            /*
             new Thread(() => {
                 Log.WriteLine("zhang simulatie new thread berekenen start");
-                List<List<Point2f>> imagePoints = new List<List<Point2f>>();
+                List<List<PointF>> imagePoints = new List<List<Point2f>>();
                 foreach (var chessboard in Chessboards) {
-                    Point2f[] projected;
+                    PointF[] projected;
                     get2DProjection_OpenCv(chessboard, out projected);
                     imagePoints.Add(projected.ToList());
                 }
@@ -130,7 +147,7 @@ namespace CalibratieForms {
                     Log.WriteLine("Cv2.CalibrateCamera LOCK");
                     try {
                         double[] distortie = new double[5];
-                        Cv2.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
+                        CVI.CalibrateCamera(CvLocalChessPointsf, imagePoints, Camera.PictureSize,
                             camera.CameraMatrix.Mat,
                             distortie, out rvecs, out tvecs);
                         camera.Cv_DistCoeffs5 = distortie;
@@ -149,6 +166,7 @@ namespace CalibratieForms {
                 Log.WriteLine("zhang simulatie berekenen einde (succes)");
                 OnPropertyChanged();
             }).Start();
+             * */
         }
 
         
@@ -191,19 +209,9 @@ namespace CalibratieForms {
         }
 
         #region 2dprojection
-        private void get2DProjection_OpenCv(ChessBoard b, out Point2f[] projected) {
-            Point2d[] r;
-            get2DProjection_OpenCv(b, out r);
-            projected = r.Select(x => new Point2f((float)x.X, (float)x.Y)).ToArray();
-        }
-        private void get2DProjection_OpenCv(ChessBoard b, out Point2d[] projected) {
+        private void get2DProjection_OpenCv(ChessBoard b, out PointF[] projected) {
             double[,] jabobian;
-            Cv2.ProjectPoints(b.boardWorldCoordinated_Cv, Camera.Cv_rvecs, Camera.Cv_tvecs, Camera.CameraMatrix.Mat, Camera.Cv_DistCoeffs5, out projected, out jabobian);
-        }
-        private void get2DProjection_OpenCv(ChessBoard b, out Vector2[] projected) {
-            Point2d[] r;
-            get2DProjection_OpenCv(b, out r);
-            projected = r.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray();
+            projected = CVI.ProjectPoints(b.boardWorldCoordinated_Cv, Camera.Rvecs, Camera.Tvecs, Camera.CameraMatrix.cvmat, Camera.Cv_DistCoeffs4);
         }
         #endregion
 
