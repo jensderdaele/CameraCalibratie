@@ -77,8 +77,6 @@ namespace CalibratieForms {
                     }
                 }
             }
-
-            
         }
         
         public static unsafe void ceresSolveAruco() {
@@ -93,7 +91,7 @@ namespace CalibratieForms {
             var markerDictionary = Aruco.findArucoMarkers(files, Path.Combine(dir, "aruco_detected\\"),1);
             var pairs = findImagePairsMinMarkers(markerDictionary, 8);
 
-            Matrix K = new Matrix(phc.CameraMatrix.Mat);
+            Matrix K = new Matrix(phc.Intrinsics.Mat);
 
             var W = new Matrix(new double[] {
                 0.0D, -1.0D, 0.0D,
@@ -145,7 +143,7 @@ namespace CalibratieForms {
 
 
                 Matrix essential = K.Transpose() * F * K;
-                SVD decomp = new SVD(essential);
+                var decomp = new SVD<double>(essential);
                 var U = decomp.U;
                 var Vt = decomp.Vt;
 
@@ -181,12 +179,6 @@ namespace CalibratieForms {
                     
                     CVI.TriangulatePoints(KP0, KPs[i], punten1px, punten2px, output_hom);
                     CVI.ConvertPointsFromHomogeneous(output_hom, output_3d);
-
-
-                    
-                    
-                    
-
                 }
 
                 Matrix S = U*diag*W*U.Transpose();

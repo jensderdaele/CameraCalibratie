@@ -12,6 +12,7 @@ using Calibratie;
 using CalibratieForms.Properties;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using OpenTK;
 
 namespace CalibratieForms {
@@ -90,7 +91,7 @@ namespace CalibratieForms {
         public static void IntersectLists<T>(this List<T> list1, List<T> list2,
            Func<T, T, bool> compare) {
             List<T> remove1 = new List<T>(), remove2 = new List<T>();
-            foreach (var t1 in list1) {
+            foreach (T t1 in list1) {
                 foreach (T t2 in list2) {
                     if (!compare(t1, t2)) {
                         remove1.Add(t1);
@@ -98,13 +99,30 @@ namespace CalibratieForms {
                     }
                 }
             }
-            foreach (var VARIABLE in remove1) {
-                list1.Remove(VARIABLE);
+            foreach (var V in remove1) {
+                list1.Remove(V);
             }
-            foreach (var VARIABLE in remove2) {
-                list2.Remove(VARIABLE);
+            foreach (var V in remove2) {
+                list2.Remove(V);
             }
         }
+
+        public static Matrix<float> toMat(this PointF[] arr) {
+            VectorOfPoint3D32F t;
+            var r = new Matrix<float>(new[] { arr[0].X, arr[0].Y }).Transpose();
+            for (int i = 1; i < arr.Length; i++) {
+                r = r.ConcateVertical(new Matrix<float>(new[] { arr[i].X, arr[i].Y }).Transpose());
+            }
+            return r;
+        }
+        public static Matrix<float> toMat(this MCvPoint3D32f[] arr) {
+            VectorOfPoint3D32F t;
+            var r = new Matrix<float>(new[] { arr[0].X, arr[0].Y, arr[0].Z }).Transpose();
+            for (int i = 1; i < arr.Length; i++) {
+                r = r.ConcateVertical(new Matrix<float>(new[] { arr[i].X, arr[i].Y, arr[i].Y }).Transpose());
+            }
+            return r;
+        } 
 
         public static Matrix<double> tocv(this Matrix4d tk) {
             return new Matrix<double>(tk.toArray());
@@ -140,10 +158,10 @@ namespace CalibratieForms {
         } 
         public static double[] toCeresIntrinsics9(this PinholeCamera c) {
             double[] intrinsics = {
-                c.CameraMatrix.fx,
-                c.CameraMatrix.fy,
-                c.CameraMatrix.cx,
-                c.CameraMatrix.cy,
+                c.Intrinsics.fx,
+                c.Intrinsics.fy,
+                c.Intrinsics.cx,
+                c.Intrinsics.cy,
                 c.DistortionR1,
                 c.DistortionR2,
                 c.DistortionT1,

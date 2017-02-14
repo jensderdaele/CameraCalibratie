@@ -7,15 +7,15 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 
 namespace CalibratieForms {
-    class SVD {
-        public Matrix<double> U = new Matrix<double>(3,3);
-        public Matrix<double> W = new Matrix<double>(3, 3);
-        public Matrix<double> Vt = new Matrix<double>(3, 3);
+    public class SVD<TDepth> where TDepth : new() {
+        public Matrix<TDepth> U = new Matrix<TDepth>(3, 3);
+        public Matrix<TDepth> W = new Matrix<TDepth>(3, 3);
+        public Matrix<TDepth> Vt = new Matrix<TDepth>(3, 3);
+        public Matrix<TDepth> V = new Matrix<TDepth>(3, 3);
 
-
-        public SVD(Matrix<double> mat,SvdFlag flag = SvdFlag.Default) {
-            CvInvoke.SVDecomp(mat, W, U, Vt, flag);
-            Vt = Vt.Transpose();
+        public SVD(Matrix<TDepth> mat, SvdFlag flag = SvdFlag.Default) {
+            CvInvoke.SVDecomp(mat, W, U, V, flag);
+            Vt = V.Transpose();
         }
     }
 }

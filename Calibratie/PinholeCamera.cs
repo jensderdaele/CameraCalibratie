@@ -19,51 +19,56 @@ using Size = System.Drawing.Size;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 
 namespace Calibratie {
-    [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
-    public class PinholeCamera : SObject, INotifyPropertyChanged {
-        /// <summary>
-        /// echt geteste camera Casio EX-Z120
-        /// </summary>
-        /// <returns></returns>
-        public static PinholeCamera getTestCameraHuawei() {
-            var mat = new double[,] { { 3441.0667667434618, 0, 2090.8502187520326 }, { 0, 3432.3907417119017, 1561.5316432859202 }, { 0, 0, 1 } };
-            var m = new CameraMatrix(mat);
-            var c = new PinholeCamera(m);
-            c.PictureSize = new Size(4160, 3120);
-            c.Cv_DistCoeffs5 = new[] { 0.24230691691999853, -0.92897577071991688, -0.00073617836680420852, 0.0015104681489398752, 1.0576231378646423 };
-            return c;
-        }
-        public static PinholeCamera getTestCamera() {
-            var mat = new double[,] { { 3479.3332725692153, 0, 1499.9382892470603 }, { 0, 3458.5791417359405, 1142.7454458370041 }, { 0, 0, 1 } };
-            var m = new CameraMatrix(mat);
-            var c = new PinholeCamera(m);
-            c.PictureSize = new Size(3072, 2304);
-            c.Cv_DistCoeffs5 = new[] { 0.062813787874286389, -3.0485685802388809, -0.0017951735131834098, -0.00040688209299854, 14.91660690214403 };
-            return c;
-        }
-        
+    public class CameraIntrinsics : INotifyPropertyChanged {
         /// <summary>
         /// fotogrootte in pixels
         /// </summary>
         public Size PictureSize { get; set; }
 
 
-        public string PictureSizeST { get { return String.Format("{0}x{1}", PictureSize.Width, PictureSize.Height); } }
-        public CameraMatrix CameraMatrix {
-            get { return _cameraMatrix; }
+        public CameraIntrinsics(double[,] mat) {
+            _mat = mat;
+        }
+        public CameraIntrinsics() {}
+
+        private double[,] _mat = new double[3, 3];
+        public double[,] Mat { get { return _mat; } set { _mat = value; OnPropertyChanged(); } }
+
+        public double ac { get { return Mat[0, 1] / fx; } set { Mat[0, 1] = value * fx; OnPropertyChanged(); } }
+
+        /// <summary>
+        /// copy cv mat
+        /// </summary>
+        public Matrix<double> cvmat {
+            get {
+                return new Matrix<double>(_mat);
+            } }
+
+        public double fx {
+            get { return Mat[0, 0]; }
+            set { Mat[0, 0] = value; OnPropertyChanged(); }
+        }
+        public double fy {
+            get { return Mat[1, 1]; }
+            set { Mat[1, 1] = value; OnPropertyChanged(); }
+        }
+        public double cx {
+            get { return Mat[0, 2]; }
+            set { Mat[0, 2] = value; OnPropertyChanged(); }
+        }
+        public double cy {
+            get { return Mat[1, 2]; }
+            set { Mat[1, 2] = value; OnPropertyChanged(); }
         }
 
         private readonly CameraMatrix _cameraMatrix;
 
-        public PinholeCamera()
-            : base() {
-            _cameraMatrix = new CameraMatrix();
-            _cameraMatrix.PropertyChanged += (o, s) => { OnPropertyChanged("CameraMatrix." + s.PropertyName); };
+        public Matrix<double> Cv_DistCoeffs4 {
+            get {
+                return new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
+            }
         }
-        public PinholeCamera(CameraMatrix m) {
-            _cameraMatrix = m;
-            _cameraMatrix.PropertyChanged += (o, s) => { OnPropertyChanged("CameraMatrix." + s.PropertyName); };
-        }
+
 
         private double _distortionR1, _distortionR2, _distortionR3;
         private double _distortionT1, _distortionT2;
@@ -72,6 +77,67 @@ namespace Calibratie {
         public double DistortionR3 { get { return _distortionR3; } set { _distortionR3 = value; OnPropertyChanged(); } }
         public double DistortionT1 { get { return _distortionT1; } set { _distortionT1 = value; OnPropertyChanged(); } }
         public double DistortionT2 { get { return _distortionT2; } set { _distortionT2 = value; OnPropertyChanged(); } }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            var handler = PropertyChanged;
+            if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
+        }
+    }
+    [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
+    public class PinholeCamera : SObject, INotifyPropertyChanged {
+        private CameraIntrinsics _intrinsics;
+        public CameraIntrinsics Intrinsics { get { return _intrinsics;} }
+        /// <summary>
+        /// echt geteste camera Casio EX-Z120
+        /// </summary>
+        /// <returns></returns>
+        public static PinholeCamera getTestCameraHuawei() {
+            var mat = new double[,] { { 3441.0667667434618, 0, 2090.8502187520326 }, { 0, 3432.3907417119017, 1561.5316432859202 }, { 0, 0, 1 } };
+            var m = new CameraIntrinsics(mat);
+            var c = new PinholeCamera(m);
+            c.PictureSize = new Size(4160, 3120);
+            c.Cv_DistCoeffs5 = new[] { 0.24230691691999853, -0.92897577071991688, -0.00073617836680420852, 0.0015104681489398752, 1.0576231378646423 };
+            return c;
+        }
+        public static PinholeCamera getTestCamera() {
+            var mat = new double[,] { { 3479.3332725692153, 0, 1499.9382892470603 }, { 0, 3458.5791417359405, 1142.7454458370041 }, { 0, 0, 1 } };
+            var m = new CameraIntrinsics(mat);
+            var c = new PinholeCamera(m);
+            c.PictureSize = new Size(3072, 2304);
+            c.Cv_DistCoeffs5 = new[] { 0.062813787874286389, -3.0485685802388809, -0.0017951735131834098, -0.00040688209299854, 14.91660690214403 };
+            return c;
+        }
+
+        /// <summary>
+        /// fotogrootte in pixels
+        /// </summary>
+        public Size PictureSize {
+            get { return _intrinsics.PictureSize; }
+            set { _intrinsics.PictureSize = value; }
+        }
+
+
+        public string PictureSizeST { get { return String.Format("{0}x{1}", PictureSize.Width, PictureSize.Height); } }
+
+
+        public PinholeCamera()
+            : base() {
+                _intrinsics = new CameraIntrinsics();
+                _intrinsics.PropertyChanged += (o, s) => { OnPropertyChanged("Intrinsics." + s.PropertyName); };
+        }
+        public PinholeCamera(CameraIntrinsics m) {
+            _intrinsics = m;
+            _intrinsics.PropertyChanged += (o, s) => { OnPropertyChanged("Intrinsics." + s.PropertyName); };
+        }
+
+
+        public double DistortionR1 { get { return _intrinsics.DistortionR1; } set { _intrinsics.DistortionR1 = value; } }
+        public double DistortionR2 { get { return _intrinsics.DistortionR2; } set { _intrinsics.DistortionR2 = value; } }
+        public double DistortionR3 { get { return _intrinsics.DistortionR3; } set { _intrinsics.DistortionR3 = value; } }
+        public double DistortionT1 { get { return _intrinsics.DistortionT1; } set { _intrinsics.DistortionT1 = value; } }
+        public double DistortionT2 { get { return _intrinsics.DistortionT2; } set { _intrinsics.DistortionT2 = value; } }
 
 
 
@@ -83,11 +149,11 @@ namespace Calibratie {
                 if (value.Length != 5) {
                     throw new ArgumentException("wrong size");
                 }
-                _distortionR1 = value[0];
-                _distortionR2 = value[1];
-                _distortionT1 = value[2];
-                _distortionT2 = value[3];
-                _distortionR3 = value[4];
+                DistortionR1 = value[0];
+                DistortionR2 = value[1];
+                DistortionT1 = value[2];
+                DistortionT2 = value[3];
+                DistortionR3 = value[4];
                 OnPropertyChanged();
             }
         }
@@ -102,7 +168,7 @@ namespace Calibratie {
         public PointF[] ProjectBoard_Cv_p2d(ChessBoard b) {
             //Todo: Use InputArray on vector3d[] & pin GC
             Point2d[] imagePoints;
-            return CvInvoke.ProjectPoints(b.boardLocalCoordinates_cv, Rvecs, Tvecs, CameraMatrix.cvmat, Cv_DistCoeffs4);
+            return CvInvoke.ProjectPoints(b.boardLocalCoordinates_cv, Rvecs, Tvecs, _intrinsics.cvmat, Cv_DistCoeffs4);
         }
         public Vector2d[] ProjectBoard_Cvd(ChessBoard b) {
             return ProjectBoard_Cv_p2d(b).Select(x => new Vector2d(x.X, x.Y)).ToArray();
@@ -167,8 +233,8 @@ namespace Calibratie {
                     return new Point2d();
                 }
 
-                var testx = camcoord.X / camcoord.Z * this.CameraMatrix.fx + this.CameraMatrix.cx;
-                var testy = camcoord.Y / camcoord.Z * this.CameraMatrix.fy + this.CameraMatrix.cy;
+                var testx = camcoord.X / camcoord.Z * this._intrinsics.fx + this._intrinsics.cx;
+                var testy = camcoord.Y / camcoord.Z * this._intrinsics.fy + this._intrinsics.cy;
 
 
                 var x = camcoord.X / camcoord.Z;
@@ -183,8 +249,8 @@ namespace Calibratie {
                 var xd = x * r_coeff + tdistx;
                 var yd = y * r_coeff + tdisty;
 
-                var im_x = this.CameraMatrix.fx * xd + this.CameraMatrix.cx;
-                var im_y = this.CameraMatrix.fy * yd + this.CameraMatrix.cy;
+                var im_x = this._intrinsics.fx * xd + this._intrinsics.cx;
+                var im_y = this._intrinsics.fy * yd + this._intrinsics.cy;
 
                 if (im_x >= 0 && im_x <= this.PictureSize.Width && im_y >= 0 && im_y <= PictureSize.Height) {
                     return new Point2d(im_x, im_y);

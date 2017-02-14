@@ -15,6 +15,8 @@ using OpenTK;
 
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Security.Policy;
+using System.Windows;
 using System.Windows.Forms.VisualStyles;
 using System.Windows.Media;
 using ceresdotnet;
@@ -35,14 +37,59 @@ using Pen = System.Drawing.Pen;
 
 using Matrix = Emgu.CV.Matrix<double>;
 using CVI = Emgu.CV.CvInvoke;
+using Point = System.Windows.Point;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 using Point3f = Emgu.CV.Structure.MCvPoint3D32f;
 using Vector3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 
 namespace CalibratieForms {
+    public class StereoImageFileProvider : IMultiCameraImageProvider {
+        
+        private int _keyFrameL, _keyFrameR;
+        private double _lr;
+        private int _intervalL;
+        private int _startL;
+        private int _stopL;
 
+        private Func<int, string> getFileL,getFileR;
+
+        private CameraIntrinsics[] cameraintr = new CameraIntrinsics[2];
+        
+        private int getFrameLfromindex(int index) {
+            return _startL + _intervalL*index;
+        }
+
+        private int getFrameRFromL(int frameL) {
+            return (int) ((frameL - _keyFrameL)*_lr + _keyFrameR);
+        }
+
+        public StereoImageFileProvider(int keyframeL, int keyframeR, int intervalL, int startL, int stopL, double lr,
+            Func<int, string> frameLocL, Func<int, string> frameLocR) {
+            _keyFrameL = keyframeL;
+            _keyFrameR = keyframeR;
+            _intervalL = intervalL;
+            _startL = startL;
+            _lr = lr;
+            _stopL = stopL;
+            getFileL = frameLocL;
+            getFileR = frameLocR;
+        }
+
+
+
+        public CameraIntrinsics[] CameraIntrinsics { get { return cameraintr; }}
+
+        public Mat this[int index, CameraIntrinsics intrinsics] {
+            get { throw new NotImplementedException(); }
+        }
+
+        public ICameraImageProvider GetProviderForCamera(int index) {
+            throw new NotImplementedException();
+        }
+    }
     static class Program {
+
 
         public static object lockme = new Object();
         // "C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2
@@ -82,6 +129,7 @@ namespace CalibratieForms {
             var L = Aruco.findArucoMarkers(files.Keys, detectedLFile).Select(x => new Tuple<string, List<ArucoMarker>>(x.Key, x.Value.ToList())).ToList();
             var R = Aruco.findArucoMarkers(files.Values, detectedRFile).Select(x => new Tuple<string, List<ArucoMarker>>(x.Key, x.Value.ToList())).ToList();
 
+            
             var r = new Dictionary<Tuple<string, List<ArucoMarker>>, Tuple<string, List<ArucoMarker>>>();
             for (int i = 0; i < L.Count; i++) {
                 r.Add(L[i], R[i]);
@@ -113,51 +161,135 @@ namespace CalibratieForms {
 
         }
 
-        static void drawReprojection(string file, IEnumerable<PointF> points, IEnumerable<PointF> error) {
+        static void drawReprojection(ref string file, IEnumerable<PointF> points, IEnumerable<PointF> error) {
             var bitmap = Bitmap.FromFile(file);
             var gfx = Graphics.FromImage(bitmap);
             var pen = new Pen(Color.Coral);
 
             var pointFs = points as PointF[] ?? points.ToArray();
             var enumerable = error as PointF[] ?? error.ToArray();
+
+            var rect = new Rect(new Point(0, 0), new Point(bitmap.Width, bitmap.Height));
+
             for (int i = 0; i < pointFs.Count(); i++) {
                 var p = pointFs[i];
                 var e = enumerable[i];
 
                 float width = 10;
                 float height = 10;
-                if (p.X > 0 && p.X < bitmap.Width && p.Y > 0 && p.Y < bitmap.Height) {
-
-                    pen.Brush = new SolidBrush(pen.Color);
-                    gfx.DrawEllipse(pen, p.X - width/2, p.Y - height/2, width, height);
-                    pen.Width = 3;
-                    gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y + e.Y);
+                var test = new LineEquation(new Point(p.X, p.Y), new Point(p.X + e.X, p.Y + e.Y));
+                var intersect = test.GetIntersectionWithLineForRay(rect);
+                if (intersect != null) {
+                    try {
+                        pen.Brush = new SolidBrush(pen.Color);
+                        gfx.DrawEllipse(pen, p.X - width/2, p.Y - height/2, width, height);
+                        pen.Width = 3;
+                        gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y + e.Y);
+                    }
+                    catch {
+                        
+                    }
                 }
                 else {
-                    
+                    if(intersect.End!= null)
+                    {
+                        
+                    }
                 }
 
                 //gfx.DrawLine(pen, p.X, p.Y, p.X - e.X, p.Y - e.Y);
                 //gfx.DrawLine(pen, p.X, p.Y, p.X + e.X, p.Y - e.Y);
                 //gfx.DrawLine(pen, p.X, p.Y, p.X - e.X, p.Y + e.Y);
             }
-            bitmap.Save(file+"reprojection.jpg",ImageFormat.Bmp);
+            file = file + "reprojection.jpg";
+            bitmap.Save(file,ImageFormat.Bmp);
             gfx.Dispose();
             bitmap.Dispose();
-            File.Delete(file);
+            //File.Delete(file);
+        }
+
+        static void testSFM() {
+            /*
+            var dir = @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2\";
+            List<string> files = new List<string>();
+            for (int i = 533; i < 2500; i+=30) {
+                files.Add(string.Format(@"{1}\{0:00000000}.jpg", i, dir));
+            }
+
+
+            var detected = Aruco.findArucoMarkers(files);
+            Matrix<double> camMat_left = new Emgu.CV.Matrix<double>(new[,] {
+                {852.18, 0,975.84},
+                {0,853.05,525.63},
+                {0,0,1}
+            });
+            Matrix<double> dist_left = new Emgu.CV.Matrix<double>(new[] { -.2807, .124, .0005073, -.03291 });
+
+            var K = camMat_left;
+            foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp in detected) {
+                var file = kvp.Key;
+                var markers = kvp.Value;
+
+            }
+
+            Matrix essential = K.Transpose() * F * K;
+            var decomp = new SVD<double>(essential);
+            var U = decomp.U;
+            var Vt = decomp.Vt;
+
+            var R1 = U * W * Vt;
+            var R2 = U * W.Transpose() * Vt;
+            var T1 = U.GetCol(2);
+            var T2 = -1 * U.GetCol(2);
+
+            Matrix[] Ps = new Matrix[4];
+
+            for (int i = 0; i < 4; i++)
+                Ps[i] = new Matrix(3, 4);
+
+            CVI.HConcat(R1, T1, Ps[0]);
+            CVI.HConcat(R1, T2, Ps[1]);
+            CVI.HConcat(R2, T1, Ps[2]);
+            CVI.HConcat(R2, T2, Ps[3]);
+
+            var KPs = new Matrix[4];
+            KPs[0] = K * Ps[0];
+            KPs[1] = K * Ps[1];
+            KPs[2] = K * Ps[2];
+            KPs[3] = K * Ps[3];
+
+
+            var KP0 = K * new Matrix(new double[,] { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 } });
+
+            for (int i = 0; i < 4; i++) {
+
+
+                Matrix<float> output_hom = new Matrix<float>(4, punten1px.Size);
+                VectorOfPoint3D32F output_3d = new VectorOfPoint3D32F();
+
+                CVI.TriangulatePoints(KP0, KPs[i], punten1px, punten2px, output_hom);
+                CVI.ConvertPointsFromHomogeneous(output_hom, output_3d);
+
+
+
+
+
+
+            }
+
+
+            CVI.FindEssentialMat();
+            CVI.TriangulatePoints();
+             * */
         }
         
         static void testStereoCamera() {
 
-            Scene scene1 = new Scene();
-            Scene scene2 = new Scene();
-            Scene scene = scene1;
+            Scene scene =  new Scene();
 
-            var markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname1.txt");
-            var markers2 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname2.txt");
-            markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname_123.txt");
-            scene1.AddRange(markers1);
-            scene2.AddRange(markers2);
+            var markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname_123.txt");
+            scene.AddRange(markers1);
+            
 
 
             var detectedAruco = getLRFramesAruco(
@@ -166,8 +298,7 @@ namespace CalibratieForms {
                 533, 689, 2.016214371053080730500085338795, 90,533, 2500).ToTupleList();
 
 
-            var markersscene1 = scene1.getIE<Marker>().ToArray();
-            var markersscene2 = scene2.getIE<Marker>().ToArray();
+            var markersscene = scene.getIE<Marker>().ToArray();
             
 
             var points = new List<Tuple<
@@ -181,6 +312,7 @@ namespace CalibratieForms {
                     foreach (var stereoPair in list) {
                         var L = stereoPair.Item1;
                         var R = stereoPair.Item2;
+
 
                         L.Item2.IntersectLists(R.Item2, ((marker, arucoMarker) => marker.ID == arucoMarker.ID));
                         
@@ -206,8 +338,8 @@ namespace CalibratieForms {
             foreach (Tuple<Tuple<string, List<ArucoMarker>>, Tuple<string, List<ArucoMarker>>> detectedStereo in detectedStereos) {
                 //per fotopaar
                 var minCount = 10;
-                var L = find(markersscene1, detectedStereo.Item1.Item2);
-                var R = find(markersscene1, detectedStereo.Item2.Item2);
+                var L = find(markersscene, detectedStereo.Item1.Item2);
+                var R = find(markersscene, detectedStereo.Item2.Item2);
 
                 if (L.Count() >= minCount && R.Count() >= minCount) {
                     points.Add(new Tuple<Tuple<string, List<Tuple<MCvPoint3D32f, PointF>>>, Tuple<string, List<Tuple<MCvPoint3D32f, PointF>>>>(
@@ -215,7 +347,7 @@ namespace CalibratieForms {
                         new Tuple<string, List<Tuple<MCvPoint3D32f, PointF>>>(detectedStereo.Item2.Item1,R.ToList())));
                 }
             }
-
+            
 
 
             Matrix<double> camMat_left = new Emgu.CV.Matrix<double>(new[,] {
@@ -250,6 +382,8 @@ namespace CalibratieForms {
             var cameradist = new List<Matrix<double>>();
 
             List<double> dstanc = new List<Double>();
+
+            var detectedArucoArr = detectedAruco.ToArray();
             for (int i = 0; i < points.Count; i++) {
                 var L = points[i].Item1.Item2;
                 var R = points[i].Item2.Item2;
@@ -260,23 +394,53 @@ namespace CalibratieForms {
                 var outt_right = new Matrix<double>(3, 1);
                 var outt_left = new Matrix<double>(3, 1);
 
-                var point3d = L.Select(x => x.Item1).ToArray();
+                var points3d = L.Select(x => x.Item1).ToArray();
                 var points2d = L.Select(x => x.Item2).ToArray();
-                CVI.SolvePnP(point3d,points2d,
-                    camMat_left, dist_left, outr_left, outt_left, true);
+
+                var inliers = new Emgu.CV.Mat();
+                var b = CVI.SolvePnPRansac(new VectorOfPoint3D32F(points3d), new VectorOfPointF(points2d),
+                    camMat_left, dist_left, outr_left, outt_left, false, 100, 100,.8, inliers, SolvePnpMethod.UPnP);
+                Matrix<float> hom3d = new Matrix<float>(points3d.Length, 4);
+                Matrix<float> hom3dt = new Matrix<float>(4, points3d.Length);
+                Matrix<float> hom2d = new Matrix<float>(points2d.Length, 3);
+                var points3dmat = points3d.toMat();
+                var points2dmat = points3d.toMat();
+
+                CVI.ConvertPointsToHomogeneous(points3dmat, hom3d);
+                //CVI.ConvertPointsToHomogeneous(points3dmat.Transpose(), hom3d);
+                CVI.ConvertPointsToHomogeneous(points2d.toMat(), hom2d);
+                //DLT.dlt(hom3d, hom2d);
                 var reprojection_left = CVI.ProjectPoints(L.Select(x => x.Item1).ToArray(), outr_left, outt_left, camMat_left, dist_left);
                 
                 List<PointF> residuals_left = points2d.Select((t, j) => new PointF(t.X - reprojection_left[j].X, t.Y - reprojection_left[j].Y)).ToList();
-                drawReprojection(points[i].Item1.Item1, reprojection_left,residuals_left);
+                var s = points[i].Item1.Item1;
+                drawReprojection(ref s, reprojection_left,residuals_left);
+                IO.MarkersToFile(detectedArucoArr[i].Item1.Item2, s+".txt");
+                var outim1 = CVI.Imread(s);
+                CVI.Undistort(CVI.Imread(s), outim1, camMat_left, dist_left);
+                CVI.Imwrite(s + "undistorted.jpg", outim1);
+                var points2dundist = new VectorOfPointF();
+                CVI.UndistortPoints(new VectorOfPointF(points2d), points2dundist, camMat_left, dist_left);
+                IO.MarkersToFile(points2dundist.ToArray(), detectedArucoArr[i].Item1.Item2.Select(x => x.ID).ToArray(), s + "undistorted.jpg" + ".txt");
 
-                point3d = R.Select(x => x.Item1).ToArray();
+                points3d = R.Select(x => x.Item1).ToArray();
                 points2d = R.Select(x => x.Item2).ToArray();
-                CVI.SolvePnP(point3d, points2d,
-                    camMat_right, dist_right, outr_right, outt_right, true);
-                var reprojection_right = CVI.ProjectPoints(R.Select(x => x.Item1).ToArray(), outr_right, outt_right, camMat_right, dist_right);
+                inliers = new Emgu.CV.Mat();
+                b = CVI.SolvePnPRansac(new VectorOfPoint3D32F(points3d), new VectorOfPointF(points2d),
+                    camMat_right, dist_right, outr_right, outt_right, false, 20, 100, .8, inliers,SolvePnpMethod.UPnP);
                 
+                var reprojection_right = CVI.ProjectPoints(R.Select(x => x.Item1).ToArray(), outr_right, outt_right, camMat_right, dist_right);
                 List<PointF> residuals_right = points2d.Select((t, k) => new PointF(t.X - reprojection_right[k].X, t.Y - reprojection_right[k].Y)).ToList();
-                drawReprojection(points[i].Item2.Item1, reprojection_right, residuals_right);
+                s = points[i].Item2.Item1;
+                drawReprojection(ref s, reprojection_right, residuals_right);
+
+                IO.MarkersToFile(detectedArucoArr[i].Item2.Item2, s + ".txt");
+                var outim = CVI.Imread(s);
+                CVI.Undistort(CVI.Imread(s), outim, camMat_right, dist_right);
+                CVI.Imwrite(s + "undistorted.jpg", outim);
+                points2dundist = new VectorOfPointF();
+                CVI.UndistortPoints(new VectorOfPointF(points2d), points2dundist, camMat_right, dist_right);
+                IO.MarkersToFile(points2dundist.ToArray(), detectedArucoArr[i].Item2.Item2.Select(x => x.ID).ToArray(), s + "undistorted.jpg" + ".txt");
 
 
                 leftrots.Add(outr_left);
@@ -308,22 +472,24 @@ namespace CalibratieForms {
 
                 
             }
+            //CVI.FindFundamentalMat();
             var rot = new Matrix<double>(3, 3);
             var trans = new Matrix<double>(3, 1);
             var ess = new Matrix<double>(3, 3);
             var fundamental = new Matrix<double>(3, 3);
             MCvTermCriteria termcriteria = new MCvTermCriteria();
-
-            /*CVI.StereoCalibrate(
+            
+            
+            CVI.StereoCalibrate(
                 points.Select(x=>x.Item1.Item2.Select(y=>y.Item1).ToArray()).ToArray(),
                 points.Select(x => x.Item1.Item2.Select(y => y.Item2).ToArray()).ToArray(),
                 points.Select(x=>x.Item2.Item2.Select(y=>y.Item2).ToArray()).ToArray(),
                 camMat_left, dist_left, camMat_right, dist_right,
                 new System.Drawing.Size(1920, 1080), rot, trans, ess, fundamental,
-                CalibType.UserIntrinsicGuess, termcriteria);*/
+                CalibType.UserIntrinsicGuess, termcriteria);
 
             
-            
+        
         }
 
         static void testFeatureDetection() {
@@ -363,7 +529,7 @@ namespace CalibratieForms {
                 new Emgu.CV.Util.VectorOfPointF(listmatchbest.Select(x => x.Item3.Point).ToArray()), F
                 );
 
-            var K = new Emgu.CV.Matrix<double>(PinholeCamera.getTestCameraHuawei().CameraMatrix.Mat);
+            var K = new Emgu.CV.Matrix<double>(PinholeCamera.getTestCameraHuawei().Intrinsics.Mat);
 
             var W = new Emgu.CV.Matrix<double>(new double[] {
                 0,-1,0,

@@ -47,7 +47,7 @@ namespace CalibratieForms {
             Emgu.CV.CvInvoke.SolvePnP(
                 points3d.ToArray(), 
                 imagepoints.ToArray(),
-                new Emgu.CV.Matrix<double>(camera.CameraMatrix.Mat), 
+                new Emgu.CV.Matrix<double>(camera.Intrinsics.Mat), 
                 new Emgu.CV.Matrix<double>(camera.Cv_DistCoeffs5), outrot,outtrans
             );
 

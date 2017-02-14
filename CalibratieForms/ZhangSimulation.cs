@@ -211,7 +211,7 @@ namespace CalibratieForms {
         #region 2dprojection
         private void get2DProjection_OpenCv(ChessBoard b, out PointF[] projected) {
             double[,] jabobian;
-            projected = CVI.ProjectPoints(b.boardWorldCoordinated_Cv, Camera.Rvecs, Camera.Tvecs, Camera.CameraMatrix.cvmat, Camera.Cv_DistCoeffs4);
+            projected = CVI.ProjectPoints(b.boardWorldCoordinated_Cv, Camera.Rvecs, Camera.Tvecs, Camera.Intrinsics.cvmat, Camera.Cv_DistCoeffs4);
         }
         #endregion
 

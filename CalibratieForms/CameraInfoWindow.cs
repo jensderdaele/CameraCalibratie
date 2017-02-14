@@ -43,18 +43,18 @@ namespace CalibratieForms {
                 richTextBox1.Text = "no camera";
                 return;
             }
-            var cm = Camera.CameraMatrix;
+            var cm = Camera.Intrinsics;
             richTextBox1.Text = String.Format("[{0:0.00} {1:0.00} {2:0.00}]\n" +
                                                 "[{3:0.00} {4:0.00} {5:0.00}]\n" +
                                                 "[{6:0.00} {7:0.00} {8:0.00}]"
                                                 , cm.Mat[0, 0], cm.Mat[0, 1], cm.Mat[0, 2]
                                                 , cm.Mat[1, 0], cm.Mat[1, 1], cm.Mat[1, 2]
                                                 , cm.Mat[2, 0], cm.Mat[2, 1], cm.Mat[2, 2]);
-            txt_fc1.Text = Camera.CameraMatrix.fx.ToString();
-            txt_fc2.Text = Camera.CameraMatrix.fy.ToString();
-            txt_cc1.Text = Camera.CameraMatrix.cx.ToString();
-            txt_cc2.Text = Camera.CameraMatrix.cy.ToString();
-            txt_ac.Text = Camera.CameraMatrix.ac.ToString();
+            txt_fc1.Text = Camera.Intrinsics.fx.ToString();
+            txt_fc2.Text = Camera.Intrinsics.fy.ToString();
+            txt_cc1.Text = Camera.Intrinsics.cx.ToString();
+            txt_cc2.Text = Camera.Intrinsics.cy.ToString();
+            txt_ac.Text = Camera.Intrinsics.ac.ToString();
 
             txt_kc1.Text = Camera.DistortionR1.ToString();
             txt_kc2.Text = Camera.DistortionR2.ToString();

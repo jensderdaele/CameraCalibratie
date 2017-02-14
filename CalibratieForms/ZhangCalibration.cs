@@ -226,7 +226,7 @@ namespace CalibratieForms {
             double[] dist;
             double[,] cmat;
             Calibrate(cb,out cmat, out dist);
-            c = new PinholeCamera(new CameraMatrix(cmat)){Cv_DistCoeffs5 = dist};
+            c = new PinholeCamera(new CameraIntrinsics(cmat)){Cv_DistCoeffs5 = dist};
         }
 
         public void scatterPlot() {

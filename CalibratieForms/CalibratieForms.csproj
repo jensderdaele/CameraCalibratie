@@ -125,10 +125,12 @@
     </Compile>
     <Compile Include="CeresEXT.cs" />
     <Compile Include="CeresSimulation.cs" />
+    <Compile Include="DLT.cs" />
     <Compile Include="Emgufeat.cs" />
     <Compile Include="EXT.cs" />
     <Compile Include="IO.cs" />
     <Compile Include="IRuisProvider.cs" />
+    <Compile Include="Line.cs" />
     <Compile Include="LVList.cs" />
     <Compile Include="Matlab\Matlab.cs" />
     <Compile Include="CameraInfoWindow.cs">

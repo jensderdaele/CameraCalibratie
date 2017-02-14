@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ArUcoNET;
 using Calibratie;
 using OpenTK;
 
@@ -30,6 +32,37 @@ namespace CalibratieForms {
                 r.Add(new Point3d(x,y,z));
             }
             return r.ToArray();
+        }
+
+        public static void MarkersToFile(IEnumerable<Marker> markers, string file) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            foreach (var marker in markers) {
+                writer.WriteLine("{0},{1},{2},{3}", marker.ID, marker.Pos.X, marker.Pos.Y, marker.Pos.Z);
+            }
+        }
+        public static void MarkersToFile(IEnumerable<ArucoMarker> markers, string file) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            foreach (var marker in markers) {
+                writer.WriteLine("{0},{1},{2}", marker.ID, marker.Corner1.X, marker.Corner1.Y);
+            }
+            writer.Flush();
+            stream.Flush();
+            writer.Close();
+            stream.Close();
+        }
+        public static void MarkersToFile(PointF[] markers,int[] ids, string file) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            for (int i = 0; i < markers.Length; i++) {
+                writer.WriteLine("{0},{1},{2}", ids[i], markers[i].X, markers[i].Y);
+                
+            }
+            writer.Flush();
+            stream.Flush();
+            writer.Close();
+            stream.Close();
         }
 
         public static Vector3d[] readVectors(string s) {

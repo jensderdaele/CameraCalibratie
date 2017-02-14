@@ -18,19 +18,28 @@ using namespace System;
 using namespace std;
 using namespace cv;
 using namespace System::Linq;
-
+using namespace System::Drawing;
 using namespace cv::xfeatures2d;
 
 
 namespace ArUcoNET {
 	
-	public ref class ArucoMarker{
+	public ref class ArucoMarker : Calibratie::Marker2d{
 	public:
 		System::Drawing::PointF Corner1;
 		System::Drawing::PointF Corner2;
 		System::Drawing::PointF Corner3;
 		System::Drawing::PointF Corner4;
-		int ID;
+		int _id;
+
+		virtual property int ID{ 
+			int get()override{ return _id; }
+			void set(int v){ _id = v; }
+		};
+		virtual property float X{ float get() override{ return Corner1.X; } };
+		virtual property float Y{ float get() override{ return Corner1.Y; }};
+
+		//virtual property System::Drawing::PointF^ PointF{System::Drawing::PointF^ get(){ return &Corner1; }};
 
 		ArucoMarker(){
 			
@@ -222,9 +231,6 @@ namespace ArUcoNET {
 			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
 
-			//cv::imwrite(format("%d.%d.jpg", id, pixelSz), markerImage);
-
-			//System::Drawing::Bitmap^ bitmap = gcnew System::Drawing::Bitmap(pixelSz, pixelSz, 32 * pixelSz, System::Drawing::Imaging::PixelFormat::Format32bppRgb, IntPtr(&markerImage));
 			
 			return IntPtr(&markerImage);
 			
@@ -254,7 +260,20 @@ namespace ArUcoNET {
 			//cout << "FindMarkers aruco: " << f << endl;
 			int start = GetTickCount();
 			Mat testImage = imread(f, IMREAD_COLOR);
+			return FindMarkers(&testImage, detectedFile);
 			
+		}
+		static IEnumerable<ArucoMarker^>^ FindMarkers(Emgu::CV::Mat^ image, System::String^ detectedFile){
+			return FindMarkers((Mat*)(image->Ptr.ToPointer()), detectedFile);
+		}
+		static IEnumerable<ArucoMarker^>^ FindMarkers(Mat* image, System::String^ detectedFile){
+			//std::string f = msclr::interop::marshal_as<std::string>(fileName);
+			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
+			cout << "FindMarkers aruco from intptr " << endl;
+			int start = GetTickCount();
+
+			Mat testImage = *image;
+
 			cv::Ptr<aruco::DetectorParameters> parameters;
 			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
@@ -294,63 +313,13 @@ namespace ArUcoNET {
 				System::Drawing::PointF^ corner2 = gcnew System::Drawing::PointF(markerCorners[i][1].x, markerCorners[i][1].y);
 				System::Drawing::PointF^ corner3 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
 				System::Drawing::PointF^ corner4 = gcnew System::Drawing::PointF(markerCorners[i][3].x, markerCorners[i][3].y);
-				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
+				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3, corner4, markerIDs[i]));
 			}
-			
+
 			int timelapse = GetTickCount() - start;
 			//cout << "FindMarkers aruco complete: " << sz << " gevonden in " << timelapse << "ms" << endl;
 			return markerList;
 		}
-		static IEnumerable<ArucoMarker^>^ FindMarkers(System::IntPtr cvimage, System::String^ detectedFile){
-			//std::string f = msclr::interop::marshal_as<std::string>(fileName);
-			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
-			cout << "FindMarkers aruco from intptr " << endl;
-			int start = GetTickCount();
-			Mat testImage = *(Mat*)cvimage.ToPointer();
-
-			cv::Ptr<aruco::DetectorParameters> parameters;
-			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
-			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
-			detectorParams->doCornerRefinement = true;
-			detectorParams->adaptiveThreshWinSizeMin = 10;
-
-			detectorParams->adaptiveThreshWinSizeStep = 20;
-			detectorParams->adaptiveThreshWinSizeMax = 50;
-
-			detectorParams->cornerRefinementWinSize = 18;
-			detectorParams->cornerRefinementMinAccuracy = 0.05;
-			detectorParams->cornerRefinementMaxIterations = 50;
-			detectorParams->polygonalApproxAccuracyRate = 0.03;
-
-			std::vector< std::vector<cv::Point2f> > markerCorners;
-			std::vector< std::vector<cv::Point2f> > rejected;
-			std::vector<int> markerIDs;
-
-
-			cv::aruco::detectMarkers(testImage, markerDictionary, markerCorners, markerIDs, detectorParams, rejected);
-			cv::aruco::drawDetectedMarkers(testImage, markerCorners, markerIDs);
-
-
-
-			if (!System::String::IsNullOrEmpty(detectedFile))
-				cv::imwrite(msclr::interop::marshal_as<std::string>(detectedFile), testImage);
-
-			List<ArucoMarker^>^ markerList = gcnew List<ArucoMarker^>();
-			int sz = markerCorners.size();
-			for (size_t i = 0; i < markerCorners.size(); i++)
-			{
-				System::Drawing::PointF^ corner1 = gcnew System::Drawing::PointF(markerCorners[i][0].x, markerCorners[i][0].y);
-				System::Drawing::PointF^ corner2 = gcnew System::Drawing::PointF(markerCorners[i][1].x, markerCorners[i][1].y);
-				System::Drawing::PointF^ corner3 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
-				System::Drawing::PointF^ corner4 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
-				markerList->Add(gcnew ArucoMarker(corner1, corner2, corner3,corner4, markerIDs[i]));
-			}
-
-			int timelapse = GetTickCount() - start;
-			cout << "FindMarkers aruco complete: " << sz << " gevonden in " << timelapse << "ms" << endl;
-			return markerList;
-		}
-		
 		
 	};
 }

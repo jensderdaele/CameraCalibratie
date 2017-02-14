@@ -45,6 +45,8 @@ namespace CalibratieForms {
 
         private static int count = 0;
         private static string workspacename = "base";
+
+
         public static void ScatterPlot(Point2d[] data) {
             double[,] dataArray = new double[2,data.Length];
             double[] xdata = new double[data.Length];

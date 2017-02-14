@@ -8,18 +8,30 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ArUcoNET;
+using Calibratie;
+using Emgu.CV;
 
 namespace CalibratieForms {
+    public class ArucoMarkerDetector : IMarkerDetector {
+        public IEnumerable<ArucoMarker> detectMarkers(Mat image) {
+            return ArUcoNET.Aruco.FindMarkers(image, "");
+        }
+        IEnumerable<Marker2d> IMarkerDetector.detectMarkers(Mat image) {
+            return detectMarkers(image);
+        }
+        
+    }
     public static class Aruco {
 
 
         private static object lockme = new Object();
         private static object lockme2 = new Object();
-        public static Dictionary<string, IEnumerable<ArUcoNET.ArucoMarker>> findArucoMarkers(IEnumerable<string> files, string outputDir = null, int maxThreads = 8) {
+        public static Dictionary<string, IEnumerable<ArUcoNET.ArucoMarker>> findArucoMarkers(IEnumerable<string> files, string outputDir = "detected", int maxThreads = 8,Func<string,Emgu.CV.Mat> fileReader = null) {
             maxThreads = maxThreads > files.Count() ? files.Count() : maxThreads;
             SemaphoreSlim throttler = new SemaphoreSlim(maxThreads);
             List<Task> alltasks = new List<Task>();
             int count = 0;
+            
             if (!string.IsNullOrEmpty(outputDir)) {
                 Directory.CreateDirectory(outputDir);
             }
@@ -35,8 +47,21 @@ namespace CalibratieForms {
                 }
                 var picture = Bitmap.FromFile(f);
                 IEnumerable<ArucoMarker> markers;
-                string detectedfile = Path.Combine(outputDir, fname + "detected.jpg");
-                markers = string.IsNullOrEmpty(outputDir) ? ArUcoNET.Aruco.FindMarkers(f) : ArUcoNET.Aruco.FindMarkers(f, detectedfile);
+
+                string detectedfile = null;
+
+                if (outputDir == "detected") {
+                    detectedfile = Path.Combine(f, "/detected/", "detected.jpg");
+                }else if (!string.IsNullOrEmpty(outputDir)) {
+                    detectedfile = Path.Combine(outputDir, fname + "detected.jpg");
+                }
+                if (fileReader != null) {
+                    markers = ArUcoNET.Aruco.FindMarkers(fileReader(f), detectedfile);
+                }
+                else {
+                    markers = ArUcoNET.Aruco.FindMarkers(f, detectedfile);
+                }
+                
                 lock (lockme2) {
                     dict.Add(detectedfile, markers);
                 }
