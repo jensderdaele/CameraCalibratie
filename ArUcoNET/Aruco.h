@@ -266,6 +266,8 @@ namespace ArUcoNET {
 		static IEnumerable<ArucoMarker^>^ FindMarkers(Emgu::CV::Mat^ image, System::String^ detectedFile){
 			return FindMarkers((Mat*)(image->Ptr.ToPointer()), detectedFile);
 		}
+
+		//IGNORES MARKERS DIE VOOR 2E KEER GEVONDEN WORDEN 
 		static IEnumerable<ArucoMarker^>^ FindMarkers(Mat* image, System::String^ detectedFile){
 			//std::string f = msclr::interop::marshal_as<std::string>(fileName);
 			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
@@ -309,6 +311,15 @@ namespace ArUcoNET {
 			int sz = markerCorners.size();
 			for (size_t i = 0; i < markerCorners.size(); i++)
 			{
+				bool cont = false;
+				for each (ArucoMarker^ m in markerList)
+				{
+					if (m->_id == markerIDs[i])
+						cont = true;
+				}
+				if (cont){
+					continue;
+				}
 				System::Drawing::PointF^ corner1 = gcnew System::Drawing::PointF(markerCorners[i][0].x, markerCorners[i][0].y);
 				System::Drawing::PointF^ corner2 = gcnew System::Drawing::PointF(markerCorners[i][1].x, markerCorners[i][1].y);
 				System::Drawing::PointF^ corner3 = gcnew System::Drawing::PointF(markerCorners[i][2].x, markerCorners[i][2].y);
@@ -317,7 +328,6 @@ namespace ArUcoNET {
 			}
 
 			int timelapse = GetTickCount() - start;
-			//cout << "FindMarkers aruco complete: " << sz << " gevonden in " << timelapse << "ms" << endl;
 			return markerList;
 		}
 		

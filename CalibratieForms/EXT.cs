@@ -172,6 +172,7 @@ namespace CalibratieForms {
             
         }
 
+
         public static double[,] toArray(this Matrix4d obj) {
             return new double[,] {
                 {obj.M11, obj.M12, obj.M13, obj.M14},

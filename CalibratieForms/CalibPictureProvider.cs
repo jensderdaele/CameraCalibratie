@@ -22,7 +22,7 @@ namespace cameracallibratie {
     }
 
     public class PhotoProvider : CalibPictureProvider {
-        public static IInputArray getSingleImage(string path, int scaleDown = 1) {
+        public static Image<Gray, Byte> getSingleImage(string path, int scaleDown = 1) {
             if (scaleDown != 1) {
                 var image = new Bitmap(path);
                 image = ResizeImage(image, image.Width/scaleDown, image.Height/scaleDown);
@@ -33,7 +33,7 @@ namespace cameracallibratie {
             }
             
         }
-        public static IInputArray getSingleImage(string path,out Size imSize, int scaleDown = 1) {
+        public static Image<Gray, Byte> getSingleImage(string path, out Size imSize, int scaleDown = 1) {
             
             if (scaleDown != 1) {
                 var image = new Bitmap(path);

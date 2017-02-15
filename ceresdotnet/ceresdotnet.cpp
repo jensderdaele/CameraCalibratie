@@ -4,6 +4,7 @@
 #include "ceresdotnet.h";
 
 namespace ceresdotnet{
+	/*
 	// Returns a pointer to the camera corresponding to a image.
 	EuclideanCamera *CameraForImage(vector<EuclideanCamera> *all_cameras,
 		const int image) {
@@ -44,14 +45,6 @@ namespace ceresdotnet{
 
 	// Returns a pointer to the point corresponding to a track.
 	EuclideanPoint *PointForTrack(vector<EuclideanPoint> *all_points, int track) {
-		/*if (track < 0 || track >= all_points->size()) {
-			return NULL;
-		}
-		EuclideanPoint *point = &(*all_points)[track];
-		if (point->track == -1) {
-			return NULL;
-		}
-		return point;*/
 		for (size_t i = 0; i < all_points->size(); i++)
 		{
 			if ((*all_points)[i].track == track){
@@ -176,5 +169,5 @@ namespace ceresdotnet{
 			camera->t = all_cameras_R_t[i].tail<3>();
 		}
 	}
-
+	*/
 }

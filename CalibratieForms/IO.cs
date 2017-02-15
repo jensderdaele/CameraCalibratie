@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ArUcoNET;
 using Calibratie;
+using Emgu.CV.Structure;
 using OpenTK;
 
 using Point3d = Emgu.CV.Structure.MCvPoint3D64f;
@@ -38,26 +39,38 @@ namespace CalibratieForms {
             var stream = File.Create(file);
             StreamWriter writer = new StreamWriter(stream);
             foreach (var marker in markers) {
-                writer.WriteLine("{0},{1},{2},{3}", marker.ID, marker.Pos.X, marker.Pos.Y, marker.Pos.Z);
+                writer.WriteLine("{0},{1},{2},{3}", marker.ID, marker.Pos.X.ToString(CultureInfo.InvariantCulture), marker.Pos.Y.ToString(CultureInfo.InvariantCulture), marker.Pos.Z.ToString(CultureInfo.InvariantCulture));
             }
         }
         public static void MarkersToFile(IEnumerable<ArucoMarker> markers, string file) {
             var stream = File.Create(file);
             StreamWriter writer = new StreamWriter(stream);
             foreach (var marker in markers) {
-                writer.WriteLine("{0},{1},{2}", marker.ID, marker.Corner1.X, marker.Corner1.Y);
+                writer.WriteLine("{0},{1},{2}", marker.ID.ToString(), marker.Corner1.X.ToString(CultureInfo.InvariantCulture), marker.Corner1.Y.ToString(CultureInfo.InvariantCulture));
             }
             writer.Flush();
             stream.Flush();
             writer.Close();
             stream.Close();
         }
-        public static void MarkersToFile(PointF[] markers,int[] ids, string file) {
+        public static void MarkersToFile(PointF[] markers, int[] ids, string file) {
             var stream = File.Create(file);
             StreamWriter writer = new StreamWriter(stream);
             for (int i = 0; i < markers.Length; i++) {
-                writer.WriteLine("{0},{1},{2}", ids[i], markers[i].X, markers[i].Y);
-                
+                writer.WriteLine("{0},{1},{2}", ids[i], markers[i].X.ToString(CultureInfo.InvariantCulture), markers[i].Y.ToString(CultureInfo.InvariantCulture));
+
+            }
+            writer.Flush();
+            stream.Flush();
+            writer.Close();
+            stream.Close();
+        }
+        public static void MarkersToFile(MCvPoint3D32f[] markers, int[] ids, string file) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            for (int i = 0; i < markers.Length; i++) {
+                writer.WriteLine("{0},{1},{2},{3}", ids[i], markers[i].X.ToString(CultureInfo.InvariantCulture), markers[i].Y.ToString(CultureInfo.InvariantCulture),markers[i].Z.ToString(CultureInfo.InvariantCulture));
+
             }
             writer.Flush();
             stream.Flush();

@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SceneManager
 {
-    public sealed class Scene {
+    public sealed class Scene{
         public T[] get<T>() where T : SObject {
             return getIE<T>().ToArray();
         }

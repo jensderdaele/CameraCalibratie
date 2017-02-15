@@ -12,8 +12,8 @@ namespace Calibratie {
         }
 
         public int ID { get; private set; }
-        public double X { get; private set; }
-        public double Y { get; private set; }
-        public double Z { get; private set; }
+        public double X { get { return Pos.X; } }
+        public double Y { get { return Pos.Y; } }
+        public double Z { get { return Pos.Z; } }
     }
 }

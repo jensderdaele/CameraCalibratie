@@ -111,6 +111,7 @@
     </Compile>
     <Compile Include="Aruco.cs" />
     <Compile Include="CalibPictureProvider.cs" />
+    <Compile Include="Calibration.cs" />
     <Compile Include="CameraSelectionForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -153,6 +154,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SVD.cs" />
+    <Compile Include="test.cs" />
     <Compile Include="testbuttons.cs">
       <SubType>Form</SubType>
     </Compile>

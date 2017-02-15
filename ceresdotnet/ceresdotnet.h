@@ -49,7 +49,7 @@ using std::vector;
 //EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix<double, 6, 1>)
 
 namespace ceresdotnet{
-
+	/*
 	enum BundleIntrinsics {
 		BUNDLE_NO_INTRINSICS = 0,
 		BUNDLE_FOCAL_LENGTH = 1,
@@ -178,5 +178,5 @@ namespace ceresdotnet{
 
 	int main(int argc, char **argv);
 
-
+	*/
 }
