@@ -307,7 +307,7 @@ namespace CalibratieForms {
                             x = proj.X,
                             y = proj.Y
                         };
-                        var res = ceresdotnet.CeresCameraCollectionBundler.testProjectPoint(cc,
+                        var res = ceresdotnet.CeresTestFunctions.testProjectPoint(cc,
                             new CeresPointOrient() { RT = new[] { 0D, 0, 0, 0, 0, 0 } }, marker);
                         proj.X -= (float)res[0];
                         proj.Y -= (float)res[1];

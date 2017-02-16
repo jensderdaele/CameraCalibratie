@@ -49,7 +49,7 @@ namespace CalibratieForms {
             PhotoProvider prov = new PhotoProvider(dir);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(8); //max 8 threads
+            SemaphoreSlim throttler = new SemaphoreSlim(2); //max 8 threads
             
             Action<Object> findCornerAction = o => {
                 String imageFile = (String)o;
@@ -103,7 +103,7 @@ namespace CalibratieForms {
             PhotoProvider prov = new PhotoProvider(dir);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(8); //max 8 threads
+            SemaphoreSlim throttler = new SemaphoreSlim(2); //max 8 threads
 
             Action<Object> findCornerAction = o => {
                 String imageFile = (String)o;
@@ -167,7 +167,7 @@ namespace CalibratieForms {
 
 
             Matrix cameramat = new Matrix(3,3);
-            Matrix distcoeffs = new Matrix(4,1);
+            Matrix distcoeffs = new Matrix(1,4);
             Mat[] rvecs, tvecs;
             CVI.CalibrateCamera(worldpoints.Select(x=>x.ToArray()).ToArray(), imagepoints.ToArray(), images.First().imageSize,
                 cameramat, distcoeffs, CalibType.Default, new MCvTermCriteria(), 
@@ -237,7 +237,6 @@ namespace CalibratieForms {
             throw new Exception("No Corners Found");
         }
 
-        public List<PinholeCamera> Cameras { get{return } }
         public IObservation[] getObservations(PinholeCamera c) {
             throw new NotImplementedException();
         }

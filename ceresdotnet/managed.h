@@ -9,6 +9,7 @@
 #pragma managed
 
 using namespace System::Collections::Generic;
+using namespace Emgu::CV;
 using namespace System::Runtime::InteropServices;
 namespace ceresdotnet {
 
@@ -35,6 +36,7 @@ namespace ceresdotnet {
 	[FlagsAttribute]
 	public enum class  BundleIntrinsicsFlags :int
 	{
+		None = 0,
 		FocalLength = 1,
 		PrincipalP = 2,
 		R1 = 4,
@@ -42,8 +44,8 @@ namespace ceresdotnet {
 		P1 = 16,
 		P2 = 32,
 		R3 = 64,
-		ALL = FocalLength & PrincipalP & R1 &R2 &P1&P2&R3,
-		GeoAutomation = FocalLength & PrincipalP & R1 & R2 & R3
+		ALL = 127,
+		GeoAutomation = 79
 	};
 	[FlagsAttribute]
 	public enum class  BundleWorldCoordinatesFlags :int
@@ -52,8 +54,24 @@ namespace ceresdotnet {
 		X = 1,
 		Y = 2,
 		Z = 4,
-		ALL = X & Z & Y
+		ALL = 7
 	};
+	[FlagsAttribute]
+	public enum class  BundlePointOrientFlags :int
+	{
+		None = 0,
+		X = 1,
+		Y = 2,
+		Z = 4,
+		Rodr1 = 8,
+		Rodr2 = 16,
+		Rodr3 = 32,
+		Position = 7,
+		Orientation = 56,
+		ALL = 63
+	};
+
+
 #pragma endregion
 	
 #pragma region IterationCallback
@@ -81,7 +99,7 @@ namespace ceresdotnet {
 		Iteration_native_callback cb = static_cast<Iteration_native_callback>(ip.ToPointer());
 		NativeIterationCallback* natcb = new NativeIterationCallback(cb);
 		options->callbacks.push_back(natcb);
-	}
+	};
 
 
 
@@ -89,12 +107,18 @@ namespace ceresdotnet {
 
 #pragma region ParameterBlocks
 	public ref class CeresParameterBlock abstract{
+	private:
+		bool _paramterizationset = false;
 	internal:
 		double* _data;
+		//Enum^ _bundleFlags;
 
+		virtual property Enum^ BundleFlagsEnum{ virtual Enum^ get() abstract; };
 		virtual property int Length{ virtual int get()  abstract; }
-		virtual Nullable<System::Boolean> getParameterBlockConstant() abstract;
+		virtual bool getBlockFullyVariable() abstract;
+		virtual bool getBlockFullyConstant() abstract;
 		virtual ceres::SubsetParameterization* GetPrametrization() abstract;
+
 		
 		!CeresParameterBlock(){
 			if (_data != nullptr) {
@@ -120,15 +144,16 @@ namespace ceresdotnet {
 
 		void AddToProblem(ceres::Problem* problem){
 			problem->AddParameterBlock(_data, Length);
-			Nullable<System::Boolean> b = getParameterBlockConstant();
-			if (!b.HasValue){
-				problem->SetParameterization(_data, GetPrametrization());
-			}
-			else if(b.Value){
+
+			if (getBlockFullyConstant()){
 				problem->SetParameterBlockConstant(_data);
 			}
-			else{
+			else if (getBlockFullyVariable()){
 				problem->SetParameterBlockVariable(_data);
+			}
+			else if (!_paramterizationset){
+				_paramterizationset = true;
+				problem->SetParameterization(_data, GetPrametrization());
 			}
 		}
 
@@ -143,16 +168,9 @@ namespace ceresdotnet {
 		}
 
 	public:
-		property bool parameterConst{ bool get(){
-			Nullable<System::Boolean> b = getParameterBlockConstant();
-			if (b.HasValue && b.Value){
-				return true;
-			}
-			return false;
-		}}
+		
 		List<array<double>^>^ _iterationvalues;
 
-	public:
 		List<Tuple<System::Reflection::PropertyInfo^, Object^>^>^ get_propertiesValues(){
 			List<Tuple<System::Reflection::PropertyInfo^, Object^>^>^ r = gcnew List<Tuple<System::Reflection::PropertyInfo^, Object^>^>();
 			Type^ t = this->GetType();
@@ -171,7 +189,7 @@ namespace ceresdotnet {
 		initonly CeresParameterBlock^ block;
 
 		CeresCallbackReturnType captureValues(int nr){
-			if (block->parameterConst){
+			if (block->BundleFlagsEnum->Equals(0)){
 				return CeresCallbackReturnType::SOLVER_CONTINUE;
 			}
 			if (capture == nullptr){
@@ -182,20 +200,44 @@ namespace ceresdotnet {
 		}
 	};
 
-	
 	public ref class CeresPointOrient : CeresParameterBlock {
 	internal:
+		BundlePointOrientFlags _bundleFlags;
 
-		Nullable<System::Boolean> getParameterBlockConstant() override{
-			return Nullable<System::Boolean>(!Bundle);
-		}
+		bool getBlockFullyVariable() override{ return _bundleFlags.HasFlag(BundlePointOrientFlags::ALL); }
+		bool getBlockFullyConstant() override{ return _bundleFlags == BundlePointOrientFlags::None; }
+
 		ceres::SubsetParameterization* GetPrametrization() override{
-			return NULL;
+			auto bundle_data = _bundleFlags;
+			
+			std::vector<int> constant_data;
+			
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::Rodr1))
+				constant_data.push_back(0);
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::Rodr2))
+				constant_data.push_back(1);
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::Rodr3))
+				constant_data.push_back(2);
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::X))
+				constant_data.push_back(3);
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::Y))
+				constant_data.push_back(4);
+			if (!_bundleFlags.HasFlag(BundlePointOrientFlags::Z))
+				constant_data.push_back(5);
+
+			ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(Length, constant_data);
+
+			return subset_parameterization;
 		}
 		property int Length{ int get() override{ return 6; }}
+		property Enum^ BundleFlagsEnum{	Enum^ get() override { return _bundleFlags; };};
 		
 	public:
-		bool Bundle = true;
+
+		 property BundlePointOrientFlags BundleFlags{
+			BundlePointOrientFlags get()  { return _bundleFlags; };
+			void set(BundlePointOrientFlags flags){ _bundleFlags = flags; }
+		 };
 
 
 		property array<double>^ RT {
@@ -260,7 +302,7 @@ namespace ceresdotnet {
 
 		CeresPointOrient^ CreateCopy(){
 			CeresPointOrient^ r = gcnew CeresPointOrient();
-			r->Bundle = this->Bundle;
+			r->BundleFlags = this->BundleFlags;
 			memcpy(r->_data, this->_data, sizeof(double) * 6);
 			return r;
 		}
@@ -276,17 +318,14 @@ namespace ceresdotnet {
 
 	public ref class CeresIntrinsics : CeresParameterBlock{
 	internal:
+		BundleIntrinsicsFlags _bundleFlags;
 
-
-		Nullable<System::Boolean> getParameterBlockConstant() override{
-			return Nullable<System::Boolean>();
-		}
+		bool getBlockFullyVariable() override{ return _bundleFlags.HasFlag(BundleIntrinsicsFlags::ALL); }
+		bool getBlockFullyConstant() override{ return _bundleFlags == BundleIntrinsicsFlags::None; }
 		ceres::SubsetParameterization* GetPrametrization() override{
 			auto bundle_data = BundleFlags;
 
 			std::vector<int> constant_data;
-
-
 
 			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::FocalLength))
 				constant_data.push_back(OFFSET_FOCAL_LENGTH_X);
@@ -307,21 +346,43 @@ namespace ceresdotnet {
 			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::P2))
 				constant_data.push_back(OFFSET_P2);
 
-
 			ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(9, constant_data);
 
 			return subset_parameterization;
 		}
-
 		property int Length{ int get() override{ return 9; }}
+		property Enum^ BundleFlagsEnum{	Enum^ get() override { return BundleFlags; } };
 
 	public:
 		CeresIntrinsics(){};
 		CeresIntrinsics(array<double>^ intr){
 			Intrinsics = intr;
 		}
+		CeresIntrinsics(Emgu::CV::Matrix<double>^ cameraMat, array<double>^ distCoeffs){
+			fx = cameraMat->default[0, 0];
+			fy = cameraMat->default[0, 1];
+			ppx = cameraMat->default[2, 0];
+			ppy = cameraMat->default[2, 1];
 
-		BundleIntrinsicsFlags BundleFlags;
+			k1 = distCoeffs[0];
+			k2 = distCoeffs[1];
+			if (distCoeffs->Length == 4){
+				p1 = distCoeffs[2];
+				p2 = distCoeffs[3];
+			}
+			else{
+				p1 = distCoeffs[2];
+				p2 = distCoeffs[3];
+				k3 = distCoeffs[4];
+			}
+
+		}
+
+		property BundleIntrinsicsFlags BundleFlags{
+			BundleIntrinsicsFlags get() override { return _bundleFlags; }
+			void set(BundleIntrinsicsFlags flags){ _bundleFlags = flags; }
+		};
+
 
 		property array<double>^ Intrinsics {
 			array<double>^ get() {
@@ -395,19 +456,23 @@ namespace ceresdotnet {
 
 	public ref class CeresPoint : CeresParameterBlock{
 	internal:
-
+		BundleWorldCoordinatesFlags _bundleFlags;
 
 		property int Length{ int get() override{ return 3; }}
-		Nullable<System::Boolean> getParameterBlockConstant() override{
-			return Nullable<System::Boolean>(BundleFlags == (BundleWorldCoordinatesFlags::None));
-		}
+		bool getBlockFullyVariable() override{ return _bundleFlags.HasFlag(BundleWorldCoordinatesFlags::ALL); }
+		bool getBlockFullyConstant() override{ return _bundleFlags == BundleWorldCoordinatesFlags::None; }
 		ceres::SubsetParameterization* GetPrametrization() override{
 			return NULL;
 		}
-
+		property Enum^ BundleFlagsEnum{
+			Enum^ get() override { return BundleFlags; }
+		};
 
 	public:
-		BundleWorldCoordinatesFlags BundleFlags;
+		property BundleWorldCoordinatesFlags BundleFlags{
+			BundleWorldCoordinatesFlags get() { return _bundleFlags; }
+			void set(BundleWorldCoordinatesFlags flags){ _bundleFlags = flags; }
+		};
 
 		property double default[int] {
 			double get(int i){
@@ -443,34 +508,23 @@ namespace ceresdotnet {
 			}
 		}
 
-
-		/*
-		property Vector3d^ Coordinates{ Vector3d^ get(){
-		return gcnew Vector3d(_data[0], _data[1], _data[2]);
-		}
-		void set(Vector3d^ value){
-
-		_data[0] = value->X;
-		_data[1] = value->Y;
-		_data[2] = value->Z;
-		}
-		}
-		*/
-
 		property array<double>^ Coordinates_arr{ array<double>^ get(){
-
 			return gcnew array < double > {_data[0], _data[1], _data[2]};
 		}
 		void set(array<double>^ value){
-
 			_data[0] = value[0];
 			_data[1] = value[1];
 			_data[2] = value[2];
-
 		}
 		}
 	};
 
+	generic <class T> where T : CeresParameterBlock
+	public interface class ICeresParameterConvertable{
+			T toCeresParameter();
+			void updateFromCeres(T paramblock);
+			T toCeresParameter(Enum^ BundleSettings);
+		};
 
 #pragma endregion
 	
@@ -489,7 +543,7 @@ namespace ceresdotnet {
 	public:
 		initonly CeresPointOrient^ External = gcnew CeresPointOrient();
 		CeresIntrinsics^ Internal = gcnew CeresIntrinsics();
-
+		
 
 
 		CeresCamera(OpenTK::Matrix3d r, OpenTK::Vector3d rvec){
@@ -533,6 +587,10 @@ namespace ceresdotnet {
 			External->_data[5] = m.M43;
 
 		}
+		CeresCamera(CeresIntrinsics^ intr, CeresPointOrient^ ext){
+			this->Internal = intr;
+			this->External = ext;
+		}
 	};
 
 	public ref class CeresCameraCollection{
@@ -544,20 +602,20 @@ namespace ceresdotnet {
 		void lockCameraExternals(){
 			for each (CeresCamera^ cam in Cameras)
 			{
-				cam->External->Bundle = false;
+				cam->External->BundleFlags = BundlePointOrientFlags::None;
 			}
 		}
 		void UnlockCameraExternals(){
 			for each (CeresCamera^ cam in Cameras)
 			{
-				cam->External->Bundle = true;
+				cam->External->BundleFlags = BundlePointOrientFlags::ALL;
 			}
 		}
 		void BindFirstCameraToCollectionPosition(){
 			if (Cameras->Count > 0){
 				UnlockCameraExternals();
-				Position->Bundle = true;
-				((*Cameras)[0])->External->Bundle = false;
+				Position->BundleFlags = BundlePointOrientFlags::ALL;
+				((*Cameras)[0])->External->BundleFlags = BundlePointOrientFlags::None;
 
 			}
 			else{
@@ -570,13 +628,14 @@ namespace ceresdotnet {
 			r->Cameras = this->Cameras;
 			//r->lockCameraExternals();
 			r->Position = this->Position->CreateCopy();
-			r->Position->Bundle = true;
+			r->Position->BundleFlags = BundlePointOrientFlags::ALL;
 
 			return r;
 		}
 	};
 
 #pragma endregion
+
 
 #pragma region Solving
 	public ref class CeresBundler abstract{
@@ -610,14 +669,8 @@ namespace ceresdotnet {
 					camera->External->AddToProblem(&problem);
 					camera->Internal->AddToProblem(&problem);
 					obs->Location->AddToProblem(&problem);
-					
-					
-					/*
-					Ceresparameters - Camera - Collection
-					List<Func<Object^,Object^>^>^ 
-					
-					Collection -> Func<Camera,CameraCollection> -> Camera -> Func<External,Camera>*/
 
+					
 					if (obs->Location != nullptr){
 						problem.AddResidualBlock(new ceres::AutoDiffCostFunction <
 							ReprojectionErrorSingleCamera, 2, 9, 6, 3 >(new ReprojectionErrorSingleCamera(obs->x, obs->y)),
@@ -627,6 +680,11 @@ namespace ceresdotnet {
 							camera->External->_data,
 							(double*)obs->Location->_data);
 					}
+					else{
+						int a = 4;
+					}
+
+					problem.SetParameterBlockConstant(obs->Location->_data);
 
 				}
 			}
@@ -655,6 +713,8 @@ namespace ceresdotnet {
 								camera->External->_data,
 								(double*)obs->Location->_data);
 						}
+
+						problem.SetParameterBlockConstant(obs->Location->_data);
 					}
 				}
 			}
@@ -691,6 +751,8 @@ namespace ceresdotnet {
 
 	};
 
+
+
 	
 	
 	public ref class CeresCameraCollectionBundler{
@@ -717,40 +779,7 @@ namespace ceresdotnet {
 
 			return r;
 		}
-		static array<double>^ testProjectPoint(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
-			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
-			array<double>^ resi = gcnew array<double>(2);
-			pin_ptr<double> res = &resi[0];
-			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
-			return resi;
-		}
-		static array<double>^ testProjectPoint3(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
-			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
-			array<double>^ resi = gcnew array<double>(2);
-			pin_ptr<double> res = &resi[0];
-			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
-			return resi;
-		}
-		static array<double>^ testProjectPoint2(CeresCamera^ camera, Matrix4d worldMat, array<double>^ angleaxis, CeresPointOrient^ systeem, CeresMarker^ marker){
-			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
-			worldMat.Invert();
-
-			pin_ptr<double> axis = &angleaxis[0];
-			double* axisp = axis;
-			double proj[3];
-			ceres::AngleAxisRotatePoint(axisp, marker->Location->_data, proj);
-
-			for (size_t i = 0; i < 3; i++)
-			{
-				axisp[i] = -axisp[i];
-			}
-			ceres::AngleAxisRotatePoint(axisp, marker->Location->_data, proj);
-
-			array<double>^ resi = gcnew array<double>(2);
-			pin_ptr<double> res = &resi[0];
-			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
-			return resi;
-		}
+		
 		
 		delegate List<CeresMarker^>^ MarkersFromCameraDelegate(CeresCamera^);
 
@@ -791,21 +820,14 @@ namespace ceresdotnet {
 						else
 						{
 							std::vector<int> constant_coordinates;
-							if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::X)) constant_coordinates.push_back(0);
-							if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::Y)) constant_coordinates.push_back(1);
-							if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::Z)) constant_coordinates.push_back(2);
+							//if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::X)) constant_coordinates.push_back(0);
+							//if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::Y)) constant_coordinates.push_back(1);
+							//if (!obs->Location->BundleFlags.HasFlag(BundleWorldCoordinatesFlags::Z)) constant_coordinates.push_back(2);
 
 							ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(3, constant_coordinates);
 							problem.SetParameterization((double*)obs->Location->_data, subset_parameterization);
 						}
 
-						if (camera->External->Bundle == false){
-							problem.SetParameterBlockConstant(camera->External->_data);
-						}
-
-						if (!Collection->Position->Bundle){
-							problem.SetParameterBlockConstant(this->Collection->Position->_data);
-						}
 
 						if (problem.GetParameterization(camera->Internal->_data) == NULL){
 
@@ -815,24 +837,8 @@ namespace ceresdotnet {
 
 						std::vector<int> constant_intrinsics;
 
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::FocalLength))
-							constant_intrinsics.push_back(OFFSET_FOCAL_LENGTH_X);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::FocalLength))
-							constant_intrinsics.push_back(OFFSET_FOCAL_LENGTH_Y);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::PrincipalP))
-							constant_intrinsics.push_back(OFFSET_PRINCIPAL_POINT_X);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::PrincipalP))
-							constant_intrinsics.push_back(OFFSET_PRINCIPAL_POINT_Y);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::R1))
-							constant_intrinsics.push_back(OFFSET_K1);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::R2))
-							constant_intrinsics.push_back(OFFSET_K2);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::R3))
-							constant_intrinsics.push_back(OFFSET_K3);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::P1))
-							constant_intrinsics.push_back(OFFSET_P1);
-						if (!bundle_intrinsics.HasFlag(BundleIntrinsicsFlags::P2))
-							constant_intrinsics.push_back(OFFSET_P2);
+
+
 
 						//ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(9, constant_intrinsics);
 						//problem.SetParameterization(camera->Internal->_intrinsics, subset_parameterization);
@@ -867,6 +873,51 @@ namespace ceresdotnet {
 
 		};
 
+	};
+
+	public ref class CeresTestFunctions{
+	public:
+		static array<double>^ testProjectPoint(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
+			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
+			array<double>^ resi = gcnew array<double>(2);
+			pin_ptr<double> res = &resi[0];
+			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
+			return resi;
+		}
+		static array<double>^ testProjectPointSingle(CeresCamera^ camera, CeresMarker^ marker){
+			ReprojectionErrorSingleCamera test(marker->x, marker->y);
+			array<double>^ resi = gcnew array<double>(2);
+			pin_ptr<double> res = &resi[0];
+			bool b = test(camera->Internal->_data, camera->External->_data, marker->Location->_data, (double*)res);
+			return resi;
+		}
+		static array<double>^ testProjectPoint3(CeresCamera^ camera, CeresPointOrient^ systeem, CeresMarker^ marker){
+			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
+			array<double>^ resi = gcnew array<double>(2);
+			pin_ptr<double> res = &resi[0];
+			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
+			return resi;
+		}
+		static array<double>^ testProjectPoint2(CeresCamera^ camera, Matrix4d worldMat, array<double>^ angleaxis, CeresPointOrient^ systeem, CeresMarker^ marker){
+			ReprojectionErrorSysteemCamera test(marker->x, marker->y);
+			worldMat.Invert();
+
+			pin_ptr<double> axis = &angleaxis[0];
+			double* axisp = axis;
+			double proj[3];
+			ceres::AngleAxisRotatePoint(axisp, marker->Location->_data, proj);
+
+			for (size_t i = 0; i < 3; i++)
+			{
+				axisp[i] = -axisp[i];
+			}
+			ceres::AngleAxisRotatePoint(axisp, marker->Location->_data, proj);
+
+			array<double>^ resi = gcnew array<double>(2);
+			pin_ptr<double> res = &resi[0];
+			bool b = test(camera->Internal->_data, systeem->_data, camera->External->_data, marker->Location->_data, (double*)res);
+			return resi;
+		}
 	};
 
 #pragma endregion

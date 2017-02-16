@@ -313,8 +313,15 @@ namespace CalibratieForms {
             }
             return null;
         }
-
+        /*
+         * {3689.7165,0,2816.1568}, 
+                {0,3693.6683,1839.1889},
+                {0,0,1}
+         * 
+         * 
+         * */
         static void testEosCamera() {
+
             Scene scene = new Scene();
 
             var markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname_123.txt");
@@ -324,24 +331,29 @@ namespace CalibratieForms {
 
             var dirzhang = @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\zhang.6.9.55\";
             ZhangCalibration zc = new ZhangCalibration();
-            zc.LoadImages(Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\zhang.6.9.55\").ToList(),new System.Drawing.Size(6,9));
             var camMat = new Matrix(new double[,] {
-                {3689.7165,0,2816.1568}, 
-                {0,3693.6683,1839.1889},
-                {0,0,0}
+                {857.4829, 0,968.06224},
+                {0,876.7182,556.371458},
+                {0,0,1}
             });
-            Matrix dist;
-            zc.CalibrateCV(new ChessBoard(6, 9, 55), out camMat, out dist);
+            Matrix dist = new Matrix(new double[] { -.25761, .0877086, -.000256970, -.000593390 });
 
+            //zc.LoadImages(Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\zhang.6.9.55\").ToList(), new System.Drawing.Size(6, 9));
+            
+            //zc.CalibrateCV(new ChessBoard(6, 9, 55), out camMat, out dist);
 
            
             
-            string[] files = Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\Opname1\").ToArray();
-            var eos5daruco =
-                Aruco.findArucoMarkers(files, @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\Opname1\detected\", 1);
+            //string[] files = Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\Opname1\").Take(4).ToArray();
+            string[] files = Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\gorporechts\").ToArray();
+
+            //var eos5daruco =Aruco.findArucoMarkers(files, @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\5D\Opname1\detected\", 1);
+            var eos5daruco = Aruco.findArucoMarkers(files, @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\gorporechts\detected\", 1);
             var filesdetected = files.Select(x => Path.Combine(Path.GetDirectoryName(x), "detected", Path.GetFileName(x) + "detected.jpg")).ToArray();
 
             var points = eos5daruco.Select(x => x.Value.Select(y => find3dmarker(y, markersscene)).Where(y=>y!=null).ToArray()).ToArray();
+
+            List<ExtrinsicCameraParameters> extrinsics = new List<ExtrinsicCameraParameters>();
             int i = -1;
             foreach (var ptnfoto in points) {
                 i++;
@@ -349,22 +361,13 @@ namespace CalibratieForms {
                 var points2d = ptnfoto.Select(x => x.Item2).ToArray();
                 var ids = ptnfoto.Select(x => x.Item3).ToArray();
 
-                var outr_left = new Mat();
-                var outt_left = new Mat();
-                var inliers = new Mat();
-                var b = CVI.SolvePnPRansac(new VectorOfPoint3D32F(points3d), new VectorOfPointF(points2d),
-                    camMat, dist, outr_left, outt_left, false, 100, 50, .8, inliers, SolvePnpMethod.UPnP);
-                var projection = CVI.ProjectPoints(points3d, outr_left, outt_left, camMat, dist);
-
                 var intr = new IntrinsicCameraParameters(4);
                 intr.DistortionCoeffs = dist;
                 intr.IntrinsicMatrix = camMat;
                 var ext = CameraCalibration.SolvePnP(points3d, points2d, intr, SolvePnpMethod.UPnP);
                 var reprojection_left = CameraCalibration.ProjectPoints(points3d, ext, intr);
-
+                extrinsics.Add(ext);
                 List<PointF> residuals_left = points2d.Select((t, j) => new PointF(t.X - reprojection_left[j].X, t.Y - reprojection_left[j].Y)).ToList();
-
-                //reprojection_left = CVI.ProjectPoints(L.Select(x => x.Item1).ToArray(), outr_left, outt_left, camMat_left, dist_left);
 
                 var s = filesdetected[i];
                 IO.MarkersToFile(residuals_left.ToArray(), ids.ToArray(), s + "RESIDUALS.txt");
@@ -382,7 +385,102 @@ namespace CalibratieForms {
                 CVI.Imwrite(s + "undistorted.jpg", outim1);
             }
 
+            //BAProlbem
+
+            CeresCameraMultiCollectionBundler bundler = new CeresCameraMultiCollectionBundler();
+            bundler.CollectionList = new List<CeresCameraCollection>();
+            bundler.StandaloneCameraList = new List<CeresCamera>();
+            var cerescamerlist = bundler.StandaloneCameraList;
+            double[] distarr = new double[Math.Max(dist.Cols,dist.Rows)];
+            System.Buffer.BlockCopy(dist.Data, distarr.Length, distarr, 0, distarr.Length);
+            var cintr = new CeresIntrinsics() {
+                
+                BundleFlags = BundleIntrinsicsFlags.ALL,
+                fx = camMat[0, 0],
+			fy = camMat[0, 1],
+			ppx = camMat[2, 0],
+			ppy = camMat[2, 1],
+            k1 = dist[0,0],
+            k2 = dist[1,0],
+            p1 = dist[2,0],
+            p2 = dist[3,0]
+            };
+
+
+            Dictionary<CeresCamera, List<Tuple<MCvPoint3D32f, PointF, int>>> markersfromcerescam = new Dictionary<CeresCamera, List<Tuple<MCvPoint3D32f, PointF, int>>>();
+            bundler.MarkersFromCamera = (cerescam, cerescamcollection) => {
+                var pts = markersfromcerescam[cerescam];
+                return pts.Select(p => {
+                    return new CeresMarker() {
+                        id = p.Item3,
+                        x = p.Item2.X,
+                        y = p.Item2.Y,
+                        Location = new CeresPoint() {
+                            BundleFlags = BundleWorldCoordinatesFlags.None,
+                            X = p.Item1.X,
+                            Y = p.Item1.Y,
+                            Z = p.Item1.Z
+                        }
+                    };
+                }).ToList();
+            };
+            
+            for (int j = 0; j < points.Length; j++) {
+                var ext = extrinsics[j];
+                double[] r = new double[] { ext.RotationVector[0, 0], ext.RotationVector[1, 0], ext.RotationVector[2, 0] };
+                double[] t = new double[] { ext.TranslationVector[0, 0], ext.TranslationVector[1, 0], ext.TranslationVector[2, 0] };
+                var cc = new CeresCamera(cintr,new CeresPointOrient() {
+                    R_rod = r,
+                    t = t
+                });
+                markersfromcerescam.Add(cc, points[j].ToList());
+                cerescamerlist.Add(cc);
+
+
+
+
+
+            }
+
+            
+            
+
+            bundler.bundleCollections(nr => CeresCallbackReturnType.SOLVER_CONTINUE);
+
+
+            for (int j = 0; j < bundler.StandaloneCameraList.Count; j++) {
+                i++;
+                var cc = bundler.StandaloneCameraList[j];
+                var ptnfoto = points[j];
+                var points3d = ptnfoto.Select(x => x.Item1).ToArray();
+                var points2d = ptnfoto.Select(x => x.Item2).ToArray();
+                var ids = ptnfoto.Select(x => x.Item3).ToArray();
+
+                var intr = new IntrinsicCameraParameters(5);
+
+                intr.DistortionCoeffs = new Matrix(new [] { cc.Internal.k1, cc.Internal.k2, cc.Internal.p1, cc.Internal.p2, cc.Internal.k3 });
+                intr.IntrinsicMatrix = new Matrix(new double[,] {
+                    {cc.Internal.fx, 0, cc.Internal.ppx},
+                    {0, cc.Internal.fy, cc.Internal.ppy},
+                    {0, 0, 1}
+                });
+                var ext = new ExtrinsicCameraParameters(new RotationVector3D(cc.External.R_rod),new Matrix(cc.External.t));
+                var reprojection_left = CameraCalibration.ProjectPoints(points3d, ext, intr);
+                List<PointF> residuals_left = points2d.Select((t, k) => new PointF(t.X - reprojection_left[k].X, t.Y - reprojection_left[k].Y)).ToList();
+
+                var s = filesdetected[j];
+                drawReprojection(ref s, reprojection_left, residuals_left, ids.Select(x => x.ToString()));
+                var undist2d = new VectorOfPointF();
+                CVI.UndistortPoints(new VectorOfPointF(points2d), undist2d, camMat, dist);
+                CVI.PerspectiveTransform(undist2d, undist2d, camMat);
+
+                var outim1 = CVI.Imread(s);
+                CVI.Undistort(CVI.Imread(s), outim1, camMat, dist);
+                CVI.Imwrite(s + "undistortedBUNDLEADJSUTMENT.jpg", outim1);
+            }
+            
         }
+
         
         static void testStereoCamera() {
 
@@ -398,7 +496,7 @@ namespace CalibratieForms {
             var detectedAruco = getLRFramesAruco(
                 @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2\",
                 @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\rechts\2\",
-                533, 689, 2.016214371053080730500085338795, 100, 533, 534).ToTupleList();
+                533, 689, 2.016214371053080730500085338795, 50, 533, 540).ToTupleList();
 
             var markersscene = scene.getIE<Marker>().ToArray();
             
@@ -454,19 +552,19 @@ namespace CalibratieForms {
 
 
             Matrix<double> camMat_left = new Emgu.CV.Matrix<double>(new[,] {
-                {852.18, 0,975.84},
-                {0,853.05,525.63},
+                {939.7583, 0,918.374},
+                {0,951.02496,507.64828},
                 {0,0,1}
             });
-            Matrix<double> dist_left = new Emgu.CV.Matrix<double>(new[] { -.2807, .124, .0005073, -.03291 });
+            Matrix<double> dist_left = new Emgu.CV.Matrix<double>(new[] { -.26166, .096052, .0005073, -.000788 });
             //dist_left = new Emgu.CV.Matrix<double>(new double[] { -0, 0, 0, -0 });
             Matrix<double> dist_zero = new Emgu.CV.Matrix<double>(new double []{ -0, 0, 0, -0 });
             Matrix<double> camMat_right = new Emgu.CV.Matrix<double>(new[,] {
-                {965.89, 0,918.07},
-                {0,966.58,481.03},
+                {841.0235, 0,972.10629},
+                {0,844.1916,529.56556},
                 {0,0,1}
             });
-            Matrix<double> dist_right = new Emgu.CV.Matrix<double>(new[] { -.29344, .15113, .001330, -.048524 });
+            Matrix<double> dist_right = new Emgu.CV.Matrix<double>(new[] { -.2182, .04911, .0007059, -.000333 });
             //dist_right = new Emgu.CV.Matrix<double>(new double[] { -0, 0, 0, -0 });
 
 
@@ -485,6 +583,23 @@ namespace CalibratieForms {
 
             List<string> fileL = new List<string>();
             List<string> fileR = new List<string>();
+
+            var bundler = new CeresCameraMultiCollectionBundler();
+
+            CeresCameraCollection CeresCameraColl = new CeresCameraCollection();
+            CeresCameraColl.Cameras = new List<CeresCamera>();
+
+            var CeresIntrLeft = new CeresIntrinsics(new[] { 939.7583, 951.02496, 918.374, 507.64828, -.26166, .096052, .0005073, -.000788, 0 }) {
+                BundleFlags = BundleIntrinsicsFlags.ALL
+            };
+            var CeresIntrRight = new CeresIntrinsics(new[] { 841.0235, 844.1916, 972.10629, 529.56556, -.2182, .04911, .0007059, -.000333, 0 }) {
+                BundleFlags = BundleIntrinsicsFlags.ALL
+            };
+            var ccLeft = new CeresCamera(CeresIntrLeft,new CeresPointOrient() {
+                RT = new double []{0,0,0,0,0,0}
+            });
+            CeresCamera ccRight = null;
+
             
             for (int i = 0; i < points.Count; i++) {
                 var L = points[i].Item1;
@@ -539,9 +654,30 @@ namespace CalibratieForms {
                 camMat_left, dist_left, camMat_right, dist_right,
                 new System.Drawing.Size(1920, 1080), rot, trans, ess, fundamental,
                 CalibType.UserIntrinsicGuess, termcriteria);*/
+            CeresCameraCollection baseColl = null;
 
+            Dictionary<Tuple<CeresCamera, CeresCameraCollection>, List<Tuple<MCvPoint3D32f, PointF, int>>> markersfromcerescam =
+                    new Dictionary<Tuple<CeresCamera, CeresCameraCollection>, List<Tuple<MCvPoint3D32f, PointF, int>>>();
 
-            for (int i = 0; i < points.Count; i++) {
+            bundler.MarkersFromCamera = (cerescam, cerescamcollection) => {
+                var key = markersfromcerescam.Keys.First(x => x.Item1 == cerescam && x.Item2 == cerescamcollection);
+                var pts = markersfromcerescam[key];
+                return pts.Select(p => {
+                    return new CeresMarker() {
+                        id = p.Item3,
+                        x = p.Item2.X,
+                        y = p.Item2.Y,
+                        Location = new CeresPoint() {
+                            BundleFlags = BundleWorldCoordinatesFlags.None,
+                            X = p.Item1.X,
+                            Y = p.Item1.Y,
+                            Z = p.Item1.Z
+                        }
+                    };
+                }).ToList();
+            };
+
+            for (int i = 0; i < testL.Count; i++) {
                 //var L = points[i].Item1.Item2;
                 //var R = points[i].Item2.Item2;
                 var L = testL[i];
@@ -561,103 +697,108 @@ namespace CalibratieForms {
 
                 var inliers = new Mat();
                 var b = CVI.SolvePnPRansac(new VectorOfPoint3D32F(points3d), new VectorOfPointF(points2d),
-                    camMat_left, dist_left, outr_left, outt_left, false, 100, 50,.8, inliers, SolvePnpMethod.UPnP);
-                var projection = CVI.ProjectPoints(points3d, outr_left, outt_right, camMat_left, dist_left);
-                
+                    camMat_left, dist_left, outr_left, outt_left, false, 100, 50, .8, inliers, SolvePnpMethod.UPnP);
+
                 var intr = new IntrinsicCameraParameters(4);
                 intr.DistortionCoeffs = dist_left;
                 intr.IntrinsicMatrix = camMat_left;
-                var ext = CameraCalibration.SolvePnP(points3d, points2d, intr,SolvePnpMethod.UPnP);
-                var reprojection_left = CameraCalibration.ProjectPoints(points3d, ext, intr);
-                
-                List<PointF> residuals_left = points2d.Select((t, j) => new PointF(t.X - reprojection_left[j].X, t.Y - reprojection_left[j].Y)).ToList();
-                
-                //reprojection_left = CVI.ProjectPoints(L.Select(x => x.Item1).ToArray(), outr_left, outt_left, camMat_left, dist_left);
+                var extL = CameraCalibration.SolvePnP(points3d, points2d, intr, SolvePnpMethod.UPnP);
+                var reprojection_left = CameraCalibration.ProjectPoints(points3d, extL, intr);
+                List<PointF> residuals_left =
+                    points2d.Select((t, j) => new PointF(t.X - reprojection_left[j].X, t.Y - reprojection_left[j].Y))
+                        .ToList();
 
                 var s = dirL;
+
+                drawReprojection(ref s, points2d, residuals_left, ids.Select(x => x.ToString()));
                 IO.MarkersToFile(residuals_left.ToArray(), ids.ToArray(), s + "RESIDUALS.txt");
-                drawReprojection(ref s, reprojection_left, residuals_left, ids.Select(x=>x.ToString()));
-                IO.MarkersToFile(points2d, ids.ToArray(), s + "2dDist.txt");
-                var undist2d = new VectorOfPointF();
-                CVI.UndistortPoints(new VectorOfPointF(points2d), undist2d, camMat_left,dist_left);
-                IO.MarkersToFile(undist2d.ToArray(), ids.ToArray(), s + "2dUndistoredCameraCoord.txt");
-                CVI.PerspectiveTransform(undist2d, undist2d, camMat_left);
-                IO.MarkersToFile(undist2d.ToArray(), ids.ToArray(), s + "2dUndistored.txt");
-                IO.MarkersToFile(points3d, ids.ToArray(), s + "3d.txt");
+                IO.MarkersToFile(points2d, ids.ToArray(), s + "2d.txt");
 
-                var outim1 = CVI.Imread(s);
-                CVI.Undistort(CVI.Imread(s), outim1, camMat_left, dist_left);
-                CVI.Imwrite(s + "undistorted.jpg", outim1);
-                //var points2dundist = new VectorOfPointF();
-                //CVI.UndistortPoints(new VectorOfPointF(points2d), points2dundist, camMat_left, dist_left);
-                //IO.MarkersToFile(points2dundist.ToArray(), detectedArucoArr[i].Item1.Item2.Select(x => x.ID).ToArray(), s + "undistorted.jpg" + ".txt");
 
+                ///RIGHT CAMERA
                 points3d = R.Select(x => x.Item1).ToArray();
                 points2d = R.Select(x => x.Item2).ToArray();
                 ids = R.Select(x => x.Item3);
                 inliers = new Emgu.CV.Mat();
                 b = CVI.SolvePnPRansac(new VectorOfPoint3D32F(points3d), new VectorOfPointF(points2d),
-                    camMat_right, dist_right, outr_right, outt_right, false, 20, 50, .8, inliers,SolvePnpMethod.UPnP);
+                    camMat_right, dist_right, outr_right, outt_right, false, 20, 50, .8, inliers, SolvePnpMethod.UPnP);
 
                 intr = new IntrinsicCameraParameters(4);
                 intr.DistortionCoeffs = dist_zero;
                 intr.IntrinsicMatrix = camMat_right;
-                ext = Emgu.CV.CameraCalibration.SolvePnP(points3d, points2d, intr);
-                var reprojection_right = CameraCalibration.ProjectPoints(points3d, ext, intr);
-
-                //var reprojection_right = CVI.ProjectPoints(R.Select(x => x.Item1).ToArray(), outr_right, outt_right, camMat_right, dist_right);
+                var extR = Emgu.CV.CameraCalibration.SolvePnP(points3d, points2d, intr);
+                var reprojection_right = CameraCalibration.ProjectPoints(points3d, extR, intr);
                 List<PointF> residuals_right = points2d.Select((t, k) => new PointF(t.X - reprojection_right[k].X, t.Y - reprojection_right[k].Y)).ToList();
                 s = dirR;
-                drawReprojection(ref s, reprojection_right, residuals_right, ids.Select(x=>x.ToString()));
-                IO.MarkersToFile(points2d, ids.ToArray(), s + "2dDist.txt");
-                undist2d = new VectorOfPointF();
-                CVI.UndistortPoints(new VectorOfPointF(points2d), undist2d, camMat_right, dist_right);
-                IO.MarkersToFile(undist2d.ToArray(), ids.ToArray(), s + "2dUndistoredCameraCoord.txt");
-                CVI.PerspectiveTransform(undist2d, undist2d, camMat_right);
-                IO.MarkersToFile(undist2d.ToArray(), ids.ToArray(), s + "2dUndistored.txt");
+                drawReprojection(ref s, points2d, residuals_right, ids.Select(x => x.ToString()));
+                IO.MarkersToFile(points2d, ids.ToArray(), s + "2d.txt");
                 IO.MarkersToFile(points3d, ids.ToArray(), s + "3d.txt");
-                var outim = CVI.Imread(s);
-                CVI.Undistort(CVI.Imread(s), outim, camMat_right, dist_right);
-                CVI.Imwrite(s + "undistorted.jpg", outim);
-                //points2dundist = new VectorOfPointF();
-                //CVI.UndistortPoints(new VectorOfPointF(points2d), points2dundist, camMat_right, dist_right);
-                //IO.MarkersToFile(points2dundist.ToArray(), detectedArucoArr[i].Item2.Item2.Select(x => x.ID).ToArray(), s + "undistorted.jpg" + ".txt");
 
 
-                //leftrots.Add(outr_left);
-                //rightrots.Add(outr_right);
-                //leftTrans.Add(outt_left);
-                //rightTrans.Add(outt_right);
 
-                var r =new Matrix<double>(3, 3);
-                //CVI.Transpose(outr_left.RotationMatrix, r);
+                
+                CeresPointOrient systeemCamera = new CeresPointOrient() {
+                    R_rod = new[] { extL.RotationVector[0, 0], extL.RotationVector[1, 0], extL.RotationVector[2, 0] },
+                    t = new[] { extL.TranslationVector[0, 0], extL.TranslationVector[1, 0], extL.TranslationVector[2, 0] }
+                };
 
-                //var posl = r*outt_left;
+                if (ccRight == null) {
+                    var right_R = new Matrix(3, 3, extR.RotationVector.RotationMatrix.DataPointer);
+                    var right_RT = right_R.Transpose();
+                    var left_R = new Matrix(3, 3, extL.RotationVector.RotationMatrix.DataPointer);
+                    var left_RT = left_R.Transpose();
 
-                //CVI.Transpose(outr_right.RotationMatrix, r);
-                //var posr = r*outt_right;
-                //var dst = posl - posr;
-                //double d = dst[0, 0] * dst[0, 0];
-                //d += dst[1, 0] * dst[1, 0];
-                //d += dst[2, 0] * dst[2, 0];
+                    var right_T = extR.TranslationVector;
+                    var left_T = extL.TranslationVector;
+                    var left_TT = -1*left_RT*left_T;
 
-                //d = Math.Sqrt(d);
 
-                //dstanc.Add(d);
+                    var newRot = right_R*left_RT;
+                    var newT = right_R*left_TT + right_T;
 
-                //cameradist.Add(dst);
+                    Matrix newRot_rodr = new Matrix(3, 1);
+                    CVI.Rodrigues(newRot, newRot_rodr);
+                    ccRight = new CeresCamera(CeresIntrRight, new CeresPointOrient() {
+                        R_rod = new[] {newRot_rodr[0, 0], newRot_rodr[1, 0], newRot_rodr[2, 0]},
+                        t = new[] {newT[0, 0], newT[1, 0], newT[2, 0]}
+                    });
+                    baseColl = new CeresCameraCollection() { };
+                    baseColl.Position = systeemCamera;
+
+                    baseColl.Cameras = new List<CeresCamera> {ccRight, ccLeft};
+                    
+                    markersfromcerescam.Add(new Tuple<CeresCamera, CeresCameraCollection>(ccRight, baseColl), R.ToList());
+                    markersfromcerescam.Add(new Tuple<CeresCamera, CeresCameraCollection>(ccLeft, baseColl), L.ToList());
+                    ccLeft.External.BundleFlags = BundlePointOrientFlags.None;
+
+                    bundler.CollectionList.Add(baseColl);
+                }
+                else {
+                    var coll = baseColl.CreateSecondPositionCopy();
+
+                    markersfromcerescam.Add(new Tuple<CeresCamera, CeresCameraCollection>(ccRight, coll), R.ToList());
+                    markersfromcerescam.Add(new Tuple<CeresCamera, CeresCameraCollection>(ccLeft, coll), L.ToList());
+
+                    coll.Position = systeemCamera;
+                    bundler.CollectionList.Add(coll);
+                }
+                
+                
             }
+
+            bundler.bundleCollections(nr => CeresCallbackReturnType.SOLVER_CONTINUE);
+
             for (int i = 0; i < points.Count; i++) {
                 var L = points[i].Item1.Item2;
                 var R = points[i].Item2.Item2;
-
-                
             }
-            //CVI.FindFundamentalMat();
-            
 
-            
-        
+        }
+
+        public static Matrix toRodr(Matrix rot) {
+            var r = new Matrix(3, 1);
+            CVI.Rodrigues(rot, r);
+            return r;
         }
 
         static void testFeatureDetection() {
@@ -714,7 +855,7 @@ namespace CalibratieForms {
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
             */
-            testEosCamera();
+            //testEosCamera();
             testStereoCamera();
 
             ZhangCalibration c;

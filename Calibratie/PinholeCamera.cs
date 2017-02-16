@@ -19,7 +19,8 @@ using Size = System.Drawing.Size;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 
 namespace Calibratie {
-    public class CameraIntrinsics : INotifyPropertyChanged {
+    
+    public class CameraIntrinsics : INotifyPropertyChanged, ICeresParameterConvertable<CeresIntrinsics> {
         /// <summary>
         /// fotogrootte in pixels
         /// </summary>
@@ -83,6 +84,26 @@ namespace Calibratie {
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
             var handler = PropertyChanged;
             if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
+        }
+
+        /// <summary>
+        /// returns a new ceresparameter class
+        /// </summary>
+        /// <returns></returns>
+        public CeresIntrinsics toCeresParameter() {
+            throw new NotImplementedException();
+        }
+
+        public CeresIntrinsics toCeresParameter(Enum BundleSettings) {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// update internal values
+        /// </summary>
+        /// <param name="paramblock"></param>
+        public void updateFromCeres(CeresIntrinsics paramblock) {
+            throw new NotImplementedException();
         }
     }
     [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
@@ -221,6 +242,12 @@ namespace Calibratie {
             return pitchYawRoll;
         }
 
+
+        /// <summary>
+        /// Project points similar to ceredotnet cost function
+        /// </summary>
+        /// <param name="vector3D"></param>
+        /// <returns></returns>
         public Point2d ProjectPointd2D_Manually(Vector3d vector3D) {
             var axisangle = this.worldMat.ExtractRotation().ToAxisAngle();
 
@@ -259,11 +286,6 @@ namespace Calibratie {
         }
         
 
-        
-
-        private bool IsinBounds(Point2d p) {
-            return (p.X >= 0 && p.X <= this.PictureSize.Width && p.Y >= 0 && p.Y <= PictureSize.Height);
-        }
 
         /*
         ~PinholeCamera() {
