@@ -69,6 +69,16 @@ namespace Calibratie {
                 return new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
             }
         }
+        public Matrix<double> Cv_DistCoeffs5 {
+            get {
+                return new Matrix<double>(dist5);
+            }
+        }
+        public double[] dist5 {
+            get {
+                return new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3 };
+            }
+        }
 
 
         private double _distortionR1, _distortionR2, _distortionR3;
@@ -86,16 +96,27 @@ namespace Calibratie {
             if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
         }
 
+
+        
         /// <summary>
         /// returns a new ceresparameter class
         /// </summary>
         /// <returns></returns>
         public CeresIntrinsics toCeresParameter() {
-            throw new NotImplementedException();
+            if (_ceresintr == null) {
+                _ceresintr = new CeresIntrinsics(cvmat, dist5);
+            }
+            else {
+                _ceresintr.set(cvmat, dist5);
+            }
+            return _ceresintr;
         }
+        private CeresIntrinsics _ceresintr;
 
         public CeresIntrinsics toCeresParameter(Enum BundleSettings) {
-            throw new NotImplementedException();
+            var r = toCeresParameter();
+            r.BundleFlags = (BundleIntrinsicsFlags)BundleSettings;
+            return r;
         }
 
         /// <summary>
@@ -103,11 +124,23 @@ namespace Calibratie {
         /// </summary>
         /// <param name="paramblock"></param>
         public void updateFromCeres(CeresIntrinsics paramblock) {
-            throw new NotImplementedException();
+            fx = paramblock.fx;
+            fy = paramblock.fy;
+            _distortionR1 = paramblock.k1;
+            _distortionR2 = paramblock.k2;
+            _distortionR3 = paramblock.k3;
+            _distortionT1 = paramblock.p1;
+            _distortionT2 = paramblock.p2;
+            cx = paramblock.ppx;
+            cy = paramblock.ppy;
+
+            OnPropertyChanged();
         }
     }
     [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
-    public class PinholeCamera : SObject, INotifyPropertyChanged {
+    
+    
+    public class PinholeCamera : SObject, INotifyPropertyChanged, ICeresParameterConvertable<CeresPointOrient>, ICeresParameterConvertable<CeresIntrinsics> {
         private CameraIntrinsics _intrinsics;
         public CameraIntrinsics Intrinsics { get { return _intrinsics;} }
         /// <summary>
@@ -183,8 +216,10 @@ namespace Calibratie {
                 return new Matrix<double>(new [] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
             }
         }
-        public Matrix<double> Rvecs { get { return new Matrix<double>(new[] { Dir.X, Dir.Y, Dir.Z }); } }
-        public Matrix<double> Tvecs { get { return new Matrix<double>(new[] { Pos.X, Pos.Y, Pos.Z }); } }
+
+        public Matrix<double> Rvecs {get { return this.Rodr; }}
+
+        public Matrix<double> Tvecs {get { return Pos; }}
 
         public PointF[] ProjectBoard_Cv_p2d(ChessBoard b) {
             //Todo: Use InputArray on vector3d[] & pin GC
@@ -249,42 +284,38 @@ namespace Calibratie {
         /// <param name="vector3D"></param>
         /// <returns></returns>
         public Point2d ProjectPointd2D_Manually(Vector3d vector3D) {
-            var axisangle = this.worldMat.ExtractRotation().ToAxisAngle();
+            var transf = this.worldMat.Inverted();
+            var camcoord = Vector3d.TransformPerspective(vector3D, transf);
 
-
-
-                var transf = this.worldMat.Inverted();
-                var camcoord = Vector3d.TransformPerspective(vector3D, transf);
-
-                if (camcoord.Z < 0) {
-                    return new Point2d();
-                }
-
-                var testx = camcoord.X / camcoord.Z * this._intrinsics.fx + this._intrinsics.cx;
-                var testy = camcoord.Y / camcoord.Z * this._intrinsics.fy + this._intrinsics.cy;
-
-
-                var x = camcoord.X / camcoord.Z;
-                var y = camcoord.Y / camcoord.Z;
-
-                var r2 = x * x + y * y;
-                var r4 = r2 * r2;
-                var r6 = r4 * r2;
-                var r_coeff = ((1) + this.DistortionR1 * r2 + this.DistortionR2 * r4 + this.DistortionR3 * r6);
-                var tdistx = 2 * this.DistortionT1 * x * y + this.DistortionT2 * (r2 + 2 * x * x);
-                var tdisty = 2 * this.DistortionT2 * x * y + this.DistortionT1 * (r2 + 2 * y * y);
-                var xd = x * r_coeff + tdistx;
-                var yd = y * r_coeff + tdisty;
-
-                var im_x = this._intrinsics.fx * xd + this._intrinsics.cx;
-                var im_y = this._intrinsics.fy * yd + this._intrinsics.cy;
-
-                if (im_x >= 0 && im_x <= this.PictureSize.Width && im_y >= 0 && im_y <= PictureSize.Height) {
-                    return new Point2d(im_x, im_y);
-                }
+            if (camcoord.Z < 0) {
                 return new Point2d();
+            }
+
+            var testx = camcoord.X/camcoord.Z*this._intrinsics.fx + this._intrinsics.cx;
+            var testy = camcoord.Y/camcoord.Z*this._intrinsics.fy + this._intrinsics.cy;
+
+
+            var x = camcoord.X/camcoord.Z;
+            var y = camcoord.Y/camcoord.Z;
+
+            var r2 = x*x + y*y;
+            var r4 = r2*r2;
+            var r6 = r4*r2;
+            var r_coeff = ((1) + this.DistortionR1*r2 + this.DistortionR2*r4 + this.DistortionR3*r6);
+            var tdistx = 2*this.DistortionT1*x*y + this.DistortionT2*(r2 + 2*x*x);
+            var tdisty = 2*this.DistortionT2*x*y + this.DistortionT1*(r2 + 2*y*y);
+            var xd = x*r_coeff + tdistx;
+            var yd = y*r_coeff + tdisty;
+
+            var im_x = this._intrinsics.fx*xd + this._intrinsics.cx;
+            var im_y = this._intrinsics.fy*yd + this._intrinsics.cy;
+
+            if (im_x >= 0 && im_x <= this.PictureSize.Width && im_y >= 0 && im_y <= PictureSize.Height) {
+                return new Point2d(im_x, im_y);
+            }
+            return new Point2d();
         }
-        
+
 
 
         /*
@@ -349,6 +380,57 @@ namespace Calibratie {
         }
         #endregion
          * */
+
+
+        CeresIntrinsics ICeresParameterConvertable<CeresIntrinsics>.toCeresParameter(Enum BundleSettings) {
+            return Intrinsics.toCeresParameter(BundleSettings);
+        }
+
+        public void updateFromCeres(CeresIntrinsics paramblock) {
+            Intrinsics.updateFromCeres(paramblock);
+        }
+
+        CeresIntrinsics ICeresParameterConvertable<CeresIntrinsics>.toCeresParameter() {
+            return Intrinsics.toCeresParameter();
+        }
+
+        private CeresPointOrient _cerespointorient ;
+        CeresPointOrient ICeresParameterConvertable<CeresPointOrient>.toCeresParameter() {
+            if (_cerespointorient == null) {
+                _cerespointorient = new CeresPointOrient();
+            }
+            var invert = this.worldMat.Inverted();
+            var trans = invert.ExtractTranslation().toArr();
+            Vector3d axis;
+            double angle;
+            invert.ExtractRotation().ToAxisAngle(out axis, out angle);
+            axis.Normalize();
+            axis *= angle;
+
+            _cerespointorient.t = trans;
+            _cerespointorient.R_rod = axis.toArr();
+
+            return _cerespointorient;
+        }
+        CeresPointOrient ICeresParameterConvertable<CeresPointOrient>.toCeresParameter(Enum BundleSettings) {
+            var r = ((ICeresParameterConvertable<CeresPointOrient>)this).toCeresParameter();
+            r.BundleFlags = (BundlePointOrientFlags) BundleSettings;
+            return r;
+        }
+
+        public void updateFromCeres(CeresPointOrient paramblock) {
+            var rot3d = new RotationVector3D(paramblock.R_rod);
+            var mat3 = new Matrix<double>(3, 3, rot3d.RotationMatrix.DataPointer);
+
+            for (int r = 0; r < 3; r++) {
+                for (int c = 0; c < 3; c++) {
+                    RotationMat[r, c] = mat3[r, c];
+                }
+            }
+            setPos(paramblock.t);
+
+            WorldMat = WorldMat.Inverted();
+        }
     }
 
     public class PinholeCameraConverter : JsonConverter {

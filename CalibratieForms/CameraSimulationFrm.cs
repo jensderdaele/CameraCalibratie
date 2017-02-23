@@ -63,6 +63,7 @@ namespace CalibratieForms {
                 drawCorner(_bitmap, p);
             }
             this.pictureBox1.Image = _bitmap;
+            
             pictureBox1.Show();
             this.Update();
             pictureBox1.Update();

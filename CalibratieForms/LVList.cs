@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using ComponentOwl.BetterListView;
 
 namespace CalibratieForms {
@@ -33,6 +35,7 @@ namespace CalibratieForms {
             var item = eventArgs.Item;
             T tag = (T) item.Tag;
             var index = base.IndexOf(tag);
+            item.ImageList.Images.Add(new Bitmap(1, 1));
             if (updateList[index] == false) {
                 updateList[index] = true;
                 CollumnDisplay2(tag, item);

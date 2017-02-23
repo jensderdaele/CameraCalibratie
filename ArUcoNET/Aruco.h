@@ -271,7 +271,7 @@ namespace ArUcoNET {
 		static IEnumerable<ArucoMarker^>^ FindMarkers(Mat* image, System::String^ detectedFile){
 			//std::string f = msclr::interop::marshal_as<std::string>(fileName);
 			std::string df = msclr::interop::marshal_as<std::string>(detectedFile);
-			cout << "FindMarkers aruco from intptr " << endl;
+			//cout << "FindMarkers aruco from intptr " << endl;
 			int start = GetTickCount();
 
 			Mat testImage = *image;
@@ -279,16 +279,13 @@ namespace ArUcoNET {
 			cv::Ptr<aruco::DetectorParameters> parameters;
 			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
+			
 			detectorParams->doCornerRefinement = true;
 			detectorParams->adaptiveThreshWinSizeMin = 140;
-
 			detectorParams->adaptiveThreshWinSizeStep = 30;
 			detectorParams->adaptiveThreshWinSizeMax = 230;
-
 			detectorParams->minMarkerPerimeterRate = 0.08;
-
 			detectorParams->minMarkerDistanceRate = 0.005;
-
 			detectorParams->cornerRefinementWinSize = 6;
 			detectorParams->cornerRefinementMinAccuracy = 0.08;
 			detectorParams->cornerRefinementMaxIterations = 50;
@@ -297,7 +294,6 @@ namespace ArUcoNET {
 			std::vector< std::vector<cv::Point2f> > markerCorners;
 			std::vector< std::vector<cv::Point2f> > rejected;
 			std::vector<int> markerIDs;
-
 
 			cv::aruco::detectMarkers(testImage, markerDictionary, markerCorners, markerIDs, detectorParams, rejected);
 			cv::aruco::drawDetectedMarkers(testImage, markerCorners, markerIDs);

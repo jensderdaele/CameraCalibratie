@@ -12,7 +12,6 @@ namespace SceneManager {
         protected SObject() : base() {
 			Name = String.Format("Unnamed:{0}",this.GetHashCode());	
 		}
-        
     }
     public abstract class SObjectBase {
         protected Vector3d _pos;
@@ -32,7 +31,7 @@ namespace SceneManager {
         protected Vector3d _scale = new Vector3d(1.0f);
         public Vector3d Scale {
             get { return _scale; }
-            set { _scale = value; this.calcMatFromState(); }
+            set { _scale = value; this.calcMatFromState();}
         }
 
 

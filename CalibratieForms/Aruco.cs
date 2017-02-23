@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ArUcoNET;
 using Calibratie;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 
 namespace CalibratieForms {
     public class ArucoMarkerDetector : IMarkerDetector {
@@ -35,7 +36,8 @@ namespace CalibratieForms {
             if (!string.IsNullOrEmpty(outputDir)) {
                 Directory.CreateDirectory(outputDir);
             }
-            Dictionary<string, IEnumerable<ArucoMarker>> dict = new Dictionary<string, IEnumerable<ArucoMarker>>();
+            Dictionary<string, IEnumerable<ArucoMarker>> dict = new Dictionary<string, IEnumerable<ArucoMarker>>(files.Count());
+            
             Action<Object> findarucomarkersaction = o => {
                 String f = (String)o;
                 var fname = Path.GetFileName(f);
@@ -67,6 +69,7 @@ namespace CalibratieForms {
                 }
                 throttler.Release();
             };
+
             foreach (var f in files) {
                 throttler.Wait();
                 Task t = new Task(findarucomarkersaction, f);

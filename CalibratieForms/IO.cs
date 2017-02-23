@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ArUcoNET;
 using Calibratie;
+using Emgu.CV;
 using Emgu.CV.Structure;
 using OpenTK;
 
@@ -78,6 +79,42 @@ namespace CalibratieForms {
             stream.Close();
         }
 
+        public static void WriteMatrix(Matrix<double> mat, string file) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            WriteMatrix(mat, writer);
+            writer.Flush();
+            stream.Flush();
+            writer.Close();
+            stream.Close();
+        }
+        //NumberFormatInfo.InvariantInfo
+        public static void WriteMatrix(Matrix<double> mat, StreamWriter writer) {
+            for (int r = 0; r < mat.Rows; r++) {
+                for (int c = 0; c < mat.Cols; c++) {
+                    writer.Write(mat[r, c].ToString(".#####################################################################################################################################################################################################################################################################################################################################", CultureInfo.InvariantCulture)+" ");
+                }
+                writer.WriteLine();
+            }
+        }
+
+        public static void writePoints(string file, int[] ints, params float[][] floats) {
+            var stream = File.Create(file);
+            StreamWriter writer = new StreamWriter(stream);
+            for (int i = 0; i < ints.Count(); i++) {
+                var flts = floats[i];
+                writer.Write(ints[i]);
+                for (int j = 0; j < flts.Length; j++) {
+                    writer.Write(",{0}", flts[j].ToString(CultureInfo.InvariantCulture));
+                }
+                writer.WriteLine();
+            }
+            writer.Flush();
+            stream.Flush();
+            writer.Close();
+            stream.Close();
+        }
+
         public static Vector3d[] readVectors(string s) {
             var matches = Regex.Matches(s, @"{[-+]?([0-9]*\.[0-9]+|[0-9]+),[-+]?([0-9]*\.[0-9]+|[0-9]+),[-+]?([0-9]*\.[0-9]+|[0-9]+)}");
             var r = new List<Vector3d>();
@@ -105,8 +142,8 @@ namespace CalibratieForms {
                     continue;
                 }
                 double x, y, z;
-                if (double.TryParse(split[i], NumberStyles.AllowDecimalPoint,NumberFormatInfo.InvariantInfo, out x)
-                    && double.TryParse(split[i + 1], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo, out y) &&
+                if (double.TryParse(split[i], NumberStyles.AllowDecimalPoint,NumberFormatInfo.InvariantInfo, out x) && 
+                    double.TryParse(split[i + 1], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo, out y) &&
                     double.TryParse(split[i + 2], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo, out z)) {
                     r.Add(new Marker(id, new Vector3d(x, y, z)));
                     i += 2;

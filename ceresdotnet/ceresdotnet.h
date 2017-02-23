@@ -45,6 +45,7 @@ typedef Eigen::Vector3d Vec3;
 typedef Eigen::Vector4d Vec4;
 using std::vector;
 
+
 //#define EIGEN_DONT_ALIGN_STATICALLY
 //EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix<double, 6, 1>)
 

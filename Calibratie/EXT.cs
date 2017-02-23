@@ -4,10 +4,20 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
 using OpenTK;
 
 namespace Calibratie {
     public static class EXT {
+        public static Matrix<T> Inverted<T>(this Matrix<T> mat) where T : new() {
+            return mat.Inverted(DecompMethod.Cholesky);
+        }
+        public static Matrix<T> Inverted<T>(this Matrix<T> mat,DecompMethod decompmeth) where T : new() {
+            Matrix<T> r = new Matrix<T>(mat.Rows, mat.Cols);
+            CvInvoke.Invert(mat, r, DecompMethod.Cholesky);
+            return r;
+        }
         public static double[,] toArray(this Matrix4d obj) {
             return new double[,] {
                 {obj.M11, obj.M12, obj.M13, obj.M14},

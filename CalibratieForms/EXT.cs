@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ArUcoNET;
 using ceresdotnet;
@@ -170,6 +171,22 @@ namespace CalibratieForms {
             };
             return intrinsics;
             
+        }
+
+        public static void ActionMultiThread(Action<int> action,int maxCount, int maxthreads=8) {
+            SemaphoreSlim throttler = new SemaphoreSlim(maxthreads);
+            
+            List<Task> alltasks = new List<Task>();
+            for (int i = 0; i < maxCount; i++) {
+                throttler.Wait();
+                Task t = new Task((o => {
+                    action((int) o);
+                    throttler.Release();
+                }), i);
+                t.Start();
+                alltasks.Add(t);
+            }
+            Task.WhenAll(alltasks).Wait();
         }
 
 
