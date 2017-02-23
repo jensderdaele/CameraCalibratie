@@ -47,7 +47,11 @@ namespace ceresdotnet {
 		P2 = 32,
 		R3 = 64,
 		ALL = 127,
-		GeoAutomation = 79
+		GeoAutomation = 79,
+		NODIST = FocalLength | PrincipalP,
+		INTERNAL_R1R2 = NODIST | R1 | R2,
+		INTERNAL_R1R2R3 = INTERNAL_R1R2 | R3,
+		INTERNAL_R1R2T1T2 = INTERNAL_R1R2 | P1 | P2
 	};
 	[FlagsAttribute]
 	public enum class  BundleWorldCoordinatesFlags :int
@@ -367,9 +371,9 @@ namespace ceresdotnet {
 
 		void set(Emgu::CV::Matrix<double>^ cameraMat, array<double>^ distCoeffs){
 			fx = cameraMat->default[0, 0];
-			fy = cameraMat->default[0, 1];
-			ppx = cameraMat->default[2, 0];
-			ppy = cameraMat->default[2, 1];
+			fy = cameraMat->default[1, 1];
+			ppx = cameraMat->default[0, 2];
+			ppy = cameraMat->default[1, 2];
 
 			k1 = distCoeffs[0];
 			k2 = distCoeffs[1];
@@ -728,7 +732,6 @@ namespace ceresdotnet {
 			internal->AddToProblem(problem);
 			external->AddToProblem(problem);
 			location->AddToProblem(problem);
-			systeem->AddToProblem(problem);
 
 			problem->AddResidualBlock(new ceres::AutoDiffCostFunction <
 				ReprojectionErrorSingleCamera, 2, 9, 6, 3 >(new ReprojectionErrorSingleCamera(feature->X, feature->Y)),

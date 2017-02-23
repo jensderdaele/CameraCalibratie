@@ -58,8 +58,10 @@
     <Compile Include="EXT.cs" />
     <Compile Include="IObservation.cs" />
     <Compile Include="Marker.cs" />
+    <Compile Include="MatrixExt.cs" />
     <Compile Include="PinholeCamera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scene.cs" />
     <Compile Include="Serialization.cs" />
     <Compile Include="SObject.cs" />
     <Compile Include="StereoCamera.cs" />

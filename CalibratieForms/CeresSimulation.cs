@@ -13,7 +13,6 @@ using ceresdotnet;
 using Calibratie;
 using ComponentOwl.BetterListView;
 //using OpenTK;
-using SceneManager;
 
 using Emgu.CV;
 
@@ -279,7 +278,7 @@ namespace CalibratieForms {
                 foreach (var camera in collection) {
                     List<CeresMarker> ceresmarkers = new List<CeresMarker>();
                     cameraID++;
-                    var puntenCv = markers3d.ToDictionary(m => new MCvPoint3D32f((float)m.Pos.X, (float)m.Pos.Y, (float)m.Pos.Z));
+                    var puntenCv = markers3d.ToDictionary(m => new MCvPoint3D32f((float)m.X, (float)m.Y, (float)m.Z));
                     MCvPoint3D32f[] visible3d;
                     var visible_proj = camera.ProjectPointd2D_Manually(puntenCv.Keys.ToArray(), out visible3d);
                     var cc = new CeresCamera(camera.worldMat) {

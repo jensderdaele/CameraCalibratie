@@ -13,7 +13,6 @@ using ceresdotnet;
 using Calibratie;
 using ComponentOwl.BetterListView;
 using OpenTK;
-using SceneManager;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace CalibratieForms {
@@ -62,7 +61,7 @@ namespace CalibratieForms {
                 var item = new BetterListViewItem(new[] {
                     boards[i].ToString(),
                     calcAngle(s.Camera,boards[i]).ToString(),
-                    (s.Camera.Pos-boards[i].Pos).LengthFast.ToString(),
+                    (s.Camera.Pos-boards[i].Pos).Norm.ToString(),
                     s.ReporjectionErrorRMS.Count != boards.Count ? "niet berekend" : s.ReporjectionErrorRMS[i].ToString()
                 });
                 item.Tag = boards[i];
@@ -116,10 +115,7 @@ namespace CalibratieForms {
         }
 
         private static double calcAngle(SObject obj1, SObject obj2) {
-            var q1 = Vector3d.Dot(obj1.Dir, obj2.Dir);
-            var alpha = Math.Acos(q1);
-            double angle = alpha/Math.PI*180;
-            return angle;
+            throw new NotImplementedException();
         }
 
         private void button1_Click(object sender, EventArgs e) {

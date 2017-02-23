@@ -21,6 +21,13 @@ using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 namespace Calibratie {
     
     public class CameraIntrinsics : INotifyPropertyChanged, ICeresParameterConvertable<CeresIntrinsics> {
+
+        public static CameraIntrinsics EOS5DMARKII {
+            get {
+                return new CameraIntrinsics();
+            }
+        }
+
         /// <summary>
         /// fotogrootte in pixels
         /// </summary>
@@ -28,7 +35,10 @@ namespace Calibratie {
 
 
         public CameraIntrinsics(double[,] mat) {
-            _mat = mat;
+            Mat = mat;
+        }
+        public CameraIntrinsics(Matrix<double> mat) {
+            cvmat = mat;
         }
         public CameraIntrinsics() {}
 
@@ -41,9 +51,8 @@ namespace Calibratie {
         /// copy cv mat
         /// </summary>
         public Matrix<double> cvmat {
-            get {
-                return new Matrix<double>(_mat);
-            } }
+            get {return new Matrix<double>(_mat);}
+            set { _mat = value.Data; } }
 
         public double fx {
             get { return Mat[0, 0]; }
@@ -69,9 +78,35 @@ namespace Calibratie {
                 return new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
             }
         }
+
+        /// <summary>
+        /// sets the distortion, 2,3 (zonder tang) of 4, 5(met tang) waarden
+        /// </summary>
+        public Matrix<double> CVDIST {
+            set {
+                _distortionR1 = value[0, 0];
+                _distortionR2 = value[1, 0];
+
+                if (value.Rows == 3) {
+                    _distortionR3 = value[2, 0];
+                }
+                if (value.Rows == 4) {
+                    _distortionT1 = value[3, 0];
+                    _distortionT2 = value[4, 0];
+                }
+                if (value.Rows == 5) {
+                    _distortionR3 = value[2, 0];
+                    _distortionT1 = value[3, 0];
+                    _distortionT2 = value[4, 0];
+                }
+            }
+        } 
         public Matrix<double> Cv_DistCoeffs5 {
             get {
                 return new Matrix<double>(dist5);
+            }
+            set {
+                
             }
         }
         public double[] dist5 {

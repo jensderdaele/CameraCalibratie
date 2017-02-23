@@ -49,7 +49,7 @@ namespace CalibratieForms {
             PhotoProvider prov = new PhotoProvider(dir);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(2); //max 8 threads
+            SemaphoreSlim throttler = new SemaphoreSlim(8); //max 8 threads
             
             Action<Object> findCornerAction = o => {
                 String imageFile = (String)o;
@@ -167,13 +167,24 @@ namespace CalibratieForms {
 
 
             Matrix cameramat = new Matrix(3,3);
-            Matrix distcoeffs = new Matrix(1,4);
+            Matrix distcoeffs = new Matrix(1,5);
             Mat[] rvecs, tvecs;
             CVI.CalibrateCamera(worldpoints.Select(x=>x.ToArray()).ToArray(), imagepoints.ToArray(), images.First().imageSize,
                 cameramat, distcoeffs, CalibType.Default, new MCvTermCriteria(), 
                 out rvecs, out tvecs);
             cameraMat = cameramat;
-            distCoeffs = distcoeffs;
+            distCoeffs = distcoeffs.Transpose();
+        }
+
+        public void CalibrateCV(ChessBoard cb, out CameraIntrinsics intr) {
+            Matrix mat,dist;
+
+            CalibrateCV(cb, out mat, out dist);
+            intr = new CameraIntrinsics(mat);
+            intr.CVDIST = dist;
+
+
+
         }
 
         [Obsolete]

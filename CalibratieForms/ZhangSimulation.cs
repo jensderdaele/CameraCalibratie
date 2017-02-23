@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using cameracallibratie;
 using CalibratieForms.Annotations;
 using OpenTK;
-using SceneManager;
 using ceresdotnet;
 using Calibratie;
 
@@ -78,7 +77,7 @@ namespace CalibratieForms {
 
         
         public double calcMeanDist() {
-            return Chessboards.Sum(chessboard => (chessboard.Pos - Camera.Pos).Length/Chessboards.Count);
+            return Chessboards.Sum(chessboard => (chessboard.Pos - Camera.Pos).Norm/Chessboards.Count);
         }
 
         private IEnumerable<IEnumerable<Point3f>> CvWorldChessPointsf {

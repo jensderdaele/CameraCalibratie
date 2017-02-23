@@ -40,7 +40,7 @@ namespace CalibratieForms {
             var stream = File.Create(file);
             StreamWriter writer = new StreamWriter(stream);
             foreach (var marker in markers) {
-                writer.WriteLine("{0},{1},{2},{3}", marker.ID, marker.Pos.X.ToString(CultureInfo.InvariantCulture), marker.Pos.Y.ToString(CultureInfo.InvariantCulture), marker.Pos.Z.ToString(CultureInfo.InvariantCulture));
+                writer.WriteLine("{0},{1},{2},{3}", marker.ID, marker.X.ToString(CultureInfo.InvariantCulture), marker.Y.ToString(CultureInfo.InvariantCulture), marker.Z.ToString(CultureInfo.InvariantCulture));
             }
         }
         public static void MarkersToFile(IEnumerable<ArucoMarker> markers, string file) {

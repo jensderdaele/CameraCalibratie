@@ -32,7 +32,6 @@ using Emgu.CV.Util;
 using MathNet.Numerics;
 using OpenTK.Graphics.OpenGL;
 using PdfSharp;
-using SceneManager;
 using Color = System.Drawing.Color;
 using Pen = System.Drawing.Pen;
 
@@ -43,6 +42,7 @@ using FontStyle = System.Drawing.FontStyle;
 using Point = System.Windows.Point;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
 using Point3f = Emgu.CV.Structure.MCvPoint3D32f;
+using Size = System.Drawing.Size;
 using Vector3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 
@@ -137,9 +137,8 @@ namespace CalibratieForms {
     }
     static class Program {
 
-
+        
         public static object lockme = new Object();
-        // "C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2
         public static Dictionary<string, string> GetLRFrames(string dirL,string dirR,int KeyFrameL, int KeyFrameR, double LR, int intervalL,int startL, int stopL) {
             
             var r = new Dictionary<string, string>();
@@ -157,8 +156,8 @@ namespace CalibratieForms {
 
 
             while (framel < stopL) {
-                r.Add(string.Format(@"{1}\{0:00000000}.jpg", framel, dirL),
-                    string.Format(@"{1}\{0:00000000}.jpg", framer, dirR));
+                r.Add(string.Format(@"{1}\{0:0}.jpg", framel, dirL),
+                    string.Format(@"{1}\{0:0}.jpg", framer, dirR));
                 framel += intervalL;
                 framer = frameR(framel);
             }
@@ -256,7 +255,12 @@ namespace CalibratieForms {
         }
 
         static void testSFM() {
-            /*
+            var detectedAruco = getLRFramesAruco(
+               @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\left\",
+               @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\right\",
+               1, 1, 1, 1, 1, 18).ToTupleList();
+
+
             var dir = @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2\";
             List<string> files = new List<string>();
             for (int i = 533; i < 2500; i+=30) {
@@ -265,12 +269,12 @@ namespace CalibratieForms {
 
 
             var detected = Aruco.findArucoMarkers(files);
-            Matrix<double> camMat_left = new Emgu.CV.Matrix<double>(new[,] {
+            Matrix<double> camMat_left = new Matrix<double>(new[,] {
                 {852.18, 0,975.84},
                 {0,853.05,525.63},
                 {0,0,1}
             });
-            Matrix<double> dist_left = new Emgu.CV.Matrix<double>(new[] { -.2807, .124, .0005073, -.03291 });
+            Matrix<double> dist_left = new Matrix<double>(new[] { -.2807, .124, .0005073, -.03291 });
 
             var K = camMat_left;
             foreach (KeyValuePair<string, IEnumerable<ArucoMarker>> kvp in detected) {
@@ -327,7 +331,7 @@ namespace CalibratieForms {
 
             CVI.FindEssentialMat();
             CVI.TriangulatePoints();
-             * */
+            
         }
 
         public static Tuple<MCvPoint3D32f, PointF, int> find3dmarker(Marker2d marker2d, IEnumerable<Marker> markers3d) {
@@ -508,31 +512,46 @@ namespace CalibratieForms {
 
         
         static void testStereoCamera() {
-            Calibratie.SObjectBase test = new Calibratie.SObjectBase();
-            test.WorldMat = new Matrix(new double[,] {
-                {1, 2, 3, 4},
-                {5, 6, 7, 8},
-                {9, 10, 11, 12},
-                {13, 14, 15, 16}
-            });
-            var pos = test.Pos;
-            var pos2 = test.Pos_transform;
-            var rmat = test.RotationMat;
-            var rmat2 = test.Rot_transform;
-            rmat2[0, 0] = 100;
 
-            test.Pos[0, 0] = 400;
 
             Scene scene =  new Scene();
 
             var markers1 = IO.MarkersFromFile(@"C:\Users\jens\Desktop\calibratie\calibratieruimte_opname_123.txt");
             scene.AddRange(markers1);
-            
+
+            ZhangCalibration calibleft = new ZhangCalibration();
+            //calibleft.LoadImages(Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\left\zhang\").ToList(),new Size(6,9));
+            CameraIntrinsics intrleft;
+            //calibleft.CalibrateCV(new ChessBoard(6,9,55.03333333333333333), out intrleft);
+            intrleft = new CameraIntrinsics(new double[,] {
+                {3842, 0,2822},
+                {0,3841,1842},
+                {0,0,1}
+            }){CVDIST = new Matrix(new double[]{-.1249,.0943})};
+
+
+
+            //ZhangCalibration calibright = new ZhangCalibration();
+            //calibleft.LoadImages(Directory.GetFiles(@"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\right\zhang\").ToList(), new Size(6, 9));
+            CameraIntrinsics intrright;
+            //calibleft.CalibrateCV(new ChessBoard(6, 9, 55.03333333333333333), out intrright);
+            intrright = new CameraIntrinsics(new double[,] {
+                {4019, 0,1989},
+                {0,4018,1287},
+                {0,0,1}
+            }) { CVDIST = new Matrix(new double[] { -.1389, .15689 }) };
+
+
             int blabla = 600;
+            /*var detectedAruco = getLRFramesAruco(
+                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\left\",
+                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\right\",
+                533, 689, 2.016214371053080730500085338795, 50, 600, 1301).ToTupleList();*/
+
             var detectedAruco = getLRFramesAruco(
-                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\links\2\",
-                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\rechts\2\",
-                533, 689, 2.016214371053080730500085338795, 50, 600, 1301).ToTupleList();
+                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\left\",
+                @"C:\Users\jens\Desktop\calibratie\Opnames_thesis\stereo.canon\right\",
+                1, 1, 1, 1, 1, 18).ToTupleList();
 
             var markersscene = scene.getIE<Marker>().ToArray();
             
@@ -549,10 +568,8 @@ namespace CalibratieForms {
                         var L = stereoPair.Item1;
                         var R = stereoPair.Item2;
                         L.Item2.IntersectLists(R.Item2, ((marker, arucoMarker) => marker.ID == arucoMarker.ID));
-                        
                     }
                 };
-
 
             var detectedStereos = detectedAruco as Tuple<Tuple<string, List<ArucoMarker>>, Tuple<string, List<ArucoMarker>>>[] ?? detectedAruco.ToArray();
             //intersect(detectedStereos);
@@ -564,7 +581,7 @@ namespace CalibratieForms {
                         var scenemarker = markers3d.FirstOrDefault(x => x.ID == arucomarker.ID);
                         if (scenemarker != null) {
                             r.Add(new Tuple<MCvPoint3D32f, PointF,int>(
-                                new MCvPoint3D32f((float) scenemarker.Pos.X, (float) scenemarker.Pos.Y,(float) scenemarker.Pos.Z),
+                                new MCvPoint3D32f((float) scenemarker.X, (float) scenemarker.Y,(float) scenemarker.Z),
                                 new PointF(arucomarker.Corner1.X, arucomarker.Corner1.Y),
                                 arucomarker.ID));
                         }
@@ -585,21 +602,27 @@ namespace CalibratieForms {
                 }
             }
 
+            PinholeCamera left = new PinholeCamera(intrleft);
+
+
+            PinholeCamera right = new PinholeCamera(intrright);
+
+
             Matrix<double> camMat_left = new Matrix<double>(new double [,] {
                 {954, 0,923},
                 {0,960,484},
                 {0,0,1}
             });
-            Matrix<double> dist_left = new Matrix<double>(new[] { -.2172, .04159, 0, 0 });//, .0005073, -.000788 });
-            //dist_left = new Emgu.CV.Matrix<double>(new double[] { -0, 0, 0, -0 });
+            Matrix<double> dist_left = new Matrix<double>(new[] { -.2172, .04159, 0, 0 });
             Matrix<double> dist_zero = new Emgu.CV.Matrix<double>(new double []{ -0, 0, 0, -0 });
             Matrix<double> camMat_right = new Emgu.CV.Matrix<double>(new double[,] {
                 {845, 0,954},
                 {0,848,522},
                 {0,0,1}
             });
-            Matrix<double> dist_right = new Matrix<double>(new[] {-.1886, .02519,0,0});//, .0007059, -.000333 });
-            //dist_right = new Emgu.CV.Matrix<double>(new double[] { -0, 0, 0, -0 });
+            Matrix<double> dist_right = new Matrix<double>(new[] {-.1886, .02519,0,0});
+
+            
 
             var ess = new Matrix<double>(3, 3);
             var fundamental = new Matrix<double>(3, 3);
@@ -628,6 +651,10 @@ namespace CalibratieForms {
             var CeresIntrRight = new CeresIntrinsics(new[] { 841.0235, 844.1916, 972.10629, 529.56556, -.2182, .04911, 0, 0, 0 }) {
                 BundleFlags = (BundleIntrinsicsFlags.R1 | BundleIntrinsicsFlags.FocalLength | BundleIntrinsicsFlags.PrincipalP | BundleIntrinsicsFlags.R2)
             };
+
+            CeresIntrLeft = left.Intrinsics.toCeresParameter(BundleIntrinsicsFlags.INTERNAL_R1R2);
+            CeresIntrRight = right.Intrinsics.toCeresParameter(BundleIntrinsicsFlags.INTERNAL_R1R2);
+
             var ccLeft = new CeresCamera(CeresIntrLeft,new CeresPointOrient{
                 RT = new double []{0,0,0,0,0,0}
             });
@@ -725,8 +752,8 @@ namespace CalibratieForms {
                     camMat_left, dist_left, outr_left, outt_left, false, 100, 50, .8, inliers, SolvePnpMethod.Iterative);
 
                 var intr = new IntrinsicCameraParameters(4);
-                intr.DistortionCoeffs = dist_left;
-                intr.IntrinsicMatrix = camMat_left;
+                intr.DistortionCoeffs = intrleft.Cv_DistCoeffs4;
+                intr.IntrinsicMatrix = intrleft.cvmat;
                 var extL = CameraCalibration.SolvePnP(points3d, points2d, intr, SolvePnpMethod.Iterative);
                 var reprojection_left = CameraCalibration.ProjectPoints(points3d, extL, intr);
                 List<PointF> residuals_left =
@@ -750,8 +777,8 @@ namespace CalibratieForms {
                     camMat_right, dist_right, outr_right, outt_right, false, 20, 50, .8, inliers, SolvePnpMethod.UPnP);
                 
                 intr = new IntrinsicCameraParameters(4);
-                intr.DistortionCoeffs = dist_zero;
-                intr.IntrinsicMatrix = camMat_right;
+                intr.DistortionCoeffs = intrright.Cv_DistCoeffs4;
+                intr.IntrinsicMatrix = intrright.cvmat;
                 var extR = CameraCalibration.SolvePnP(points3d, points2d, intr);
                 var reprojection_right = CameraCalibration.ProjectPoints(points3d, extR, intr);
                 List<PointF> residuals_right = points2d.Select((t, k) => new PointF(t.X - reprojection_right[k].X, t.Y - reprojection_right[k].Y))                        .ToList();
@@ -778,6 +805,7 @@ namespace CalibratieForms {
                     var right_T = extR.TranslationVector;
                     var left_T = extL.TranslationVector;
                     var left_TT = -1*left_RT*left_T;
+                    var right_TT = -1*right_RT*right_T;
 
 
                     var newRot = right_R*left_RT;

@@ -12,7 +12,6 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using OpenTK;
-using SceneManager;
 
 namespace CalibratieForms {
     class test {

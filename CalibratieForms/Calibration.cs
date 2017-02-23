@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Calibratie;
-using SceneManager;
 
 namespace CalibratieForms {
     public abstract class Calibration {

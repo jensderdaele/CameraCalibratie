@@ -14,6 +14,12 @@ namespace Calibratie {
             Pos[1, 0] = pos.Y;
             Pos[2, 0] = pos.Z;
         }
+        public Marker(int id, double x, double y, double z) {
+            ID = id;
+            Pos[0, 0] = x;
+            Pos[1, 0] = y;
+            Pos[2, 0] = z;
+        }
 
         public int ID { get; private set; }
         public double X { get { return Pos[0,0]; } }

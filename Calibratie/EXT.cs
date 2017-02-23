@@ -10,6 +10,7 @@ using OpenTK;
 
 namespace Calibratie {
     public static class EXT {
+         
         public static Matrix<T> Inverted<T>(this Matrix<T> mat) where T : new() {
             return mat.Inverted(DecompMethod.Cholesky);
         }

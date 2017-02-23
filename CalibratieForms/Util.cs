@@ -14,7 +14,6 @@ using Calibratie;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using OpenTK;
-using SceneManager;
 
 
 
@@ -34,13 +33,13 @@ namespace CalibratieForms {
             foreach (var detectedMarker in detectedMarkers) {
                 var scenemarker = markers.Find(x => x.ID == detectedMarker.Item1);
                 if (scenemarker != null) {
-                    points3d.Add(new MCvPoint3D32f((float)scenemarker.Pos.X, (float)scenemarker.Pos.Y,
-                        (float)scenemarker.Pos.Z));
+                    points3d.Add(new MCvPoint3D32f((float)scenemarker.X, (float)scenemarker.Y,
+                        (float)scenemarker.Z));
                     imagepoints.Add(detectedMarker.Item2);
                 }
             }
-            Emgu.CV.Matrix<double> outrot = new Emgu.CV.Matrix<double>(3, 1);
-            Emgu.CV.Matrix<double> outtrans = new Emgu.CV.Matrix<double>(3, 1);
+            Matrix<double> outrot = new Matrix<double>(3, 1);
+            Matrix<double> outtrans = new Matrix<double>(3, 1);
 
             double[] rvec, tvec;
 
@@ -57,16 +56,16 @@ namespace CalibratieForms {
 
         private class MarkerComparer : IEqualityComparer<Marker> {
             public bool Equals(Marker m1, Marker m2) {
-                if (m1.Pos.X == m2.Pos.X &&
-                    m1.Pos.Y == m2.Pos.Y &&
-                    m1.Pos.Z == m2.Pos.Z) {
+                if (m1.X == m2.X &&
+                    m1.Y == m2.Y &&
+                    m1.Z == m2.Z) {
                     return true;
                 }
                 return false;
             }
 
             public int GetHashCode(Marker obj) {
-                int hcode = (int)obj.Pos.X ^ (int)obj.Pos.Y ^ (int)obj.Pos.Z;
+                int hcode = (int)obj.X ^ (int)obj.Y ^ (int)obj.Z;
                 return hcode.GetHashCode();
             }
         }
@@ -75,29 +74,22 @@ namespace CalibratieForms {
             var ptn3d = new List<Marker>();
             for (double x = 0; x <= xmax; x += step) {
                 for (double y = 0; y <= ymax; y += step) {
-                    ptn3d.Add(new Marker(count++,new Vector3d(x ,y ,0)));
-                    ptn3d.Add(new Marker(count++, new Vector3d(x, y, zmax)));
+                    ptn3d.Add(new Marker(count++,x ,y ,0));
+                    ptn3d.Add(new Marker(count++,x, y, zmax));
                 }
             }
             for (double x = 0; x <= xmax; x += step) {
                 for (double z = step; z + step < zmax; z += step) {
-                    ptn3d.Add(new Marker(count++, new Vector3d(x, 0, z)));
-                    ptn3d.Add(new Marker(count++, new Vector3d(x, ymax, z)));
+                    ptn3d.Add(new Marker(count++,x, 0, z));
+                    ptn3d.Add(new Marker(count++,x, ymax, z));
                 }
             }
             for (double z = step; z + step < zmax; z += step) {
                 for (double y = step; y + step < ymax; y += step) {
-                    ptn3d.Add(new Marker(count++, new Vector3d(step, y, z)));
-                    ptn3d.Add(new Marker(count++, new Vector3d(xmax - step, y, z)));
+                    ptn3d.Add(new Marker(count++,step, y, z));
+                    ptn3d.Add(new Marker(count++,xmax - step, y, z));
                 }
             }
-            /*
-            var ptn3dnodupe = new List<Marker>();
-            foreach (var marker in ptn3d) {
-                if (!ptn3dnodupe.Contains(marker, new MarkerComparer())) {
-                    ptn3dnodupe.Add(marker);
-                }
-            }*/
             return ptn3d;
         } 
         public static Scene bundleAdjustScene() {
@@ -114,13 +106,13 @@ namespace CalibratieForms {
             for (int i = 0; i < 6; i++) { //7 foto's met Huawei camera
                 var c = PinholeCamera.getTestCameraHuawei();//Huawei bepaald via Zhang
                 c.Name = "huaweip9";
-                var Pos = new Vector3d(rnd.Next(2,6),2,rnd.Next(3,7));//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
+                var pos = new Matrix<double>(new double[] { rnd.Next(2, 6), 2, rnd.Next(3, 7) });//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
                 var target = ptn3d[rnd.Next(ptn3d.Count)]; //camera richt naar een random gekozen marker
-                var worldtocamera = Matrix4d.LookAt(Pos, target.Pos, Vector3d.UnitY); //berekend de wereld->cameracoordinaten
-                c.worldMat = worldtocamera.Inverted(); 
-                                //camera->wereldcoordinaten. 
-                                //Deze matrix bevat dus op kolom3 de Positie van de camera in wereldcoordinten, 
-                                //hiernaast de rotatie in 3x3 ([R t])
+                var worldtocamera = MatrixExt.LookAt(pos, target.Pos, MatrixExt.UnitVectorY<double>()); //berekend de wereld->cameracoordinaten
+                c.WorldMat = worldtocamera.Inverted();
+                //camera->wereldcoordinaten. 
+                //Deze matrix bevat dus op kolom3 de Positie van de camera in wereldcoordinten, 
+                //hiernaast de rotatie in 3x3 ([R t])
                 cameras.Add(c);
             }
             
@@ -151,10 +143,10 @@ namespace CalibratieForms {
             for (int i = 0; i < 6; i++) { //7 foto's met Huawei camera
                 var c = PinholeCamera.getTestCameraHuawei();//Huawei bepaald via Zhang
                 c.Name = "huaweip9";
-                var Pos = new Vector3d(rnd.Next(2, 6), 2, rnd.Next(3, 7));//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
+                var pos = new Matrix<double>(new double []{rnd.Next(2, 6), 2, rnd.Next(3, 7)});//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
                 var target = ptn3d[rnd.Next(ptn3d.Count)]; //camera richt naar een random gekozen marker
-                var worldtocamera = Matrix4d.LookAt(Pos, target.Pos, Vector3d.UnitY); //berekend de wereld->cameracoordinaten
-                c.worldMat = worldtocamera.Inverted();
+                var worldtocamera = MatrixExt.LookAt(pos, target.Pos, MatrixExt.UnitVectorY<double>()); //berekend de wereld->cameracoordinaten
+                c.WorldMat = worldtocamera.Inverted();
                 //camera->wereldcoordinaten. 
                 //Deze matrix bevat dus op kolom3 de Positie van de camera in wereldcoordinten, 
                 //hiernaast de rotatie in 3x3 ([R t])
@@ -164,8 +156,6 @@ namespace CalibratieForms {
             CameraCollection coll2 = new CameraCollection(cameras);
             
             coll.SetCollectionCenter_MidCameras();
-            coll2.worldMat = coll.worldMat;
-            coll2.Orient(Vector3d.UnitZ,Vector3d.UnitY);
 
             /*for (int i = 0; i < 5; i++) { //5 foto's met Casio camera
                 var c = PinholeCamera.getTestCamera();//Casio bepaald via zhang
@@ -181,80 +171,7 @@ namespace CalibratieForms {
             s.objects.Add(coll2);
             return s;
         }
-        public static Scene GetTestScene() {
-            var  s  = new Scene();
-            double[] euler;
-            var c = PinholeCamera.getTestCamera();
-            c.Cv_DistCoeffs5 = new double[] {0, 0, 0, 0, 0};
-            var Pos = new Vector3d(2.9,2.4,-1.8);
-            c.worldMat = Matrix4d.LookAt(Pos, Vector3d.Zero, Vector3d.UnitY).Inverted();
-            
-            var l = c.Pos.Length;
-            
-            
-            string markersst = @"
-                    {0,0,1}
-                    {0,0,0}
-                    {0,1,0}
-                    {0.5,1,0}
-                    {0.2,0.5,0.6}
-                    {-0.4,0.35,-0.1}
-                    {-0.4,.35,-1}
-                    {0.7,1.5,-0.8}
-                    {0.9,-0.2,-0.4}
-                    {1.7,0.75,-1.7}
-                    {1.6,1.36,-0.3}
-                    {1.2,0,0.8}
-                    {1.1,0.8,0.8}";
 
-            int t = 0;
-            for (double z = 0; z < 5; z += .1) {
-                s.objects.Add(new Marker(t++,new Vector3d(z,0,0)));
-                s.objects.Add(new Marker(t++, new Vector3d(0, z, 0)));
-                s.objects.Add(new Marker(t++, new Vector3d(0, 0, z)));
-            }
-
-            var markers = IO.readVectors(markersst);
-            s.objects.AddRange(markers.Select((x,i)=> new Marker(i,x)));
-
-
-            s.objects.Add(c);
-            return s;
-        }
-        public static Scene GetTestSceneRandom() {
-            Random r = new Random();
-            
-            var s = new Scene();
-            double[] euler;
-            var c = PinholeCamera.getTestCamera();
-            c.Pos = new Vector3d(2.9, 2.4, -1.8);
-
-
-
-            string markersst = @"
-                    {0,0,1}
-                    {0,0,0}
-                    {0,1,0}
-                    {0.5,1,0}
-                    {0.2,0.5,0.6}
-                    {-0.4,0.35,-0.1}
-                    {-0.4,.35,-.1}
-                    {0.7,1.5,-0.8}
-                    {0.9,-0.2,-0.4}
-                    {1.7,0.75,-1.7}
-                    {1.6,1.36,-0.3}
-                    {1.2,0,0.8}
-                    {1.1,0.8,0.8}";
-            int t = 0;
-            for (int i = 0; i < 50; i++) {
-                s.objects.Add(new Marker(i, new Vector3d(r.NextDouble() * 4, r.NextDouble() * 4, r.NextDouble() * 4)));
-            }
-
-            var markers = IO.readVectors(markersst);
-            //s.objects.AddRange(markers.Select((x,i)=> new Marker(i,x)));
-            s.objects.Add(c);
-            return s;
-        }
 
         public static void InvokeIfRequired(this ISynchronizeInvoke obj,
                                          MethodInvoker action) {
