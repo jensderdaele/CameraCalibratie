@@ -187,3 +187,13 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+#folders
+Project1/
+.vs/
+Arucolib/
+AutocadTest/
+PhotoscanIO/
+TrenchCheck/
+PhotoscanEditor/
+DomainManager/

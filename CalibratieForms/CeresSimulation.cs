@@ -26,14 +26,75 @@ using Vector3d = Emgu.CV.Structure.MCvPoint3D64f;
 
 
 namespace CalibratieForms {
+    public class CeresSimulationCollection : List<CeresSimulation> {
+        public void ExcecuteAll(int threads) {
+            SemaphoreSlim throttler = new SemaphoreSlim(threads); //max 8 threads
+            
+            List<Task> allTasks = new List<Task>();
+            foreach (CeresSimulation simulation in this) {
+                throttler.Wait();
+                Task t = new Task(() => {
+                    simulation.SolveMultiCollection();
+                    throttler.Release();
+                });
+                allTasks.Add(t);
+                t.Start();
+            }
+            Task.WhenAll(allTasks).Wait();
+        }
+
+        public Matrix<double> CameraToMatrix(PinholeCamera c) {
+            var r = new Matrix<double>(new[] {
+                c.Intrinsics.fx, c.Intrinsics.fy, c.Intrinsics.cx, c.Intrinsics.cy, c.Intrinsics.DistortionR1,
+                c.Intrinsics.DistortionR2, c.Intrinsics.DistortionR3, c.Intrinsics.DistortionT1,
+                c.Intrinsics.DistortionT2
+            });
+            return r;
+        }
+        public void toMatlabGem() {
+        }
+    }
     
     public class CeresSimulation {
         
         public Scene scene;
-        public Dictionary<PinholeCamera, PinholeCamera> pinholeCameras;
- 
-        
+
+        public I2DRuisProvider PixelRuisProvider;
+        public I3DRuisProvider WorldRuisProvider;
+        public ICameraModifier CameraModifier;
+
+        public HashSet<PinholeCamera> UniqueCameras;
+        public HashSet<CameraIntrinsics> UniqueIntr;
+        public HashSet<CameraCollection> UniqueCollections;
+
+        public Dictionary<PinholeCamera,PinholeCamera> OriginalValues = new Dictionary<PinholeCamera, PinholeCamera>();
+
+        public void SetUniqueValues() {
+            UniqueCameras = new HashSet<PinholeCamera>();
+            UniqueCollections = new HashSet<CameraCollection>();
+            UniqueIntr = new HashSet<CameraIntrinsics>();
+
+            var collections = scene.get<CameraCollection>();
+            var cameras = scene.get<PinholeCamera>();
+
+            foreach (var cameraCollection in collections) {
+                UniqueCollections.Add(cameraCollection);
+                foreach (var phc in cameraCollection) {
+                    UniqueCameras.Add(phc);
+                }
+            }
+            foreach (var phc in cameras) {
+                UniqueCameras.Add(phc);
+            }
+
+            foreach (var pinholeCamera in UniqueCameras) {
+                UniqueIntr.Add(pinholeCamera.Intrinsics);
+            }
+        }
+
         public CeresSimulation() { }
+
+        public double endCost = 0;
 
         private static Object lockme = new Object();
 
@@ -187,45 +248,13 @@ namespace CalibratieForms {
 
             }
         }
-        /*
-        public List<CeresCameraCollection> toCeresColl(List<CameraCollection> colls) {
-            Dictionary<PinholeCamera, CeresCamera> usedCameras = new  Dictionary<PinholeCamera, CeresCamera>();
-            Dictionary<String, CeresIntrinsics> usedIntrinsics = new Dictionary<String, CeresIntrinsics>();
 
-            List<CeresCameraCollection> cerescolls = new List<CeresCameraCollection>();
-            foreach (var coll in colls) {
-
-                CeresCameraCollection ccol = new CeresCameraCollection();
-                ccol.Cameras = new List<CeresCamera>();
-                foreach (var pinholecamera in coll) {
-                    CeresCamera cc;
-                    if (usedCameras.ContainsKey(pinholecamera)) {
-                        cc = usedCameras[pinholecamera];
-                    }
-                    else {
-                        CeresIntrinsics intr;
-                        if (usedIntrinsics.ContainsKey(pinholecamera.Name)) {
-                            intr = usedIntrinsics[pinholecamera.Name];
-                        }
-                        else {
-                            intr = new CeresIntrinsics(pinholecamera.toCeresIntrinsics9());
-                            usedIntrinsics.Add(pinholecamera.Name, intr);
-                        }
-                        cc = new CeresCamera(pinholecamera.worldMat) {Internal = intr};
-                        usedCameras.Add(pinholecamera, cc);
-                    }
-
-                    
-                }
-                    
-            }
-
-        } */
+        public double GemFeaturesPerFoto;
 
 
 
         public void SolveMultiCollection() {
-            
+            SetUniqueValues();
             var collections = scene.get<CameraCollection>();
             var markers3d = scene.get<Marker>();
             var cameras = scene.get<PinholeCamera>();
@@ -237,110 +266,240 @@ namespace CalibratieForms {
 
             collections = new[] {collec};
 
-            var intri = new CeresIntrinsics {
-                BundleFlags = BundleIntrinsicsFlags.ALL,
-                Intrinsics = cameras.First().toCeresIntrinsics9()
-               
-            };
 
             var ccoll = new CeresCameraCollection();
+            ccoll.Cameras = new List<CeresCamera>();
             ccoll.Cameras.AddRange(cameras.Select(x => {
-                var cc = new CeresCamera(x.worldMat) {
-                    Internal = intri
-                };
+                var cc = x.toCeresCamera();
                 return cc;
             }));
-            ccoll.CreateSecondPositionCopy();
+            // ccoll.CreateSecondPositionCopy();
 
-            var bundler =  new ceresdotnet.CeresCameraMultiCollectionBundler();
-
-            
+            var bundler = new ceresdotnet.CeresCameraMultiCollectionBundler();
 
 
-            Dictionary<CeresCameraCollection,Dictionary<CeresCamera, List<CeresMarker>>> observations = new Dictionary<CeresCameraCollection, Dictionary<CeresCamera, List<CeresMarker>>>();
-            
+
+
+            Dictionary<CeresCameraCollection, Dictionary<CeresCamera, List<CeresMarker>>> observations =
+                new Dictionary<CeresCameraCollection, Dictionary<CeresCamera, List<CeresMarker>>>();
+
 
 
             List<CeresCamera> cerescameras = new List<CeresCamera>();
-            List<CeresCameraCollection> cerescameracollections = new List<CeresCameraCollection>(); 
+            List<CeresCameraCollection> cerescameracollections = new List<CeresCameraCollection>();
 
             int cameraID = -1;
+
+            var collectionobservations2 = new Dictionary<CeresCamera, List<CeresMarker>>();
+
+            foreach (var camera in UniqueCameras) {
+                //voor ruis kopie maken
+                var cameracopy = new PinholeCamera();
+                var cc = camera.toCeresCamera();
+                cameracopy.toCeresCamera();
+                cameracopy.updateFromCeres(cc.Internal);
+                cameracopy.updateFromCeres(cc.External);
+                this.OriginalValues.Add(camera, cameracopy);
+            }
+
             
-            
+
+            int totaalfotos = 0;
             foreach (var collection in collections) {
-                var intr = new CeresIntrinsics {
-                    BundleFlags = BundleIntrinsicsFlags.ALL,
-                    Intrinsics = collection.First().toCeresIntrinsics9()
-                };
                 var cerescollection = new CeresCameraCollection();
                 var collectionobservations = new Dictionary<CeresCamera, List<CeresMarker>>();
 
                 foreach (var camera in collection) {
+                    totaalfotos++;
                     List<CeresMarker> ceresmarkers = new List<CeresMarker>();
                     cameraID++;
-                    var puntenCv = markers3d.ToDictionary(m => new MCvPoint3D32f((float)m.X, (float)m.Y, (float)m.Z));
-                    MCvPoint3D32f[] visible3d;
-                    var visible_proj = camera.ProjectPointd2D_Manually(puntenCv.Keys.ToArray(), out visible3d);
-                    var cc = new CeresCamera(camera.worldMat) {
-                        Internal = intr
-                    };
+
+                    var puntenCv =
+                        markers3d.ToDictionary(m => new MCvPoint3D32f((float) m.X, (float) m.Y, (float) m.Z));
+
+                    var cc = camera.toCeresCamera();
+
+
+                    ceresdotnet.CeresTestFunctions.ProjectPoint(cc.Internal, cc.External, markers3d[0].Pos);
+
+                    
+                    
+                    var visible_proj = camera.ProjectPointd2D_Manually(markers3d,out Marker[] visible3d);
+                    GemFeaturesPerFoto += visible_proj.Length;
+
+                    //Pixel ruis
+                    for (int i = 0; i < visible_proj.Length; i++) {
+                        PixelRuisProvider?.Apply(ref visible_proj[i]);
+                    }
 
 
                     //in een cerescamera worden interne parameters opgeslaan volgens array v doubles
 
                     //Per interne parameters kan men bepalen wat dient gebundeld te worden
                     //ook combinatie zijn mogelijk
-
-                    cerescameras.Add(cc);
-
+                    //3D ruis
+                    foreach (var marker in markers3d) {
+                        //WorldRuisProvider?.Apply(marker);
+                    }
 
                     for (int i = 0; i < visible3d.Length; i++) {
                         var proj = visible_proj[i];
-
-                        var marker = new CeresMarker() {
-                            id = puntenCv[visible3d[i]].ID,
-                            Location = new CeresPoint {
-                                BundleFlags = BundleWorldCoordinatesFlags.None,
-                                Coordinates_arr = visible3d[i].toArrD()
-                            },
+                        ceresmarkers.Add(new CeresMarker() {
+                            id = visible3d[i].ID,
+                            Location = visible3d[i].toCeresParameter(),
                             x = proj.X,
                             y = proj.Y
-                        };
-                        var res = ceresdotnet.CeresTestFunctions.testProjectPoint(cc,
-                            new CeresPointOrient() { RT = new[] { 0D, 0, 0, 0, 0, 0 } }, marker);
-                        proj.X -= (float)res[0];
-                        proj.Y -= (float)res[1];
-                        marker.x = proj.X;
-                        marker.y = proj.Y;
-                        ceresmarkers.Add(marker);
+                        });
                     }
+
+                    cerescameras.Add(cc);
                     collectionobservations.Add(cc, ceresmarkers);
 
                     //gesimuleerde foto weergeven
-                    var window2 = new CameraSimulationFrm(string.Format("Camera {0}: {1}", cameraID, camera.Name)) {
+                    /*var window2 = new CameraSimulationFrm(string.Format("Camera {0}: {1}", cameraID, camera.Name)) {
                         Camera = camera
                     };
                     window2.Show();
-                    window2.drawChessboard(visible_proj.Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray());
+                    window2.drawChessboard(visible_proj);*/
                 }
-                observations.Add(cerescollection,collectionobservations);
+                observations.Add(cerescollection, collectionobservations);
+                collectionobservations2 = collectionobservations;
             }
-            
+            GemFeaturesPerFoto /= totaalfotos;
+            foreach (var intr in UniqueIntr) {
+                //Camera ruis/modifier
+                CameraModifier?.Apply(intr);
+                intr.toCeresParameter();
+            }
+            foreach (var marker in markers3d) {
+                WorldRuisProvider?.Apply(marker);
+                marker.toCeresParameter();
+            }
 
 
-            CeresCameraMultiCollectionBundler.MarkersFromCameraDelegate findObservationsFunc = (camera, coll) => observations[coll][camera];
+            CeresCameraMultiCollectionBundler.MarkersFromCameraDelegate findObservationsFunc = (camera, coll) => {
+                var r = collectionobservations2[camera];
+                double Allreproj = 0;
+                double totalmrkrcout = 0;
+                //foreach (var ceresCamera in bundler.StandaloneCameraList) {
+                double reprojections = 0;
+                foreach (var ceresMarker in r) {
+                    var reproj = CeresTestFunctions.ReprojectPoint(camera.Internal, camera.External,
+                        ceresMarker.toPointF(), ceresMarker.Location.toMatrix());
+                    reprojections += Math.Sqrt(reproj.X * reproj.X + reproj.Y * reproj.Y);
+                }
+                Allreproj += reprojections;
+                totalmrkrcout += r.Count;
+                reprojections /= r.Count;
+                //}
+
+                return r;
+
+            };
+
             bundler.MarkersFromCamera = findObservationsFunc;
             bundler.CollectionList = cerescameracollections;
-            
+            bundler.StandaloneCameraList = cerescameras;
 
             bundler.bundleCollections(iterationCallbackHandler);
 
+            CeresCameraMultiCollectionBundler b = bundler;
+
+            double AllReprojections = 0;
+            double totalmarkercount = 0;
+
+            double meanPosX = 0;
+            double meanPosY = 0;
+            double meanPosZ = 0;
+
+            foreach (var ceresCamera in b.StandaloneCameraList) {
+                double reprojections = 0;
+                var markerlist = b.MarkersFromCamera(ceresCamera, null);
+                foreach (var ceresMarker in markerlist) {
+                    var reproj = CeresTestFunctions.ReprojectPoint(ceresCamera.Internal, ceresCamera.External, ceresMarker.toPointF(), ceresMarker.Location.toMatrix());
+                    reprojections += Math.Sqrt(reproj.X * reproj.X + reproj.Y * reproj.Y);
+                }
+                AllReprojections += reprojections;
+                totalmarkercount += markerlist.Count;
+                reprojections /= markerlist.Count;
+
+                //mean cam pos;
+                var pos = ceresCamera.External.t;
+                meanPosX += pos[0];
+                meanPosY += pos[1];
+                meanPosZ += pos[2];
+            }
+            meanPosX /= b.StandaloneCameraList.Count;
+            meanPosY /= b.StandaloneCameraList.Count;
+            meanPosZ /= b.StandaloneCameraList.Count;
+
+            AllReprojections /= totalmarkercount;
+            reporjectionsstring += String.Format("({0}) Error: {1}", "final", AllReprojections) + Environment.NewLine;
+            meancamereapos += String.Format("({0}) pos: {1}  {2}  {3}", "final", AllReprojections, meanPosX, meanPosY, meanPosZ) + Environment.NewLine;
+            Console.WriteLine("({0}) reprojerror: {1}   mean cam pos: x({2}) y({3}) z({4})", "final", AllReprojections, meanPosX, meanPosY, meanPosZ);
+
+            lastReproj = AllReprojections;
+
+            foreach (var collection in collections) {
+                foreach (var camera in collection) {
+                    camera.updateFromCeres();
+                }
+            }
         }
 
-        protected CeresCallbackReturnType iterationCallbackHandler(int iterationNr) {
-            return CeresCallbackReturnType.SOLVER_CONTINUE;
+
+        public string cameraparamsstring = "";
+        public string reporjectionsstring = "";
+        public string meancamereapos = "";
+        public double lastReproj = 0;
+
+
+        protected CeresCallbackReturnType iterationCallbackHandler(object sender, ceresdotnet.IterationSummary summary) {
+            //return CeresCallbackReturnType.SOLVER_CONTINUE;
+            int iterationNr = summary.iteration;
+            
+            CeresCameraMultiCollectionBundler b = sender as CeresCameraMultiCollectionBundler;
+
+            double AllReprojections = 0;
+            double totalmarkercount = 0;
+
+            double meanPosX = 0;
+            double meanPosY = 0;
+            double meanPosZ = 0;
+
+            foreach (var ceresCamera in b.StandaloneCameraList) {
+                double reprojections = 0;
+                var markerlist = b.MarkersFromCamera(ceresCamera, null);
+                foreach (var ceresMarker in markerlist) {
+                    var reproj = CeresTestFunctions.ReprojectPoint(ceresCamera.Internal, ceresCamera.External, ceresMarker.toPointF(), ceresMarker.Location.toMatrix());
+                    reprojections += Math.Sqrt(reproj.X * reproj.X + reproj.Y * reproj.Y);
+                }
+                AllReprojections += reprojections;
+                totalmarkercount += markerlist.Count;
+                reprojections /= markerlist.Count;
+
+                //mean cam pos;
+                var pos = ceresCamera.External.t;
+                meanPosX += pos[0];
+                meanPosY += pos[1];
+                meanPosZ += pos[2];
+            }
+            meanPosX /= b.StandaloneCameraList.Count;
+            meanPosY /= b.StandaloneCameraList.Count;
+            meanPosZ /= b.StandaloneCameraList.Count;
+
+            AllReprojections /= totalmarkercount;
+            reporjectionsstring += String.Format("({0}) Error: {1}", iterationNr, AllReprojections) + Environment.NewLine;
+            meancamereapos += String.Format("({0}) pos: {1}  {2}  {3}", iterationNr, AllReprojections, meanPosX, meanPosY, meanPosZ) + Environment.NewLine;
+            //Console.WriteLine("({0}) reprojerror: {1}   mean cam pos: x({2}) y({3}) z({4})", iterationNr, AllReprojections, meanPosX, meanPosY, meanPosZ);
+
+            lastReproj = AllReprojections;
+            endCost = summary.cost;
+            var r = CeresCallbackReturnType.SOLVER_CONTINUE;
+
+            return r;
         }
-        
+
         [Obsolete()]
         public void Solve() {
             /*

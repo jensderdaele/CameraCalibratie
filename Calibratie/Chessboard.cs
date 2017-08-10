@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
-using SceneManager;
 
 using Point3d = Emgu.CV.Structure.MCvPoint3D64f;
 using Point3f = Emgu.CV.Structure.MCvPoint3D32f;

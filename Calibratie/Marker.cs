@@ -1,13 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using ceresdotnet;
 using Emgu.CV;
 using OpenTK;
-using SceneManager;
 using Newtonsoft.Json;
 
 namespace Calibratie {
-    public class Marker : SObject, ICeresParameterConvertable<CeresPoint>, IMarker3d {
-        
+    public class MarkerIDComparer : IComparer<IMarker3d> {
+        public int Compare(IMarker3d x, IMarker3d y) {
+            if (x.ID > y.ID)
+                return 1;
+            if (x.ID < y.ID)
+                return -1;
+            else
+                return 0;
+        }
+    }
+    public class Marker : SPoint, ICeresParameterConvertable<CeresPoint>, IMarker3d {
+
+        public Marker() : this(-1,0,0,0) {
+
+        }
+
         public Marker(int id, Vector3d pos) {
             ID = id;
             Pos[0, 0] = pos.X;
@@ -22,13 +36,22 @@ namespace Calibratie {
         }
 
         public int ID { get; private set; }
-        public double X { get { return Pos[0,0]; } }
+        public double X { get { return Pos[0, 0]; } }
         public double Y { get { return Pos[1, 0]; } }
         public double Z { get { return Pos[2, 0]; } }
 
-
+        private CeresPoint _cerespoint = null;
         public CeresPoint toCeresParameter() {
-            return new CeresPoint() {X = X,Y = Y,Z = Z};
+            if (_cerespoint == null) {
+                _cerespoint = new CeresPoint() {X = X, Y = Y, Z = Z};
+            }
+            else {
+                _cerespoint.X = X;
+                _cerespoint.Y = Y;
+                _cerespoint.Z = Z;
+
+            }
+            return _cerespoint;
         }
         public CeresPoint toCeresParameter(Enum BundleSettings) {
             var r = toCeresParameter();

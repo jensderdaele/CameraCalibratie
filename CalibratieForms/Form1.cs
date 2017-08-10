@@ -92,7 +92,6 @@ namespace CalibratieForms {
             
             var sim = new CeresSimulation();
             sim.scene = scene;
-
             
 
             sim.Solve();

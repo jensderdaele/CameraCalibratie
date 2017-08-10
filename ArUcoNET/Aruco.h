@@ -5,6 +5,8 @@
 #include <opencv2\aruco.hpp>
 
 
+
+
 #include <opencv2\calib3d\calib3d.hpp>
 #include <opencv2\xfeatures2d\nonfree.hpp>
 
@@ -18,12 +20,20 @@ using namespace System;
 using namespace std;
 using namespace cv;
 using namespace System::Linq;
-using namespace System::Drawing;
+using namespace System::Drawing; 
+using namespace System::Collections::Generic;
 using namespace cv::xfeatures2d;
 
-
 namespace ArUcoNET {
-	
+
+	[FlagsAttribute]
+	public enum class CornerFlags : int {
+		Corner1_TOPLEFT = 0,
+		Corner2_TOPRIGHT = 0x10000,
+		Corner3_BOTTOMRIGHT =  0x20000,
+		Corner4_BOTTOMLEFT =  0x40000,
+	};
+	[Serializable]
 	public ref class ArucoMarker : Calibratie::Marker2d{
 	public:
 		System::Drawing::PointF Corner1;
@@ -36,14 +46,10 @@ namespace ArUcoNET {
 			int get()override{ return _id; }
 			void set(int v){ _id = v; }
 		};
-		virtual property float X{ float get() override{ return Corner1.X; } };
+		virtual property float X{ float get() override{ return Corner1.X; }};
 		virtual property float Y{ float get() override{ return Corner1.Y; }};
 
-		//virtual property System::Drawing::PointF^ PointF{System::Drawing::PointF^ get(){ return &Corner1; }};
-
-		ArucoMarker(){
-			
-		}
+		ArucoMarker(){}
 		ArucoMarker(System::Drawing::PointF^ Corner1, System::Drawing::PointF^ Corner2, System::Drawing::PointF^ Corner3, System::Drawing::PointF^ Corner4, int id){
 			this->Corner1 = *Corner1;
 			this->Corner2 = *Corner2;
@@ -223,6 +229,8 @@ namespace ArUcoNET {
 			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
 			imwrite(path, markerImage);
+
+			
 			
 		}
 		
@@ -252,6 +260,7 @@ namespace ArUcoNET {
 		
 		static IEnumerable<ArucoMarker^>^ FindMarkers(System::String^ fileName){
 			return FindMarkers(fileName, "");
+			
 		}
 		static IEnumerable<ArucoMarker^>^ FindMarkers(System::String^ fileName, System::String^ detectedFile){
 			std::string f = msclr::interop::marshal_as<std::string>(fileName);
@@ -265,6 +274,27 @@ namespace ArUcoNET {
 		}
 		static IEnumerable<ArucoMarker^>^ FindMarkers(Emgu::CV::Mat^ image, System::String^ detectedFile){
 			return FindMarkers((Mat*)(image->Ptr.ToPointer()), detectedFile);
+			
+		}
+
+		static void DrawMarkers(Emgu::CV::Mat^ image, IEnumerable<ArucoMarker^>^ markers) {
+			std::vector< std::vector<cv::Point2f> > markerCorners;
+			std::vector<int> markerIDs;
+			for each (ArucoMarker^ marker in markers) {
+				std::vector<cv::Point2f> corners;
+				markerIDs.push_back(marker->ID);
+				corners.push_back(cv::Point2f(marker->Corner1.X, marker->Corner1.Y));
+				corners.push_back(cv::Point2f(marker->Corner2.X, marker->Corner2.Y));
+				corners.push_back(cv::Point2f(marker->Corner3.X, marker->Corner3.Y));
+				corners.push_back(cv::Point2f(marker->Corner4.X, marker->Corner4.Y));
+				markerCorners.push_back(corners);
+			}
+
+			cv::aruco::drawDetectedMarkers(*(Mat*)(image->Ptr.ToPointer()), markerCorners, markerIDs);
+		}
+		static void DrawMarkers(Emgu::CV::Mat^ image, IEnumerable<ArucoMarker^>^ markers, System::String^ outDir) {
+			DrawMarkers(image, markers);
+			cv::imwrite(msclr::interop::marshal_as<std::string>(outDir), *(Mat*)(image->Ptr.ToPointer()));
 		}
 
 		//IGNORES MARKERS DIE VOOR 2E KEER GEVONDEN WORDEN 

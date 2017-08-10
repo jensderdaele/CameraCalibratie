@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.UI.Design.WebControls;
 using Calibratie;
 using CalibratieForms.Properties;
+using Emgu.CV;
 using MathNet.Numerics.LinearAlgebra.Complex;
 using OpenTK;
 
@@ -44,7 +45,15 @@ namespace CalibratieForms {
         }
 
         private static int count = 0;
-        private static string workspacename = "base";
+        public const string WORKSPACENAME = "base";
+
+        public static void SendMatrix(Matrix<double> mat, string matlabname, string workspacename = WORKSPACENAME) {
+            ML.PutWorkspaceData(matlabname, workspacename, mat.Data);
+        }
+        public static double[,] GetMatrix(string matlabname, string workspacename = WORKSPACENAME) {
+            ML.GetWorkspaceData(matlabname, workspacename,out object r);
+            return (double[,]) r;
+        }
 
 
         public static void ScatterPlot(Point2d[] data) {
@@ -61,9 +70,9 @@ namespace CalibratieForms {
             
             count++;
             string dataName = "scatterPlot" + count;
-            ML.PutWorkspaceData(dataName,workspacename,dataArray);
-            ML.PutWorkspaceData(dataName + "x", workspacename, xdata);
-            ML.PutWorkspaceData(dataName + "y", workspacename, ydata);
+            ML.PutWorkspaceData(dataName,WORKSPACENAME,dataArray);
+            ML.PutWorkspaceData(dataName + "x", WORKSPACENAME, xdata);
+            ML.PutWorkspaceData(dataName + "y", WORKSPACENAME, ydata);
 
 
             double[,] d = new double[data.Length, 2];
@@ -72,8 +81,8 @@ namespace CalibratieForms {
                 d[i, 1] = data[i].Y;
             }
             
-            ML.PutWorkspaceData(dataName, workspacename, d);
-            ML.PutFullMatrix("testScatterPlotMATRIX" + count, workspacename, d, d);
+            ML.PutWorkspaceData(dataName, WORKSPACENAME, d);
+            ML.PutFullMatrix("testScatterPlotMATRIX" + count, WORKSPACENAME, d, d);
             
             ML.Execute(String.Format(@" clear x;clear y;
                                         x={0}[0];
@@ -98,8 +107,8 @@ namespace CalibratieForms {
                 }
                 var xstr = dataName + "_x_" + index;
                 var ystr = dataName + "_y_" + index;
-                ML.PutWorkspaceData(xstr, workspacename, xdata);
-                ML.PutWorkspaceData(ystr, workspacename, ydata);
+                ML.PutWorkspaceData(xstr, WORKSPACENAME, xdata);
+                ML.PutWorkspaceData(ystr, WORKSPACENAME, ydata);
                 ML.Execute(String.Format(@"scatter({0},{1},'x'); hold on", xstr, ystr));
                 index++;
             }
@@ -107,12 +116,11 @@ namespace CalibratieForms {
             
             
         }
-
         public static void ScatterPlot(double[,] data) {
             count++;
             string dataName = "testScatterPlot" + count;
 
-            ML.PutWorkspaceData("test" + count, workspacename, count * 3);
+            ML.PutWorkspaceData("test" + count, WORKSPACENAME, count * 3);
             //ML.PutFullMatrix("testScatterPlotMATRIX" + count, workspacename, d, d);
 
             ML.Execute(String.Format(@" x={0}[0];

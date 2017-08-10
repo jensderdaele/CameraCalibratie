@@ -1,3 +1,4 @@
+#pragma once
 #pragma region c++embed
 template<typename T, int size>
 [System::Runtime::CompilerServices::UnsafeValueType]

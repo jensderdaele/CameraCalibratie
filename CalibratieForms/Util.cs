@@ -12,7 +12,9 @@ using ArUcoNET;
 using ceresdotnet;
 using Calibratie;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using MathNet.Numerics.Random;
 using OpenTK;
 
 
@@ -69,6 +71,37 @@ namespace CalibratieForms {
                 return hcode.GetHashCode();
             }
         }
+
+        public static Marker CreateFeatureFromCamera(PinholeCamera c, double sensorx, double sensory, double dist,int markerid) {
+            var fx = c.Intrinsics.fx;
+            var fy = c.Intrinsics.fy;
+            var x = sensorx - c.Intrinsics.cx;
+            var y = sensory - c.Intrinsics.cy;
+
+            var camZ = dist * fx * fy / Math.Sqrt(fx * fx + x * x) / Math.Sqrt(fy * fy + y * y);
+            var camX = x / fx * camZ;
+            var camY = y / fy * camZ;
+
+            var camCoord = new Matrix<double>(new []{camX,camY,camZ,1});
+
+            var coord = c.WorldMat * camCoord;
+
+           return new Marker(markerid, coord[0, 0] / coord[3, 0], coord[1, 0] / coord[3, 0], coord[2, 0] / coord[3, 0]); 
+        }
+
+        public static Scene testScene_featuressimulation(double distmean, double diststd, int features) {
+            var r = new Scene();
+            var c = new PinholeCamera(CameraIntrinsics.GOPROHERO3_BROWNR3_AFGEROND_EXTRADIST);
+            r.Add(c);
+            Random rand = new WH2006();
+            for (int i = 0; i < features; i++) {
+                var sensorx = rand.NextDouble() * c.Intrinsics.PictureSize.Width;
+                var sensory = rand.NextDouble() * c.Intrinsics.PictureSize.Height;
+                var dist = Util.NextGaussian(distmean, diststd);
+                r.Add(CreateFeatureFromCamera(c,sensorx,sensory,dist,i));
+            }
+            return r;
+        }
         public static List<Marker> createBox(double xmax, double ymax, double zmax, double step) {
             int count = 0;
             var ptn3d = new List<Marker>();
@@ -93,23 +126,72 @@ namespace CalibratieForms {
             return ptn3d;
         } 
         public static Scene bundleAdjustScene() {
-            //scene bevat SObject. dit kunnen eender welke elementen zijn die hier van overerven
-            var s = new Scene(); 
+            return bundleAdjustScene(10, 1);
+        }
+        private static List<Marker> lastBox;
+        private static double _lastboxafst;
 
+        public static Scene FeatureSimulationScene(double featureafstand) {
+            //scene bevat SObject. dit kunnen eender welke elementen zijn die hier van overerven
+            var s = new Scene();
             //calibratieruimte 8x4x10m elke 1m een marker, returns List<CalibratieForms::Marker>
-            var ptn3d = createBox(8, 4, 10, 0.2); 
+
+            var ptn3d = featureafstand == _lastboxafst ? lastBox : createBox(8, 4, 10, featureafstand);
+            _lastboxafst = featureafstand;
+            lastBox = ptn3d;
+
             s.objects.AddRange(ptn3d); //markers toevoegen aan scene
 
             Random rnd = new Random();
             int index = rnd.Next(ptn3d.Count);
             var cameras = new List<PinholeCamera>();
-            for (int i = 0; i < 6; i++) { //7 foto's met Huawei camera
-                var c = PinholeCamera.getTestCameraHuawei();//Huawei bepaald via Zhang
-                c.Name = "huaweip9";
+
+            var intr = CameraIntrinsics.EOS5DMARKII;
+            for (int i = 0; i < 20; i++) { //10 foto's met Huawei camera
+                //var c = PinholeCamera.getTestCameraHuawei();//Huawei bepaald via Zhang
+                var c = new PinholeCamera(intr);
+                c.Name = "EOS5DMARKII";
                 var pos = new Matrix<double>(new double[] { rnd.Next(2, 6), 2, rnd.Next(3, 7) });//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
                 var target = ptn3d[rnd.Next(ptn3d.Count)]; //camera richt naar een random gekozen marker
                 var worldtocamera = MatrixExt.LookAt(pos, target.Pos, MatrixExt.UnitVectorY<double>()); //berekend de wereld->cameracoordinaten
-                c.WorldMat = worldtocamera.Inverted();
+                var worldmat = worldtocamera.Inverted();
+                c.WorldMat = worldmat;
+
+                //camera->wereldcoordinaten. 
+                //Deze matrix bevat dus op kolom3 de Positie van de camera in wereldcoordinten, 
+                //hiernaast de rotatie in 3x3 ([R t])
+                cameras.Add(c);
+            }
+            s.objects.AddRange(cameras);
+            return s;
+        }
+        public static Scene bundleAdjustScene(int cameranumber, double featureafstand) {
+            //scene bevat SObject. dit kunnen eender welke elementen zijn die hier van overerven
+            var s = new Scene();
+
+            //calibratieruimte 8x4x10m elke 1m een marker, returns List<CalibratieForms::Marker>
+            
+            var ptn3d = featureafstand == _lastboxafst ? lastBox : createBox(8, 4, 10, featureafstand);
+            _lastboxafst = featureafstand;
+            lastBox = ptn3d;
+
+            s.objects.AddRange(ptn3d); //markers toevoegen aan scene
+
+            Random rnd = new Random();
+            int index = rnd.Next(ptn3d.Count);
+            var cameras = new List<PinholeCamera>();
+
+            var intr = CameraIntrinsics.EOS5DMARKII;
+            for (int i = 0; i < cameranumber; i++) { //10 foto's met Huawei camera
+                //var c = PinholeCamera.getTestCameraHuawei();//Huawei bepaald via Zhang
+                var c = new PinholeCamera(intr);
+                c.Name = "EOS5DMARKII";
+                var pos = new Matrix<double>(new double[] { rnd.Next(2, 6), 2, rnd.Next(3, 7) });//camera staat op x: 2-6m, y=2m, z=3-7m random gekozen
+                var target = ptn3d[rnd.Next(ptn3d.Count)]; //camera richt naar een random gekozen marker
+                var worldtocamera = MatrixExt.LookAt(pos, target.Pos, MatrixExt.UnitVectorY<double>()); //berekend de wereld->cameracoordinaten
+                var worldmat = worldtocamera.Inverted();
+                c.WorldMat = worldmat;
+                
                 //camera->wereldcoordinaten. 
                 //Deze matrix bevat dus op kolom3 de Positie van de camera in wereldcoordinten, 
                 //hiernaast de rotatie in 3x3 ([R t])
@@ -128,6 +210,8 @@ namespace CalibratieForms {
             s.objects.AddRange(cameras);
             return s;
         }
+
+        
 
         public static Scene bundleAdjustSceneMultiCollection() {
             //scene bevat SObject. dit kunnen eender welke elementen zijn die hier van overerven
@@ -155,7 +239,7 @@ namespace CalibratieForms {
             CameraCollection coll = new CameraCollection(cameras);
             CameraCollection coll2 = new CameraCollection(cameras);
             
-            coll.SetCollectionCenter_MidCameras();
+            //coll.SetCollectionCenter_MidCameras();
 
             /*for (int i = 0; i < 5; i++) { //5 foto's met Casio camera
                 var c = PinholeCamera.getTestCamera();//Casio bepaald via zhang
@@ -208,7 +292,7 @@ namespace CalibratieForms {
             double x;
             do {
                 x = NextGaussian(mean, standard_deviation);
-            } while (x < min || x > max);
+            } while (!(x>min && x<max));
             return x;
         }
         public static double[] gaussDistr(int count,double mean, double standard_deviation, double min, double max) {

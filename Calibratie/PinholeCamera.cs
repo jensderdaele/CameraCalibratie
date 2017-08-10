@@ -2,180 +2,66 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
-using SceneManager;
-
 using ceresdotnet;
 using System.Runtime.InteropServices;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Newtonsoft.Json;
 
 using Size = System.Drawing.Size;
 using Point2d = Emgu.CV.Structure.MCvPoint2D64f;
+using Matrix = Emgu.CV.Matrix<double>;
 
 namespace Calibratie {
     
-    public class CameraIntrinsics : INotifyPropertyChanged, ICeresParameterConvertable<CeresIntrinsics> {
+    
 
-        public static CameraIntrinsics EOS5DMARKII {
-            get {
-                return new CameraIntrinsics();
-            }
-        }
+    [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
+    public class PinholeCamera : SObject, INotifyPropertyChanged, ICeresParameterConvertable<CeresPointOrient>, ICeresParameterConvertable<CeresIntrinsics>, IXmlSerializable {
+        public static PinholeCamera FromXML(XmlReader reader, Func<int, CameraIntrinsics> getSensorForID = null) {
+            if (reader.Name == "camera" && reader.NodeType == XmlNodeType.Element) {
 
-        /// <summary>
-        /// fotogrootte in pixels
-        /// </summary>
-        public Size PictureSize { get; set; }
-
-
-        public CameraIntrinsics(double[,] mat) {
-            Mat = mat;
-        }
-        public CameraIntrinsics(Matrix<double> mat) {
-            cvmat = mat;
-        }
-        public CameraIntrinsics() {}
-
-        private double[,] _mat = new double[3, 3];
-        public double[,] Mat { get { return _mat; } set { _mat = value; OnPropertyChanged(); } }
-
-        public double ac { get { return Mat[0, 1] / fx; } set { Mat[0, 1] = value * fx; OnPropertyChanged(); } }
-
-        /// <summary>
-        /// copy cv mat
-        /// </summary>
-        public Matrix<double> cvmat {
-            get {return new Matrix<double>(_mat);}
-            set { _mat = value.Data; } }
-
-        public double fx {
-            get { return Mat[0, 0]; }
-            set { Mat[0, 0] = value; OnPropertyChanged(); }
-        }
-        public double fy {
-            get { return Mat[1, 1]; }
-            set { Mat[1, 1] = value; OnPropertyChanged(); }
-        }
-        public double cx {
-            get { return Mat[0, 2]; }
-            set { Mat[0, 2] = value; OnPropertyChanged(); }
-        }
-        public double cy {
-            get { return Mat[1, 2]; }
-            set { Mat[1, 2] = value; OnPropertyChanged(); }
-        }
-
-        private readonly CameraMatrix _cameraMatrix;
-
-        public Matrix<double> Cv_DistCoeffs4 {
-            get {
-                return new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
-            }
-        }
-
-        /// <summary>
-        /// sets the distortion, 2,3 (zonder tang) of 4, 5(met tang) waarden
-        /// </summary>
-        public Matrix<double> CVDIST {
-            set {
-                _distortionR1 = value[0, 0];
-                _distortionR2 = value[1, 0];
-
-                if (value.Rows == 3) {
-                    _distortionR3 = value[2, 0];
+                var r = new PinholeCamera();
+                r.ReadXml(reader);
+                if (getSensorForID != null) {
+                    r._intrinsics = getSensorForID(r.SensorID);
                 }
-                if (value.Rows == 4) {
-                    _distortionT1 = value[3, 0];
-                    _distortionT2 = value[4, 0];
-                }
-                if (value.Rows == 5) {
-                    _distortionR3 = value[2, 0];
-                    _distortionT1 = value[3, 0];
-                    _distortionT2 = value[4, 0];
-                }
+                return r;
             }
-        } 
-        public Matrix<double> Cv_DistCoeffs5 {
-            get {
-                return new Matrix<double>(dist5);
-            }
-            set {
-                
-            }
+            return null;
         }
-        public double[] dist5 {
-            get {
-                return new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3 };
-            }
-        }
-
-
-        private double _distortionR1, _distortionR2, _distortionR3;
-        private double _distortionT1, _distortionT2;
-        public double DistortionR1 { get { return _distortionR1; } set { _distortionR1 = value; OnPropertyChanged(); } }
-        public double DistortionR2 { get { return _distortionR2; } set { _distortionR2 = value; OnPropertyChanged(); } }
-        public double DistortionR3 { get { return _distortionR3; } set { _distortionR3 = value; OnPropertyChanged(); } }
-        public double DistortionT1 { get { return _distortionT1; } set { _distortionT1 = value; OnPropertyChanged(); } }
-        public double DistortionT2 { get { return _distortionT2; } set { _distortionT2 = value; OnPropertyChanged(); } }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            var handler = PropertyChanged;
-            if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
-        }
-
-
+        /// <summary>
+        /// Transformation is reeds bepaald? (agisoft xml transfrom node aanwezig)
+        /// </summary>
+        public bool TransformationSet { get; set; }
         
         /// <summary>
-        /// returns a new ceresparameter class
+        /// Enabled (agisoft xml 'enabled' node)
         /// </summary>
-        /// <returns></returns>
-        public CeresIntrinsics toCeresParameter() {
-            if (_ceresintr == null) {
-                _ceresintr = new CeresIntrinsics(cvmat, dist5);
-            }
-            else {
-                _ceresintr.set(cvmat, dist5);
-            }
-            return _ceresintr;
-        }
-        private CeresIntrinsics _ceresintr;
-
-        public CeresIntrinsics toCeresParameter(Enum BundleSettings) {
-            var r = toCeresParameter();
-            r.BundleFlags = (BundleIntrinsicsFlags)BundleSettings;
-            return r;
-        }
-
+        public bool Enabled { get; set; }
         /// <summary>
-        /// update internal values
+        /// filename (agisoft xml 'label' node)
         /// </summary>
-        /// <param name="paramblock"></param>
-        public void updateFromCeres(CeresIntrinsics paramblock) {
-            fx = paramblock.fx;
-            fy = paramblock.fy;
-            _distortionR1 = paramblock.k1;
-            _distortionR2 = paramblock.k2;
-            _distortionR3 = paramblock.k3;
-            _distortionT1 = paramblock.p1;
-            _distortionT2 = paramblock.p2;
-            cx = paramblock.ppx;
-            cy = paramblock.ppy;
-
-            OnPropertyChanged();
-        }
-    }
-    [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
-    
-    
-    public class PinholeCamera : SObject, INotifyPropertyChanged, ICeresParameterConvertable<CeresPointOrient>, ICeresParameterConvertable<CeresIntrinsics> {
+        public string Label { get; set; }
+        /// <summary>
+        /// for internal use, enkel agisoft xml atm
+        /// </summary>
+        public int CameraID { get; set; }
+        /// <summary>
+        /// for internal use, enkel agisoft xml atm
+        /// </summary>
+        public int SensorID { get; set; }
+        
         private CameraIntrinsics _intrinsics;
         public CameraIntrinsics Intrinsics { get { return _intrinsics;} }
         /// <summary>
@@ -252,6 +138,22 @@ namespace Calibratie {
             }
         }
 
+        /// <summary>
+        /// 3x4 projection matrix in huidig assenstelsel
+        /// </summary>
+        public Matrix<double> ProjectionMatrix {
+            get {
+                var k = new Matrix(3, 4);
+                CvInvoke.HConcat(this.Intrinsics.cvmat, new Matrix(3, 1), k);
+                //return k*this.WorldMat.Inverted();
+                var rt = new Matrix(3, 4);
+                CvInvoke.HConcat(this.Rot_transform, this.Pos_transform, rt);
+                return Intrinsics.cvmat*rt;
+            }
+        }
+
+
+
         public Matrix<double> Rvecs {get { return this.Rodr; }}
 
         public Matrix<double> Tvecs {get { return Pos; }}
@@ -266,6 +168,10 @@ namespace Calibratie {
         }
         public Vector2[] ProjectBoard_Cv(ChessBoard b) {
             return ProjectBoard_Cv_p2d(b).Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray();
+        }
+
+        public Matrix CalcFMat(PinholeCamera camera2) {
+            throw new NotImplementedException();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -351,74 +257,18 @@ namespace Calibratie {
             return new Point2d();
         }
 
-
-
-        /*
-        ~PinholeCamera() {
-            if (_Rt != IntPtr.Zero) Marshal.FreeHGlobal(_Rt);
-            if (_Intrinsics != IntPtr.Zero) Marshal.FreeHGlobal(_Intrinsics);
+        public PointF ProjectPoint_ceresdotnetAgisoftmodel(IMarker3d point) {
+            throw new NotImplementedException();
         }
-
-        
-        #region ICERESCAMERA
-        private IntPtr _Rt;
-        private IntPtr _Intrinsics;
-
-        private void updateCeresRtValues() {
-            var projMat = worldMat.Inverted();
-            Vector3d axis;
-            double angle;
-            projMat.ExtractRotation().ToAxisAngle(out axis, out angle);
-            axis.Normalize();
-            axis = axis * angle;
-            Marshal.Copy(axis.toArr(), 0, _Rt, 3);
-        }
-
-        private unsafe void updateCeresIntrinsics() {
-            var ptr = (double*)_Intrinsics.ToPointer();
-            ptr[(int)IntrinsicsOffsets.OFFSET_FOCAL_LENGTH_X] = this.CameraMatrix.fx;
-            ptr[(int)IntrinsicsOffsets.OFFSET_FOCAL_LENGTH_Y] = this.CameraMatrix.fy;
-            ptr[(int)IntrinsicsOffsets.OFFSET_PRINCIPAL_POINT_X] = this.CameraMatrix.cx;
-            ptr[(int)IntrinsicsOffsets.OFFSET_PRINCIPAL_POINT_Y] = this.CameraMatrix.cy;
-            ptr[(int)IntrinsicsOffsets.OFFSET_K1] = this.DistortionR1;
-            ptr[(int)IntrinsicsOffsets.OFFSET_K2] = this.DistortionR2;
-            ptr[(int)IntrinsicsOffsets.OFFSET_P1] = this.DistortionT1;
-            ptr[(int)IntrinsicsOffsets.OFFSET_P2] = this.DistortionT2;
-            ptr[(int)IntrinsicsOffsets.OFFSET_K3] = this.DistortionR3;
-        }
-
-
-        unsafe double* ICeresCamera.Rt {
-            get {
-                if (_Rt == IntPtr.Zero) {
-                    _Rt = Marshal.AllocHGlobal(sizeof(double) * 6);
-                    updateCeresRtValues();
-                }
-                return (double*)_Rt;
-            }
-        }
-
-        BundleIntrinsicsFlags ICeresCamera.BundleIntrinsics { get; set; }
-
-        unsafe double* ICeresCamera.Intrinsics {
-            get {
-                if (_Intrinsics == IntPtr.Zero) {
-                    _Intrinsics = Marshal.AllocHGlobal(sizeof(double) * 9);
-                    updateCeresIntrinsics();
-                }
-                return (double*)_Intrinsics;
-            }
-        }
-
-        string ICeresCamera.Name {
-            get { return this.Name; }
-        }
-        #endregion
-         * */
 
 
         CeresIntrinsics ICeresParameterConvertable<CeresIntrinsics>.toCeresParameter(Enum BundleSettings) {
             return Intrinsics.toCeresParameter(BundleSettings);
+        }
+
+        public void updateFromCeres() {
+            Intrinsics.updateFromCeres(this.Intrinsics._ceresintr);
+            this.updateFromCeres(this._ceresparam);
         }
 
         public void updateFromCeres(CeresIntrinsics paramblock) {
@@ -465,6 +315,56 @@ namespace Calibratie {
             setPos(paramblock.t);
 
             WorldMat = WorldMat.Inverted();
+
+            OnPropertyChanged();
+        }
+
+
+
+        /// <summary>
+        /// from agisoft xml (node = "camera")
+        /// </summary>
+        /// <param name="reader"></param>
+        public void ReadXml(XmlReader reader) {
+
+            if (reader.Name == "camera" && reader.NodeType == XmlNodeType.Element) {
+                this.CameraID = int.Parse(reader["id"]);
+                this.SensorID = int.Parse(reader["sensor_id"]);
+                this.Label = reader["label"];
+                this.Enabled = bool.Parse(reader["enabled"]);
+                this.TransformationSet = false;
+                while (reader.Read()) {
+                    switch (reader.Name) {
+                        case "camera": //end of node
+                            return;
+                            break;
+                        case "transform":
+                            base.ReadXml(reader);
+                            this.TransformationSet = true;
+                            break;
+                        case "orientation": //geen idee ( = 1)
+                            break;
+                    }
+
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// not implemented
+        /// </summary>
+        /// <param name="writer"></param>
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteName("camera");
+            writer.WriteAttributeString("id", this.CameraID.ToString());
+            writer.WriteAttributeString("label", this.Label);
+            writer.WriteAttributeString("sensor_id", this.SensorID.ToString());
+            writer.WriteAttributeString("enabled", this.Enabled.ToString());
+            if (this.Enabled) {
+                base.WriteXml(writer);
+            }
+            writer.WriteEndElement();
         }
     }
 

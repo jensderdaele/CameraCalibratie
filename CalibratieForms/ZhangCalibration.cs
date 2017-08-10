@@ -167,13 +167,12 @@ namespace CalibratieForms {
 
 
             Matrix cameramat = new Matrix(3,3);
-            Matrix distcoeffs = new Matrix(1,5);
+            distCoeffs = new Matrix(4, 1);
             Mat[] rvecs, tvecs;
             CVI.CalibrateCamera(worldpoints.Select(x=>x.ToArray()).ToArray(), imagepoints.ToArray(), images.First().imageSize,
-                cameramat, distcoeffs, CalibType.Default, new MCvTermCriteria(), 
+                cameramat, distCoeffs, CalibType.Default, new MCvTermCriteria(), 
                 out rvecs, out tvecs);
             cameraMat = cameramat;
-            distCoeffs = distcoeffs.Transpose();
         }
 
         public void CalibrateCV(ChessBoard cb, out CameraIntrinsics intr) {
