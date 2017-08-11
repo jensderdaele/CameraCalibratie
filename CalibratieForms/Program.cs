@@ -611,6 +611,7 @@ namespace CalibratieForms {
                 
             }
             var camoriginal = sims.First().OriginalValues.First().Value;
+
             var introriginal = sims.First().OriginalValues.First().Value.Intrinsics;
             var matoriginal = new Matrix(new[]{1,1,introriginal.fx, introriginal.fy, introriginal.cx, introriginal.cy,
                 introriginal.DistortionR1, introriginal.DistortionR2, introriginal.DistortionR3,
