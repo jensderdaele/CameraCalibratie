@@ -19,6 +19,15 @@ using namespace System::Runtime::CompilerServices;
 
 
 namespace ceresdotnet {
+	enum {
+		OFFSET_RODR1,
+		OFFSET_RODR2,
+		OFFSET_RODR3,
+		OFFSET_T1,
+		OFFSET_T2,
+		OFFSET_T3,
+		OFFSET_SCALE
+	};
 	public ref class CeresParameterBlock abstract {
 	private:
 		bool _paramterizationset = false;
@@ -668,4 +677,20 @@ namespace ceresdotnet {
 
 	};
 
+	public ref class CeresScaledTransformation : CeresPointOrient {
+	public:
+		property int Length { int get() override { return 7; }}
+		//bool getBlockFullyVariable() override { return true; }
+		//bool getBlockFullyConstant() override { return false; }
+		//ceres::SubsetParameterization* GetPrametrization() override {return NULL;}
+
+		property double scale {
+			double get() {
+				return _data[OFFSET_SCALE];
+			}
+			void set(double v) {
+				_data[OFFSET_SCALE] = v;
+			}
+		}
+	};
 }

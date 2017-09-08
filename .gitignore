@@ -189,7 +189,6 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 #folders
-Project1/
 .vs/
 Arucolib/
 AutocadTest/
@@ -205,3 +204,4 @@ Calibratie.backup/
 CalibratieWpf/
 SceneManager/
 WpfApplication1/
+Trenchtest/

@@ -72,22 +72,47 @@ namespace CalibratieForms {
             }
         }
 
+        /// <summary>
+        /// Houd geen rekening met distorsie
+        /// </summary>
         public static Marker CreateFeatureFromCamera(PinholeCamera c, double sensorx, double sensory, double dist,int markerid) {
             var fx = c.Intrinsics.fx;
             var fy = c.Intrinsics.fy;
             var x = sensorx - c.Intrinsics.cx;
             var y = sensory - c.Intrinsics.cy;
 
+            //cameracoordinaten
             var camZ = dist * fx * fy / Math.Sqrt(fx * fx + x * x) / Math.Sqrt(fy * fy + y * y);
             var camX = x / fx * camZ;
             var camY = y / fy * camZ;
 
             var camCoord = new Matrix<double>(new []{camX,camY,camZ,1});
 
+            //wereldcoordinaten
             var coord = c.WorldMat * camCoord;
 
            return new Marker(markerid, coord[0, 0] / coord[3, 0], coord[1, 0] / coord[3, 0], coord[2, 0] / coord[3, 0]); 
         }
+
+        public static Scene testScene_fotossimulation(double distmean, double diststd,int features, int fotos) {
+            var r = new Scene();
+            var intr = CameraIntrinsics.GOPROHERO3_BROWNR3_AFGEROND_EXTRADIST;
+            for (int fotoIndex = 0; fotoIndex < fotos; fotoIndex++) {
+                var c = new PinholeCamera(intr);
+                c.X += fotoIndex * 100;
+
+                r.Add(c);
+                Random rand = new WH2006();
+                for (int i = 0; i < features; i++) {
+                    var sensorx = rand.NextDouble() * c.Intrinsics.PictureSize.Width;
+                    var sensory = rand.NextDouble() * c.Intrinsics.PictureSize.Height;
+                    var dist = Util.NextGaussian(distmean, diststd);//5 & 0
+                    r.Add(CreateFeatureFromCamera(c, sensorx, sensory, dist, i));
+                }
+            }
+            return r;
+        }
+
 
         public static Scene testScene_featuressimulation(double distmean, double diststd, int features) {
             var r = new Scene();

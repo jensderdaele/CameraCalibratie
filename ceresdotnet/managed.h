@@ -133,6 +133,12 @@ namespace ceresdotnet {
 		}
 	};
 
+	public ref class CeresGCP {
+		CeresPoint^ Triangulated;
+		double observed_x, observed_y, observed_z;
+		int id;
+	};
+
 #pragma endregion
 
 #pragma region Solving
@@ -225,6 +231,7 @@ namespace ceresdotnet {
 		List<CeresCameraCollection^>^ CollectionList = gcnew List<CeresCameraCollection^>();
 		List<CeresCamera^>^ StandaloneCameraList = gcnew List<CeresCamera^>();
 		MarkersFromCameraDelegate^ MarkersFromCamera;
+		List<CeresGCP^>^ GCPList = gcnew List<CeresGCP^>();
 
 		
 		int ScaledownMaps;

@@ -3,10 +3,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2\core.hpp>
 #include <opencv2\aruco.hpp>
-
-
-
-
 #include <opencv2\calib3d\calib3d.hpp>
 #include <opencv2\xfeatures2d\nonfree.hpp>
 
@@ -219,6 +215,20 @@ namespace ArUcoNET {
 		delete[] buffer;
 		return ret;
 	}
+	public ref class SIFTTEST
+	{
+	public:
+		static void test()
+		{
+			auto img1 = cv::imread("D:\\3dtrenchview\\autofeaturedetection\\testdata\\G0026845.JPG");
+			auto img2 = cv::imread("D:\\3dtrenchview\\autofeaturedetection\\testdata\\G0026846.JPG");
+			Mat roi = img1(Rect(1125, 1941, 517, 321)); 
+			namedWindow("Example1");
+			imshow("Example1", roi);
+			cvSaveImage("D:\\3dtrenchview\\autofeaturedetection\\testdata\\G0026845_saveroi.JPG", &img1);
+
+		}
+	};
 
 	public ref class Aruco{
 	private:
@@ -229,9 +239,6 @@ namespace ArUcoNET {
 			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
 			imwrite(path, markerImage);
-
-			
-			
 		}
 		
 		static System::IntPtr CreateMarker(int id, int pixelSz){
@@ -270,7 +277,7 @@ namespace ArUcoNET {
 			int start = GetTickCount();
 			Mat testImage = imread(f, IMREAD_COLOR);
 			return FindMarkers(&testImage, detectedFile);
-			
+		
 		}
 		static IEnumerable<ArucoMarker^>^ FindMarkers(Emgu::CV::Mat^ image, System::String^ detectedFile){
 			return FindMarkers((Mat*)(image->Ptr.ToPointer()), detectedFile);

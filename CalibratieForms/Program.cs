@@ -25,6 +25,7 @@ using PhotoscanIO;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Features2D;
+using Emgu.CV.Flann;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Emgu.CV.XFeatures2D;
@@ -204,9 +205,11 @@ namespace CalibratieForms {
 
         }
         public static void TestFeatureDetectionGCP() {
+            ArUcoNET.SIFTTEST.test();
             var img1s = @"D:\3dtrenchview\autofeature detection\test data\G0026845.JPG";
 
             Rectangle roi = new Rectangle(1125, 1941, 517, 321);
+            PointF gcp1 = new PointF(1310,2074);
             var img1 = new Image<Rgb, Byte>(new Bitmap(img1s));
             //var img1 = CVI.Imread(img1s);
 
@@ -235,23 +238,9 @@ namespace CalibratieForms {
             VectorOfKeyPoint kpts2 = new VectorOfKeyPoint();
             algorithm.DetectRaw(img2, kpts2);
             descriptor.Compute(img2, kpts2, d2);
-            Emgu.CV.Features2D.BFMatcher matchere = new BFMatcher(DistanceType.L2, true);
-            Emgu.CV.Features2D.BFMatcher matcher = new BFMatcher(DistanceType.L2);
-            matcher.Add(d);
-            var k = 2;
-            VectorOfVectorOfDMatch vectormatches = new VectorOfVectorOfDMatch();
-            matcher.KnnMatch(d, vectormatches, k, null);
-
-
-            //var mask = new Matrix<byte>(dist.Rows, 1);
-
-            // mask.SetValue(255);
-
-            Features2DToolbox.VoteForUniqueness(vectormatches, 0.8, null);
-
-
-
-
+            
+            Emgu.CV.Features2D.FlannBasedMatcher flann = new FlannBasedMatcher(new KdTreeIndexParams(5),new SearchParams(50));
+            
         }
         public static void TestBlurDetection() {
             var dir = @"D:\3dtrenchview\opnames\17.03.21.Roeselare.Veldstraat\4\";
@@ -553,7 +542,77 @@ namespace CalibratieForms {
             }
         }
 
-        
+        public static void multicamsim_fotosinvloed() {
+            List<CeresSimulation> sims = new List<CeresSimulation>();
+            Matrix<double> graphgem = null;
+
+            var featurecount = 20; //20 features per foto
+            var fotoslist = new int[] { 2,3,4,5,6,8,10,12,15 }; //x-waarden (9)
+            string matlab_matrixname = String.Format("TESTFOTOSVARIATIONGOPROHERO3_std{0}_dist{1}_std3d{2}featcount{3}", std, 5, 0, featurecount);
+
+            foreach (var fotocount in fotoslist) {
+                int redocounter = 0;
+                Matrix<double> graph = null;
+                int totaalredo = 1000;
+                for (int redo = 0; redo < totaalredo; redo++) {
+                    redocounter++;
+                    var sim = new CeresSimulation {
+                        //scene met 1 camera & features op 5+-0m 
+                        scene = Util.testScene_fotossimulation(1, 0, featurecount, fotocount)
+                    };
+                    sims.Add(sim);
+
+                    //Ruis instellen
+                    sim.PixelRuisProvider = new GaussRuisProvider(0, std);
+                    //sim.CameraModifier = new CameraModifier();
+
+                    sim.SolveMultiCollection();
+
+                    var camera_original = sim.OriginalValues.First().Value;//er is maar 1 interne param
+                    var camera_calibrated = sim.OriginalValues.First().Key;//dus First() is ok
+                    var intr_or = camera_original.Intrinsics;
+                    var intr_cal = camera_calibrated.Intrinsics;
+
+                    var camxerror = camera_calibrated.X - camera_original.X;
+                    var camyerror = camera_calibrated.Y - camera_original.Y;
+                    var camzerror = camera_calibrated.Z - camera_original.Z;
+
+                    //data voor matlab; abs() nodig -> anders is gemiddelde 0
+                    var m = new Matrix(new[]{
+                        fotocount,featurecount,sim.lastReproj,
+                        Math.Abs(intr_cal.fx - intr_or.fx),
+                        Math.Abs(intr_cal.fy - intr_or.fy),
+                        Math.Abs(intr_cal.cx-intr_or.cx),
+                        Math.Abs(intr_cal.cy-intr_or.cy),
+                        Math.Abs(intr_cal.DistortionR1-intr_or.DistortionR1),
+                        Math.Abs(intr_cal.DistortionR2-intr_or.DistortionR2),
+                        Math.Abs(intr_cal.DistortionR3-intr_or.DistortionR3),
+                        Math.Abs(intr_cal.DistortionT1-intr_or.DistortionT1),
+                        Math.Abs(intr_cal.DistortionT2-intr_or.DistortionT2),
+                        Math.Abs(camxerror),Math.Abs(camyerror),Math.Abs(camzerror),
+                        Math.Sqrt(camxerror*camxerror + camyerror*camyerror + camzerror*camzerror)});
+
+                    graph = graph ?? new Matrix<double>(m.Rows, 1);
+                    graph += m;
+                }
+                graph /= redocounter; //gemiddelde
+                graphgem = graphgem == null ? graph : graphgem.ConcateHorizontal(graph);
+                
+                Matlab.SendMatrix(graphgem, matlab_matrixname); //naar matlab
+
+            }
+            var camoriginal = sims.First().OriginalValues.First().Value;
+
+            var introriginal = sims.First().OriginalValues.First().Value.Intrinsics;
+            var matoriginal = new Matrix(new[]{1,1,1,introriginal.fx, introriginal.fy, introriginal.cx, introriginal.cy,
+                introriginal.DistortionR1, introriginal.DistortionR2, introriginal.DistortionR3,
+                introriginal.DistortionT1, introriginal.DistortionT2,
+                camoriginal.X,camoriginal.Y,camoriginal.Z,0});
+
+            graphgem = graphgem.ConcateHorizontal(matoriginal); //laatste tabel = originele waarden
+            Matlab.SendMatrix(graphgem, matlab_matrixname); //naar matlab
+        }
+
         private static double std = 4;
         public static void multicamsim_featuresinvloed() {
             List<CeresSimulation> sims = new List<CeresSimulation>();
@@ -633,16 +692,17 @@ namespace CalibratieForms {
 
             var chunk = project.Chunks.Last();
             var pc = chunk.readPointCloud();
+            
             var points = pc.ReadPoints().ToList();
             var comparer = new MarkerIDComparer();
-
             points.Sort(comparer);
 
             var bundler = new CeresCameraMultiCollectionBundler();
 
 
-            Dictionary<CeresCamera, IEnumerable<CeresMarker>> markerdict = new Dictionary<CeresCamera, IEnumerable<CeresMarker>>();
 
+
+            Dictionary<CeresCamera, IEnumerable<CeresMarker>> markerdict = new Dictionary<CeresCamera, IEnumerable<CeresMarker>>();
             bool onlyonce = true;
             var maxImages = 2000;
             int imagecount = 0;
@@ -661,7 +721,7 @@ namespace CalibratieForms {
                 var camera = chunk.GetCameraFromID(cameraid);
                 var markers = pc.ReadMarkersForCameraID(cameraid).ToArray();
 
-                camera.Intrinsics.DistortionR1 = intr_flags.HasFlag(BundleIntrinsicsFlags.R1)? camera.Intrinsics.DistortionR1 : 0;
+                /*camera.Intrinsics.DistortionR1 = intr_flags.HasFlag(BundleIntrinsicsFlags.R1)? camera.Intrinsics.DistortionR1 : 0;
                 camera.Intrinsics.DistortionR2 = intr_flags.HasFlag(BundleIntrinsicsFlags.R2)? camera.Intrinsics.DistortionR2 : 0;
                 camera.Intrinsics.DistortionR3 = intr_flags.HasFlag(BundleIntrinsicsFlags.R3)? camera.Intrinsics.DistortionR3 : 0;
                 camera.Intrinsics.DistortionR4 = intr_flags.HasFlag(BundleIntrinsicsFlags.R4)? camera.Intrinsics.DistortionR4 : 0;
@@ -669,7 +729,7 @@ namespace CalibratieForms {
                 camera.Intrinsics.DistortionT1 = 0;
                 camera.Intrinsics.DistortionT2 = 0;
                 camera.Intrinsics.DistortionT3 = 0;
-                camera.Intrinsics.DistortionT4 = 0;
+                camera.Intrinsics.DistortionT4 = 0;*/
                 camera.Intrinsics.skew = 0;
                 var intrinsicsps = camera.Intrinsics.toCeresParameter();
                 var ceresext = camera.toCeresParameter();
@@ -736,6 +796,14 @@ namespace CalibratieForms {
                 markerdict.Add(cc, ceresMarkers);
             }
 
+            Dictionary<GCP, CeresPoint> gcps = new Dictionary<GCP, CeresPoint>();
+            foreach (var gcp in chunk.GCPs) {
+                var found = points.BinarySearch(new Marker(gcp.Id, 0, 0, 0), comparer);
+                if (found >= 0) {
+                    gcps.Add(gcp, points[found].toCeresParameter());
+                }
+            }
+
             var ceresintr = bundler.StandaloneCameraList.First().Internal;
 
             string cameraparamsstring = "";
@@ -746,6 +814,7 @@ namespace CalibratieForms {
 
             double lastCost = 0;
             bundler.MarkersFromCamera = (cerescamera, cerescamcoll) => markerdict[cerescamera].ToList();
+
             bundler.bundleCollections((sender, summary) => {
                 if (!summary.step_is_successful)
                     return CeresCallbackReturnType.SOLVER_CONTINUE;
@@ -1636,7 +1705,7 @@ namespace CalibratieForms {
                 var allRflags = BundleIntrinsicsFlags.R1 | BundleIntrinsicsFlags.R2 | BundleIntrinsicsFlags.R3 |
                                 BundleIntrinsicsFlags.R4 | BundleIntrinsicsFlags.R5 | BundleIntrinsicsFlags.R6;
                 var allflags = BundleIntrinsicsFlags.ALL_PHOTOSCAN | BundleIntrinsicsFlags.ALL_STANDARD |
-                               BundleIntrinsicsFlags.ALL_OPENCVADVANCED;
+                               BundleIntrinsicsFlags.ALL_OPENCVADVANCED; 
 
                 mat = mat?.ConcateHorizontal(m);
                 mat = mat ?? m;
@@ -1657,9 +1726,10 @@ namespace CalibratieForms {
         /// </summary>
         [STAThread]
         static void  Main() {
-
-            //multicamsim_ruisinvloed();
+            multicamsim_fotosinvloed();
             multicamsim_featuresinvloed();
+            TestFeatureDetectionGCP();
+            //multicamsim_ruisinvloed();
             testStereoCamera();
 
             //testplyfile();

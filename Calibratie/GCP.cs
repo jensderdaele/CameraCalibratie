@@ -36,6 +36,7 @@ namespace Calibratie {
         }
 
         public int Id;
+        
         public XmlSchema GetSchema() {
             return null;
         }
