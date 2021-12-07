@@ -1,18 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using ceresdotnet;
+using Calibratie.Annotations;
 
 namespace Calibratie {
     /// <summary>
+    /// SPoint = MEASURED
     /// Voorlopig voor Agisoft xml
     /// </summary>
-    public class GCP : SPoint, IXmlSerializable {
+    public class GCP : SPoint, IXmlSerializable,ICeresGCP {
+
+        public BaseTransform Transform = new BaseTransform();
+
+        public SPoint AdjustedPosition { get; set; }
+
         public static GCP FromXML(XmlReader reader) {
             var r = new GCP();
             r.ReadXml(reader);
@@ -29,14 +39,29 @@ namespace Calibratie {
         public string Label {
             get {
                 if (string.IsNullOrEmpty(_label)) {
-                    _label = string.Format("GCP_{0}", Id);
+                    Label = string.Format("GCP_{0}", Id);
                 } 
                 return _label;
             }
+            set {
+                _label = value;
+                OnPropertyChanged();
+            }
         }
 
-        public int Id;
-        
+        public int _id;
+
+        public int Id {
+            get => _id;
+            set {
+                _id = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public GCP() {
+        }
+
         public XmlSchema GetSchema() {
             return null;
         }
@@ -82,5 +107,16 @@ namespace Calibratie {
 
             writer.WriteEndElement();
         }
+
+        public double observed_z => Z;
+        public double observed_y => Y;
+        public double observed_x => X;
+
+        ICeresPoint ICeresGCP.Triangulated => this.AdjustedPosition;
+
+        public ICeresScaleTransform Transformation => Transform;
+
+        public CeresPoint Triangulated { get; }
+
     }
 }

@@ -1,0 +1,27 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly arucodotnet, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly OpenCvSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099: 
+	hash=None, flags=None
+Assembly System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class arucodotnet.ArucoMarker: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(System.ValueType, System.ValueType, System.ValueType, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    OpenCvSharp.Point2f Corner1 : Public
+    OpenCvSharp.Point2f Corner2 : Public
+    OpenCvSharp.Point2f Corner3 : Public
+    Int32 ID : Public
+Class arucodotnet.Aruco: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    FindMarkers(String): PrivateScope, Public, Static, HideBySig

@@ -112,7 +112,7 @@ namespace Calibratie {
         }
     }
 
-    public partial class CameraIntrinsics : INotifyPropertyChanged, ICeresParameterConvertable<CeresIntrinsics>, IXmlSerializable {
+    public partial class CameraIntrinsics : INotifyPropertyChanged, IXmlSerializable, ICeresIntrinsics {
         public enum Agisoftclass {
             adjusted,
             initial,
@@ -167,10 +167,18 @@ namespace Calibratie {
         /// <summary>
         /// naam vd camera
         /// </summary>
-        public string Label;
+        public string Label {
+            get => _label;
+            set {
+                _label = value;
+                OnPropertyChanged();
+            }
+        }
         private double _distortionR1, _distortionR2, _distortionR3, _distortionR4, _distortionR5, _distortionR6;
         private double _distortionT1, _distortionT2, _distortionT3, _distortionT4;
         private double _distortionS1, _distortionS2;
+
+        private string _label;
 
         /// <summary>
         /// wordt bij voorkeur Matrix<double>
@@ -322,16 +330,92 @@ namespace Calibratie {
             }
         }
 
+        int ICeresIntrinsics.ImageHeight => PictureSize.Height;
+
+        int ICeresIntrinsics.ImageWidth => PictureSize.Width;
+
+        DistortionModel ICeresIntrinsics.Distortionmodel => this.Distortionmodel;
+
+        double ICeresIntrinsics.s2 {
+            get => DistortionS2;
+            set => DistortionS2 = value;
+        }
+
+        double ICeresIntrinsics.s1 {
+            get => DistortionS1;
+            set => DistortionS1 = value;
+        }
+
+        double ICeresIntrinsics.k6 {
+            get => DistortionR6;
+            set => DistortionR6 = value;
+        }
+
+        double ICeresIntrinsics.k5 {
+            get => DistortionR5;
+            set => DistortionR5 = value;
+        }
+
         public double skew {
-            get { return Mat[0, 1]; }
+            get => Mat[0, 1];
             set {
                 Mat[0, 1] = value;
                 OnPropertyChanged();
             }
         }
 
+        double ICeresIntrinsics.k4 {
+            get => DistortionR4;
+            set => DistortionR4 = value;
+        }
+
+        double ICeresIntrinsics.p4 {
+            get => DistortionT4;
+            set => DistortionT4 = value;
+        }
+
+        double ICeresIntrinsics.p3 {
+            get => DistortionT3;
+            set => DistortionT3 = value;
+        }
+
+        double ICeresIntrinsics.p2 {
+            get => DistortionT2;
+            set => DistortionT2 = value;
+        }
+
+        double ICeresIntrinsics.p1 {
+            get => DistortionT1;
+            set => DistortionT1 = value;
+        }
+
+        double ICeresIntrinsics.k3 {
+            get => DistortionR3;
+            set => DistortionR3= value;
+        }
+
+        double ICeresIntrinsics.k2 {
+            get => DistortionR2;
+            set => DistortionR2 = value;
+        }
+
+        double ICeresIntrinsics.k1 {
+            get => DistortionR1;
+            set => DistortionR1 = value;
+        }
+
+        double ICeresIntrinsics.ppy {
+            get => cy;
+            set => cy = value;
+        }
+
+        double ICeresIntrinsics.ppx {
+            get => cx;
+            set => cx = value;
+        }
+
         public double fy {
-            get { return Mat[1, 1]; }
+            get => Mat[1, 1];
             set {
                 Mat[1, 1] = value;
                 OnPropertyChanged();
@@ -339,7 +423,7 @@ namespace Calibratie {
         }
 
         public double cx {
-            get { return Mat[0, 2]; }
+            get => Mat[0, 2];
             set {
                 Mat[0, 2] = value;
                 OnPropertyChanged();
@@ -347,7 +431,7 @@ namespace Calibratie {
         }
 
         public double cy {
-            get { return Mat[1, 2]; }
+            get => Mat[1, 2];
             set {
                 Mat[1, 2] = value;
                 OnPropertyChanged();
@@ -357,9 +441,8 @@ namespace Calibratie {
 
         #region get
         
-        public Matrix<double> Cv_DistCoeffs4 {
-            get { return new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 }); }
-        }
+        public Matrix<double> Cv_DistCoeffs4 => new Matrix<double>(new[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
+
         #endregion
 
         #region set
@@ -375,11 +458,11 @@ namespace Calibratie {
                 if (value.Rows == 3) {
                     _distortionR3 = value[2, 0];
                 }
-                if (value.Rows == 4) {
+                else if (value.Rows == 4) {
                     _distortionT1 = value[2, 0];
                     _distortionT2 = value[3, 0];
                 }
-                if (value.Rows == 5) {
+                else if (value.Rows == 5) {
                     _distortionR3 = value[4, 0];
                     _distortionT1 = value[2, 0];
                     _distortionT2 = value[3, 0];
@@ -409,15 +492,10 @@ namespace Calibratie {
 
 
 
+        
+        
 
-
-
-        public double[] dist5 {
-            get { return new[] {DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3}; }
-        }
-
-
-
+        public double[] dist5 => new[] {DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3};
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -426,7 +504,16 @@ namespace Calibratie {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public DistortionModel Distortionmodel = DistortionModel.Standard;
+        public DistortionModel Distortionmodel {
+            get => _distortionmodel;
+            set {
+                _distortionmodel = value;
+                OnPropertyChanged();
+            }
+        }
+        private DistortionModel _distortionmodel = DistortionModel.Standard;
+
+
         /// <summary>
         /// returns a unique ceresparameter class
         /// </summary>
@@ -434,7 +521,7 @@ namespace Calibratie {
         public CeresIntrinsics toCeresParameter() {
             if (_ceresintr == null) {
                 _ceresintr = new CeresIntrinsics(this.Distortionmodel);
-                _ceresintr.BundleFlags = (BundleIntrinsicsFlags.ALL);// = BundleIntrinsicsFlags.ALL;
+                _ceresintr.BundleFlags = (BundleIntrinsicsFlags.ALL_STANDARD);// = BundleIntrinsicsFlags.ALL;
             }
             var paramblock = _ceresintr;
             paramblock.fx = fx;
@@ -719,5 +806,9 @@ namespace Calibratie {
             writer.WriteEndElement();
         }
 
+        Enum ICeresParameterblock.BundleFlags {
+            get { throw new NotImplementedException(); }
+            set { throw new NotImplementedException(); }
+        }
     }
 }

@@ -30,7 +30,19 @@
     <ClInclude Include="ParameterBlocks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Offsets.h">
+    <ClInclude Include="MultiCameraBundler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BundlerIterationTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolverOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CeresEnums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LossFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,9 +56,19 @@
     <ClCompile Include="managed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MultiCameraBundler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LossFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BundlerIterationTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">

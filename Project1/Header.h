@@ -57,7 +57,6 @@ void ApplyRadialDistortionCameraIntrinsicsHighDist(
 	const T &normalized_x,	const T &normalized_y,
 	T *image_x,	T *image_y) {
 
-
 	T x = normalized_x;
 	T y = normalized_y;
 
@@ -83,8 +82,7 @@ void ApplyRadialDistortionOpenCVAdvancedDist(
 	const T &s1,const T &s2,
 	const T &normalized_x,const T &normalized_y,
 	T *image_x,	T *image_y) {
-
-
+	
 	T x = normalized_x;
 	T y = normalized_y;
 
@@ -111,7 +109,7 @@ struct __declspec(dllexport) ReprojectionErrorSingleCamera {
 		static ceres::CostFunction* Create(double obsx, double obsy);
 
 		template <typename T>
-		static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
+		static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
 			ReprojectionErrorSingleCamera func(obsx, obsy);
 			func(intrinsics, R_t, X, residuals);
 		}
@@ -128,7 +126,7 @@ struct __declspec(dllexport) ReprojectionErrorSysteemCamera {
 	static ceres::CostFunction* Create(double obsx, double obsy);
 
 	template <typename T>
-	static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
+	static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
 		ReprojectionErrorSysteemCamera func(obsx, obsy);
 		func(intrinsics, R_t_systeem, R_t, X, residuals);
 	}
@@ -146,7 +144,7 @@ struct __declspec(dllexport) ReprojectionErrorSingleCameraHighDist {
 	static ceres::CostFunction* Create(double obsx, double obsy);
 
 	template <typename T>
-	static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
+	static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
 		ReprojectionErrorSingleCameraHighDist func(obsx, obsy);
 		func(intrinsics, R_t, X, residuals);
 	}
@@ -163,7 +161,7 @@ struct __declspec(dllexport) ReprojectionErrorSysteemCameraHighDist {
 	static ceres::CostFunction* Create(double obsx, double obsy);
 
 	template <typename T>
-	static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
+	static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
 		ReprojectionErrorSysteemCameraHighDist func(obsx, obsy);
 		func(intrinsics, R_t_systeem, R_t, X, residuals);
 	}
@@ -181,7 +179,7 @@ struct __declspec(dllexport) ReprojectionErrorSingleCameraOpenCVAdvancedDist {
 	static ceres::CostFunction* Create(double obsx, double obsy);
 
 	template <typename T>
-	static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
+	static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t, const T* const X, T* residuals) {
 		ReprojectionErrorSingleCameraOpenCVAdvancedDist func(obsx, obsy);
 		func(intrinsics, R_t, X, residuals);
 	}
@@ -198,7 +196,7 @@ struct __declspec(dllexport) ReprojectionErrorSysteemCameraOpenCVAdvancedDist {
 	static ceres::CostFunction* Create(double obsx, double obsy);
 
 	template <typename T>
-	static void Reproject(double obsx, double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
+	static void Reproject(const double obsx, const double obsy, const T* const intrinsics, const T* const R_t_systeem, const T* const R_t, const T* const X, T* residuals) {
 		ReprojectionErrorSysteemCameraOpenCVAdvancedDist func(obsx, obsy);
 		func(intrinsics, R_t_systeem, R_t, X, residuals);
 	}
@@ -207,6 +205,7 @@ struct __declspec(dllexport) ReprojectionErrorSysteemCameraOpenCVAdvancedDist {
 	const double observed_y;
 };
 
+///NIET GESCHIKT VOOR GROTE AFSTANDEN 1-2KM+
 struct __declspec(dllexport) GCPError {
 	GCPError(const double obsx, const double obsy, const double obsz);
 

@@ -27,7 +27,7 @@ namespace Calibratie {
     
 
     [JsonObject(ItemConverterType = typeof(PinholeCameraConverter))]
-    public class PinholeCamera : SObject, INotifyPropertyChanged, ICeresParameterConvertable<CeresPointOrient>, ICeresParameterConvertable<CeresIntrinsics>, IXmlSerializable {
+    public class PinholeCamera : SObject, IXmlSerializable,ICeresCamera{
         public static PinholeCamera FromXML(XmlReader reader, Func<int, CameraIntrinsics> getSensorForID = null) {
             if (reader.Name == "camera" && reader.NodeType == XmlNodeType.Element) {
 
@@ -52,7 +52,9 @@ namespace Calibratie {
         /// <summary>
         /// filename (agisoft xml 'label' node)
         /// </summary>
-        public string Label { get; set; }
+        public string Label { get => _label; set { _label = value;OnPropertyChanged(); } }
+
+        private string _label;
         /// <summary>
         /// for internal use, enkel agisoft xml atm
         /// </summary>
@@ -63,7 +65,7 @@ namespace Calibratie {
         public int SensorID { get; set; }
         
         private CameraIntrinsics _intrinsics;
-        public CameraIntrinsics Intrinsics { get { return _intrinsics;} }
+        public CameraIntrinsics Intrinsics { get { return _intrinsics;} set { _intrinsics = value;OnPropertyChanged(); } }
         /// <summary>
         /// echt geteste camera Casio EX-Z120
         /// </summary>
@@ -73,7 +75,7 @@ namespace Calibratie {
             var m = new CameraIntrinsics(mat);
             var c = new PinholeCamera(m);
             c.PictureSize = new Size(4160, 3120);
-            c.Cv_DistCoeffs5 = new[] { 0.24230691691999853, -0.92897577071991688, -0.00073617836680420852, 0.0015104681489398752, 1.0576231378646423 };
+            c.Intrinsics.CVDIST = new Matrix<double>(new[] { 0.24230691691999853, -0.92897577071991688, -0.00073617836680420852, 0.0015104681489398752, 1.0576231378646423 });
             return c;
         }
         public static PinholeCamera getTestCamera() {
@@ -81,7 +83,7 @@ namespace Calibratie {
             var m = new CameraIntrinsics(mat);
             var c = new PinholeCamera(m);
             c.PictureSize = new Size(3072, 2304);
-            c.Cv_DistCoeffs5 = new[] { 0.062813787874286389, -3.0485685802388809, -0.0017951735131834098, -0.00040688209299854, 14.91660690214403 };
+            c.Intrinsics.CVDIST = new Matrix<double>(new[] { 0.062813787874286389, -3.0485685802388809, -0.0017951735131834098, -0.00040688209299854, 14.91660690214403 });
             return c;
         }
 
@@ -108,35 +110,13 @@ namespace Calibratie {
         }
 
 
-        public double DistortionR1 { get { return _intrinsics.DistortionR1; } set { _intrinsics.DistortionR1 = value; } }
+/*        public double DistortionR1 { get { return _intrinsics.DistortionR1; } set { _intrinsics.DistortionR1 = value; } }
         public double DistortionR2 { get { return _intrinsics.DistortionR2; } set { _intrinsics.DistortionR2 = value; } }
         public double DistortionR3 { get { return _intrinsics.DistortionR3; } set { _intrinsics.DistortionR3 = value; } }
         public double DistortionT1 { get { return _intrinsics.DistortionT1; } set { _intrinsics.DistortionT1 = value; } }
-        public double DistortionT2 { get { return _intrinsics.DistortionT2; } set { _intrinsics.DistortionT2 = value; } }
+        public double DistortionT2 { get { return _intrinsics.DistortionT2; } set { _intrinsics.DistortionT2 = value; } }*/
 
-
-
-        public double[] Cv_DistCoeffs5 {
-            get {
-                return new double[] { DistortionR1, DistortionR2, DistortionT1, DistortionT2, DistortionR3 };
-            }
-            set {
-                if (value.Length != 5) {
-                    throw new ArgumentException("wrong size");
-                }
-                DistortionR1 = value[0];
-                DistortionR2 = value[1];
-                DistortionT1 = value[2];
-                DistortionT2 = value[3];
-                DistortionR3 = value[4];
-                OnPropertyChanged();
-            }
-        }
-        public Matrix<double> Cv_DistCoeffs4 {
-            get {
-                return new Matrix<double>(new [] { DistortionR1, DistortionR2, DistortionT1, DistortionT2 });
-            }
-        }
+            
 
         /// <summary>
         /// 3x4 projection matrix in huidig assenstelsel
@@ -157,7 +137,7 @@ namespace Calibratie {
         public Matrix<double> Rvecs {get { return this.Rodr; }}
 
         public Matrix<double> Tvecs {get { return Pos; }}
-
+/*
         public PointF[] ProjectBoard_Cv_p2d(ChessBoard b) {
             //Todo: Use InputArray on vector3d[] & pin GC
             Point2d[] imagePoints;
@@ -168,18 +148,12 @@ namespace Calibratie {
         }
         public Vector2[] ProjectBoard_Cv(ChessBoard b) {
             return ProjectBoard_Cv_p2d(b).Select(x => new Vector2((float)x.X, (float)x.Y)).ToArray();
-        }
+        }*/
 
         public Matrix CalcFMat(PinholeCamera camera2) {
             throw new NotImplementedException();
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "") {
-            var handler = PropertyChanged;
-            if (handler != null) { handler(this, new PropertyChangedEventArgs(propertyName)); }
-        }
+        
 
 
         /// <summary>
@@ -242,9 +216,9 @@ namespace Calibratie {
             var r2 = x*x + y*y;
             var r4 = r2*r2;
             var r6 = r4*r2;
-            var r_coeff = ((1) + this.DistortionR1*r2 + this.DistortionR2*r4 + this.DistortionR3*r6);
-            var tdistx = 2*this.DistortionT1*x*y + this.DistortionT2*(r2 + 2*x*x);
-            var tdisty = 2*this.DistortionT2*x*y + this.DistortionT1*(r2 + 2*y*y);
+            var r_coeff = ((1) + this.Intrinsics.DistortionR1 *r2 + this.Intrinsics.DistortionR2 *r4 + this.Intrinsics.DistortionR3 *r6);
+            var tdistx = 2*this.Intrinsics.DistortionT1 *x*y + this.Intrinsics.DistortionT2 *(r2 + 2*x*x);
+            var tdisty = 2*this.Intrinsics.DistortionT2 *x*y + this.Intrinsics.DistortionT1 *(r2 + 2*y*y);
             var xd = x*r_coeff + tdistx;
             var yd = y*r_coeff + tdisty;
 
@@ -260,67 +234,7 @@ namespace Calibratie {
         public PointF ProjectPoint_ceresdotnetAgisoftmodel(IMarker3d point) {
             throw new NotImplementedException();
         }
-
-
-        CeresIntrinsics ICeresParameterConvertable<CeresIntrinsics>.toCeresParameter(Enum BundleSettings) {
-            return Intrinsics.toCeresParameter(BundleSettings);
-        }
-
-        public void updateFromCeres() {
-            Intrinsics.updateFromCeres(this.Intrinsics._ceresintr);
-            this.updateFromCeres(this._ceresparam);
-        }
-
-        public void updateFromCeres(CeresIntrinsics paramblock) {
-            Intrinsics.updateFromCeres(paramblock);
-        }
-
-        CeresIntrinsics ICeresParameterConvertable<CeresIntrinsics>.toCeresParameter() {
-            return Intrinsics.toCeresParameter();
-        }
-
-        private CeresPointOrient _cerespointorient ;
-        CeresPointOrient ICeresParameterConvertable<CeresPointOrient>.toCeresParameter() {
-            if (_cerespointorient == null) {
-                _cerespointorient = new CeresPointOrient();
-            }
-            var invert = this.worldMat.Inverted();
-            var trans = invert.ExtractTranslation().toArr();
-            Vector3d axis;
-            double angle;
-            invert.ExtractRotation().ToAxisAngle(out axis, out angle);
-            axis.Normalize();
-            axis *= angle;
-
-            _cerespointorient.t = trans;
-            _cerespointorient.R_rod = axis.toArr();
-
-            return _cerespointorient;
-        }
-        CeresPointOrient ICeresParameterConvertable<CeresPointOrient>.toCeresParameter(Enum BundleSettings) {
-            var r = ((ICeresParameterConvertable<CeresPointOrient>)this).toCeresParameter();
-            r.BundleFlags = (BundlePointOrientFlags) BundleSettings;
-            return r;
-        }
-
-        public void updateFromCeres(CeresPointOrient paramblock) {
-            var rot3d = new RotationVector3D(paramblock.R_rod);
-            var mat3 = new Matrix<double>(3, 3, rot3d.RotationMatrix.DataPointer);
-
-            for (int r = 0; r < 3; r++) {
-                for (int c = 0; c < 3; c++) {
-                    RotationMat[r, c] = mat3[r, c];
-                }
-            }
-            setPos(paramblock.t);
-
-            WorldMat = WorldMat.Inverted();
-
-            OnPropertyChanged();
-        }
-
-
-
+        
         /// <summary>
         /// from agisoft xml (node = "camera")
         /// </summary>
@@ -366,6 +280,9 @@ namespace Calibratie {
             }
             writer.WriteEndElement();
         }
+
+        public ICeresIntrinsics Internal => this.Intrinsics;
+        public ICeresPointOrient External => this;
     }
 
     public class PinholeCameraConverter : JsonConverter {

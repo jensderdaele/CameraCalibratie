@@ -254,6 +254,7 @@ namespace CalibratieForms {
 
 
         public void SolveMultiCollection() {
+            /*
             SetUniqueValues();
             var collections = scene.get<CameraCollection>();
             var markers3d = scene.get<Marker>();
@@ -356,11 +357,7 @@ namespace CalibratieForms {
                     collectionobservations.Add(cc, ceresmarkers);
 
                     //gesimuleerde foto weergeven
-                    /*var window2 = new CameraSimulationFrm(string.Format("Camera {0}: {1}", cameraID, camera.Name)) {
-                        Camera = camera
-                    };
-                    window2.Show();
-                    window2.drawChessboard(visible_proj);*/
+
                 }
                 observations.Add(cerescollection, collectionobservations);
                 collectionobservations2 = collectionobservations;
@@ -445,6 +442,7 @@ namespace CalibratieForms {
                     camera.updateFromCeres();
                 }
             }
+            */
         }
 
 
@@ -455,7 +453,9 @@ namespace CalibratieForms {
 
 
         protected CeresCallbackReturnType iterationCallbackHandler(object sender, ceresdotnet.IterationSummary summary) {
-            //return CeresCallbackReturnType.SOLVER_CONTINUE;
+            return CeresCallbackReturnType.SOLVER_CONTINUE;
+
+            /*
             int iterationNr = summary.iteration;
             
             CeresCameraMultiCollectionBundler b = sender as CeresCameraMultiCollectionBundler;
@@ -479,7 +479,7 @@ namespace CalibratieForms {
                 reprojections /= markerlist.Count;
 
                 //mean cam pos;
-                var pos = ceresCamera.External.t;
+                var pos = ceresCamera.External.Pos_paramblock;
                 meanPosX += pos[0];
                 meanPosY += pos[1];
                 meanPosZ += pos[2];
@@ -498,6 +498,7 @@ namespace CalibratieForms {
             var r = CeresCallbackReturnType.SOLVER_CONTINUE;
 
             return r;
+            */
         }
 
         [Obsolete()]

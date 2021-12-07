@@ -18,8 +18,7 @@ namespace CalibratieForms {
     public class CameraModifier : ICameraModifier {
         public I3DRuisProvider PosRuis;
         public void Apply(PinholeCamera camera, CeresCamera cc) {
-            PosRuis?.Apply(ref cc.External.t[0], ref cc.External.t[1], ref cc.External.t[2]);
-
+            PosRuis?.Apply(ref cc.External.Pos_paramblock[0], ref cc.External.Pos_paramblock[1], ref cc.External.Pos_paramblock[2]);
             camera.Intrinsics.fx *= .95;
             camera.Intrinsics.fy *= .95;
 
@@ -27,7 +26,6 @@ namespace CalibratieForms {
             camera.Intrinsics.cy = camera.Intrinsics.PictureSize.Height / 2;
 
             camera.Intrinsics.SetDistortionsZero();
-            cc.Internal.ZeroDistortions();
         }
 
         public void Apply(CameraIntrinsics intr) {

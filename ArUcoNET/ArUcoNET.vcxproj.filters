@@ -27,18 +27,24 @@
     <ClInclude Include="blur_detect_haar_wavelet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CVNative.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Aruco.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SIFT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Blur.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Aruco.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CVNative.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -54,5 +60,8 @@
     <Image Include="app.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

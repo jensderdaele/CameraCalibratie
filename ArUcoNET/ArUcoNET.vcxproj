@@ -20,16 +20,16 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{390C417B-622C-4012-B737-6339483F4316}</ProjectGuid>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>ArUcoNET</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -38,19 +38,19 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -78,7 +78,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)Release</OutDir>
+    <OutDir>$(SolutionDir)Debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -108,11 +108,11 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>D:\libraries\OpenCV\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\libraries\OpenCV\include;D:\libraries\Eigen3\include\;D:\libraries\Eigen3\include\eigen3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_aruco320d.lib;opencv_bgsegm320d.lib;opencv_bioinspired320d.lib;opencv_calib3d320d.lib;opencv_ccalib320d.lib;opencv_core320d.lib;opencv_cvv320d.lib;opencv_datasets320d.lib;opencv_dpm320d.lib;opencv_face320d.lib;opencv_features2d320d.lib;opencv_flann320d.lib;opencv_fuzzy320d.lib;opencv_highgui320d.lib;opencv_imgcodecs320d.lib;opencv_imgproc320d.lib;opencv_line_descriptor320d.lib;opencv_ml320d.lib;opencv_objdetect320d.lib;opencv_optflow320d.lib;opencv_phase_unwrapping320d.lib;opencv_photo320d.lib;opencv_plot320d.lib;opencv_reg320d.lib;opencv_rgbd320d.lib;opencv_saliency320d.lib;opencv_shape320d.lib;opencv_stereo320d.lib;opencv_stitching320d.lib;opencv_structured_light320d.lib;opencv_superres320d.lib;opencv_surface_matching320d.lib;opencv_text320d.lib;opencv_tracking320d.lib;opencv_video320d.lib;opencv_videoio320d.lib;opencv_videostab320d.lib;opencv_xfeatures2d320d.lib;opencv_ximgproc320d.lib;opencv_xobjdetect320d.lib;opencv_xphoto320d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_aruco330d.lib;opencv_bgsegm330d.lib;opencv_bioinspired330d.lib;opencv_calib3d330d.lib;opencv_ccalib330d.lib;opencv_core330d.lib;opencv_cudaarithm330d.lib;opencv_cudabgsegm330d.lib;opencv_cudacodec330d.lib;opencv_cudafeatures2d330d.lib;opencv_cudafilters330d.lib;opencv_cudaimgproc330d.lib;opencv_cudalegacy330d.lib;opencv_cudaobjdetect330d.lib;opencv_cudaoptflow330d.lib;opencv_cudastereo330d.lib;opencv_cudawarping330d.lib;opencv_cudev330d.lib;opencv_cvv330d.lib;opencv_datasets330d.lib;opencv_dnn330d.lib;opencv_dnn_modern330d.lib;opencv_dpm330d.lib;opencv_face330d.lib;opencv_features2d330d.lib;opencv_flann330d.lib;opencv_fuzzy330d.lib;opencv_hdf330d.lib;opencv_highgui330d.lib;opencv_imgcodecs330d.lib;opencv_imgproc330d.lib;opencv_img_hash330d.lib;opencv_line_descriptor330d.lib;opencv_ml330d.lib;opencv_objdetect330d.lib;opencv_optflow330d.lib;opencv_phase_unwrapping330d.lib;opencv_photo330d.lib;opencv_plot330d.lib;opencv_reg330d.lib;opencv_rgbd330d.lib;opencv_saliency330d.lib;opencv_sfm330d.lib;opencv_shape330d.lib;opencv_stereo330d.lib;opencv_stitching330d.lib;opencv_structured_light330d.lib;opencv_superres330d.lib;opencv_surface_matching330d.lib;opencv_text330d.lib;opencv_tracking330d.lib;opencv_video330d.lib;opencv_videoio330d.lib;opencv_videostab330d.lib;opencv_viz330d.lib;opencv_xfeatures2d330d.lib;opencv_ximgproc330d.lib;opencv_xobjdetect330d.lib;opencv_xphoto330d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libraries\OpenCV\x64\vc15\lib;D:\libraries\OpenCV\x64\vc15\bin</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -139,19 +139,22 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>D:\libraries\OpenCV\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\libraries\OpenCV\include;D:\libraries\Eigen3\include\eigen3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_aruco320.lib;opencv_bgsegm320.lib;opencv_bioinspired320.lib;opencv_calib3d320.lib;opencv_ccalib320.lib;opencv_core320.lib;opencv_cvv320.lib;opencv_datasets320.lib;opencv_dpm320.lib;opencv_face320.lib;opencv_features2d320.lib;opencv_flann320.lib;opencv_fuzzy320.lib;opencv_highgui320.lib;opencv_imgcodecs320.lib;opencv_imgproc320.lib;opencv_line_descriptor320.lib;opencv_ml320.lib;opencv_objdetect320.lib;opencv_optflow320.lib;opencv_phase_unwrapping320.lib;opencv_photo320.lib;opencv_plot320.lib;opencv_reg320.lib;opencv_rgbd320.lib;opencv_saliency320.lib;opencv_shape320.lib;opencv_stereo320.lib;opencv_stitching320.lib;opencv_structured_light320.lib;opencv_superres320.lib;opencv_surface_matching320.lib;opencv_text320.lib;opencv_tracking320.lib;opencv_video320.lib;opencv_videoio320.lib;opencv_videostab320.lib;opencv_xfeatures2d320.lib;opencv_ximgproc320.lib;opencv_xobjdetect320.lib;opencv_xphoto320.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_aruco330.lib;opencv_bgsegm330.lib;opencv_bioinspired330.lib;opencv_calib3d330.lib;opencv_ccalib330.lib;opencv_core330.lib;opencv_cudaarithm330.lib;opencv_cudabgsegm330.lib;opencv_cudacodec330.lib;opencv_cudafeatures2d330.lib;opencv_cudafilters330.lib;opencv_cudaimgproc330.lib;opencv_cudalegacy330.lib;opencv_cudaobjdetect330.lib;opencv_cudaoptflow330.lib;opencv_cudastereo330.lib;opencv_cudawarping330.lib;opencv_cudev330.lib;opencv_cvv330.lib;opencv_datasets330.lib;opencv_dnn330.lib;opencv_dnn_modern330.lib;opencv_dpm330.lib;opencv_face330.lib;opencv_features2d330.lib;opencv_flann330.lib;opencv_fuzzy330.lib;opencv_hdf330.lib;opencv_highgui330.lib;opencv_imgcodecs330.lib;opencv_imgproc330.lib;opencv_img_hash330.lib;opencv_line_descriptor330.lib;opencv_ml330.lib;opencv_objdetect330.lib;opencv_optflow330.lib;opencv_phase_unwrapping330.lib;opencv_photo330.lib;opencv_plot330.lib;opencv_reg330.lib;opencv_rgbd330.lib;opencv_saliency330.lib;opencv_sfm330.lib;opencv_shape330.lib;opencv_stereo330.lib;opencv_stitching330.lib;opencv_structured_light330.lib;opencv_superres330.lib;opencv_surface_matching330.lib;opencv_text330.lib;opencv_tracking330.lib;opencv_video330.lib;opencv_videoio330.lib;opencv_videostab330.lib;opencv_viz330.lib;opencv_xfeatures2d330.lib;opencv_ximgproc330.lib;opencv_xobjdetect330.lib;opencv_xphoto330.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libraries\OpenCV\x64\vc15\lib;D:\libraries\OpenCV\x64\vc15\bin</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Reference Include="Emgu.CV.UI">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.UI.dll</HintPath>
+    </Reference>
     <Reference Include="Emgu.CV.World">
-      <HintPath>..\..\..\..\..\..\..\Emgu\emgucv-windesktop 3.1.0.2504\bin\Emgu.CV.World.dll</HintPath>
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.World.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -163,12 +166,14 @@
     <ClInclude Include="Aruco.h" />
     <ClInclude Include="Blur.h" />
     <ClInclude Include="blur_detect_haar_wavelet.h" />
+    <ClInclude Include="CVNative.h" />
     <ClInclude Include="SIFT.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Aruco.cpp" />
+    <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Blur.cpp" />
+    <ClCompile Include="CVNative.cpp" />
     <ClCompile Include="SIFT.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +190,17 @@
       <Project>{08e756d5-dbce-463a-b0d6-0af266636174}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets'))" />
+  </Target>
 </Project>

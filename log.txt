@@ -1,0 +1,95 @@
+2021-08-30 15:31:07.633 +02:00 [INF] Loaded 5 extensions
+2021-08-30 15:31:09.032 +02:00 [INF] MSBuild registered from C:\Program Files\dotnet\sdk\5.0.400\
+2021-08-30 15:31:09.470 +02:00 [INF] Found Visual Studio v16.11.31624.102 [C:\Program Files (x86)\Microsoft Visual Studio\2019\Community]
+2021-08-30 15:31:11.446 +02:00 [INF] Initializing upgrade step Select an entrypoint
+2021-08-30 15:31:11.451 +02:00 [INF] Setting entrypoint to user selected project: C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster\BundleAdjuster.csproj
+2021-08-30 15:31:11.463 +02:00 [INF] Initializing upgrade step Select project to upgrade
+2021-08-30 15:31:11.594 +02:00 [INF] Initializing upgrade step Back up project
+2021-08-30 15:31:40.609 +02:00 [INF] Applying upgrade step Back up project
+2021-08-30 15:31:45.527 +02:00 [INF] Backing up C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster to C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster.backup
+2021-08-30 15:31:49.827 +02:00 [INF] Project backed up to C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster.backup
+2021-08-30 15:31:49.828 +02:00 [INF] Upgrade step Back up project applied successfully
+2021-08-30 15:32:03.811 +02:00 [INF] Initializing upgrade step Convert project file to SDK style
+2021-08-30 15:32:18.515 +02:00 [INF] Applying upgrade step Convert project file to SDK style
+2021-08-30 15:32:18.519 +02:00 [INF] Converting project file format with try-convert, version 0.9.232202
+2021-08-30 15:32:18.967 +02:00 [INF] [dotnet] C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster\BundleAdjuster.csproj contains an App.config file. App.config is replaced by appsettings.json in .NET Core. You will need to delete App.config and migrate to appsettings.json if it's applicable to your project.
+2021-08-30 15:32:19.837 +02:00 [INF] [dotnet] This project has an unrecognized custom import which may need reviewed after conversion: Emgu.CV.targets
+2021-08-30 15:32:21.127 +02:00 [INF] [dotnet] Conversion complete!
+2021-08-30 15:32:21.720 +02:00 [INF] Project file converted successfully! The project may require additional changes to build successfully against the new .NET target.
+2021-08-30 15:32:37.398 +02:00 [INF] Upgrade step Convert project file to SDK style applied successfully
+2021-08-30 15:32:39.043 +02:00 [INF] Initializing upgrade step Clean up NuGet package references
+2021-08-30 15:32:41.276 +02:00 [INF] Marking package Caliburn.Micro for removal because it appears to be a transitive dependency
+2021-08-30 15:32:41.288 +02:00 [INF] Marking package Caliburn.Micro.Core for removal because it appears to be a transitive dependency
+2021-08-30 15:32:41.300 +02:00 [INF] Marking package GeminiWpf for removal because it appears to be a transitive dependency
+2021-08-30 15:32:41.302 +02:00 [INF] Marking package MahApps.Metro for removal because it appears to be a transitive dependency
+2021-08-30 15:32:41.314 +02:00 [INF] Marking package ZedGraph for removal because it appears to be a transitive dependency
+2021-08-30 15:32:43.381 +02:00 [INF] Reference to .NET Upgrade Assistant analyzer package (Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers, version 0.2.241603) needs added
+2021-08-30 15:32:43.390 +02:00 [INF] Packages to be removed: Operation { Item = Caliburn.Micro, Version=2.0.2, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+Operation { Item = Caliburn.Micro.Core, Version=2.0.2, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+Operation { Item = GeminiWpf, Version=0.6.2, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+Operation { Item = MahApps.Metro, Version=1.0.0.0, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+Operation { Item = ZedGraph, Version=5.1.5, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+2021-08-30 15:32:43.393 +02:00 [INF] Packages to be added: Operation { Item = Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers, Version=0.2.241603, OperationDetails = OperationDetails { Risk = None, Details = System.Linq.EmptyPartition`1[System.String] } }
+2021-08-30 15:32:48.043 +02:00 [INF] Applying upgrade step Clean up NuGet package references
+2021-08-30 15:32:48.046 +02:00 [INF] Removing outdated package reference: Caliburn.Micro, Version=2.0.2
+2021-08-30 15:32:48.047 +02:00 [INF] Removing outdated package reference: Caliburn.Micro.Core, Version=2.0.2
+2021-08-30 15:32:48.048 +02:00 [INF] Removing outdated package reference: GeminiWpf, Version=0.6.2
+2021-08-30 15:32:48.049 +02:00 [INF] Removing outdated package reference: MahApps.Metro, Version=1.0.0.0
+2021-08-30 15:32:48.050 +02:00 [INF] Removing outdated package reference: ZedGraph, Version=5.1.5
+2021-08-30 15:32:48.052 +02:00 [INF] Adding package reference: Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers, Version=0.2.241603
+2021-08-30 15:32:50.847 +02:00 [INF] Upgrade step Clean up NuGet package references applied successfully
+2021-08-30 15:33:04.629 +02:00 [INF] Initializing upgrade step Update TFM
+2021-08-30 15:33:04.661 +02:00 [INF] Recommending executable TFM net5.0 because the project builds to an executable
+2021-08-30 15:33:04.664 +02:00 [INF] Recommending Windows TFM net5.0-windows because the project either has Windows-specific dependencies or builds to a WinExe
+2021-08-30 15:33:04.665 +02:00 [INF] TFM needs updated to net5.0-windows
+2021-08-30 15:33:07.162 +02:00 [INF] Applying upgrade step Update TFM
+2021-08-30 15:33:07.167 +02:00 [INF] Recommending executable TFM net5.0 because the project builds to an executable
+2021-08-30 15:33:07.168 +02:00 [INF] Recommending Windows TFM net5.0-windows because the project either has Windows-specific dependencies or builds to a WinExe
+2021-08-30 15:33:10.140 +02:00 [INF] Updated TFM to net5.0-windows
+2021-08-30 15:33:10.143 +02:00 [INF] Upgrade step Update TFM applied successfully
+2021-08-30 15:33:15.279 +02:00 [INF] Initializing upgrade step Update NuGet Packages
+2021-08-30 15:33:18.152 +02:00 [INF] Marking package EMGU.CV, Version=3.3.0.2824 for removal because it doesn't support the target framework but a newer version (3.4.3.3016) does
+2021-08-30 15:33:18.302 +02:00 [INF] Marking package Extended.Wpf.Toolkit, Version=3.2.0 for removal because it doesn't support the target framework but a newer version (3.8.2) does
+2021-08-30 15:33:18.823 +02:00 [INF] Marking package Gemini.Modules.Inspector, Version=0.6.2 for removal because it doesn't support the target framework but a newer version (0.8.0) does
+2021-08-30 15:33:18.977 +02:00 [INF] Marking package Gemini.Modules.Output, Version=0.6.2 for removal because it doesn't support the target framework but a newer version (0.8.0) does
+2021-08-30 15:33:19.446 +02:00 [INF] Marking package Gemini.Modules.PropertyGrid, Version=0.6.2 for removal because it doesn't support the target framework but a newer version (0.8.0) does
+2021-08-30 15:33:25.193 +02:00 [INF] Marking package EMGU.CV, Version=3.4.3.3016 for removal because it doesn't support the target framework but a newer version (4.5.3.4721) does
+2021-08-30 15:33:25.196 +02:00 [WRN] Package EMGU.CV needs to be upgraded across major versions (3.4.3.3016 -> 4.5.3.4721) which may introduce breaking changes
+2021-08-30 15:33:25.197 +02:00 [FTL] Package analysis failed (analyzer Target compatibility reference analyzer: Collection was modified; enumeration operation may not execute.
+2021-08-30 15:33:25.909 +02:00 [INF] Adding Microsoft.Windows.Compatibility 5.0.2
+2021-08-30 15:33:31.482 +02:00 [INF] Applying upgrade step Update NuGet Packages
+2021-08-30 15:33:31.483 +02:00 [INF] Removing outdated package reference: EMGU.CV, Version=3.3.0.2824
+2021-08-30 15:33:31.484 +02:00 [INF] Removing outdated package reference: Extended.Wpf.Toolkit, Version=3.2.0
+2021-08-30 15:33:31.485 +02:00 [INF] Removing outdated package reference: Gemini.Modules.Inspector, Version=0.6.2
+2021-08-30 15:33:31.486 +02:00 [INF] Removing outdated package reference: Gemini.Modules.Output, Version=0.6.2
+2021-08-30 15:33:31.487 +02:00 [INF] Removing outdated package reference: Gemini.Modules.PropertyGrid, Version=0.6.2
+2021-08-30 15:33:31.488 +02:00 [INF] Adding package reference: EMGU.CV, Version=3.4.3.3016
+2021-08-30 15:33:31.489 +02:00 [INF] Adding package reference: Extended.Wpf.Toolkit, Version=3.8.2
+2021-08-30 15:33:31.490 +02:00 [INF] Adding package reference: Gemini.Modules.Inspector, Version=0.8.0
+2021-08-30 15:33:31.491 +02:00 [INF] Adding package reference: Gemini.Modules.Output, Version=0.8.0
+2021-08-30 15:33:31.492 +02:00 [INF] Adding package reference: Gemini.Modules.PropertyGrid, Version=0.8.0
+2021-08-30 15:33:31.493 +02:00 [INF] Adding package reference: EMGU.CV, Version=4.5.3.4721
+2021-08-30 15:33:31.494 +02:00 [INF] Adding package reference: Microsoft.Windows.Compatibility, Version=5.0.2
+2021-08-30 15:33:48.157 +02:00 [INF] Marking package EMGU.CV, Version=3.4.3.3016 for removal because it is referenced elsewhere in the project with a higher version
+2021-08-30 15:33:48.200 +02:00 [INF] Marking package System.ComponentModel.Composition for removal because it appears to be a transitive dependency
+2021-08-30 15:33:48.218 +02:00 [INF] Marking package System.Data.DataSetExtensions for removal because it appears to be a transitive dependency
+2021-08-30 15:33:49.446 +02:00 [INF] Marking package Extended.Wpf.Toolkit, Version=3.8.2 for removal because it doesn't support the target framework but a newer version (4.1.0) does
+2021-08-30 15:33:49.447 +02:00 [WRN] Package Extended.Wpf.Toolkit needs to be upgraded across major versions (3.8.2 -> 4.1.0) which may introduce breaking changes
+2021-08-30 15:33:50.917 +02:00 [WRN] No version of Extended.Wpf.Toolkit found that supports ["net5.0-windows"]; leaving unchanged
+2021-08-30 15:33:50.930 +02:00 [INF] Removing outdated package reference: System.ComponentModel.Composition, Version=5.0.0
+2021-08-30 15:33:50.931 +02:00 [INF] Removing outdated package reference: System.Data.DataSetExtensions, Version=4.5.0
+2021-08-30 15:33:50.932 +02:00 [INF] Removing outdated package reference: EMGU.CV, Version=3.4.3.3016
+2021-08-30 15:33:50.933 +02:00 [INF] Removing outdated package reference: Extended.Wpf.Toolkit, Version=3.8.2
+2021-08-30 15:33:50.934 +02:00 [INF] Adding package reference: Extended.Wpf.Toolkit, Version=4.1.0
+2021-08-30 15:33:57.351 +02:00 [WRN] No version of Extended.Wpf.Toolkit found that supports ["net5.0-windows"]; leaving unchanged
+2021-08-30 15:33:57.359 +02:00 [INF] Upgrade step Update NuGet Packages applied successfully
+2021-08-30 15:34:01.772 +02:00 [INF] Initializing upgrade step Add template files
+2021-08-30 15:34:01.800 +02:00 [INF] 0 expected template items needed
+2021-08-30 15:34:01.802 +02:00 [INF] Initializing upgrade step Upgrade app config files
+2021-08-30 15:34:01.835 +02:00 [INF] Found 0 app settings for upgrade: 
+2021-08-30 15:34:01.839 +02:00 [INF] Found 0 connection strings for upgrade: 
+2021-08-30 15:34:01.858 +02:00 [INF] Initializing upgrade step Update source code
+2021-08-30 15:34:01.862 +02:00 [INF] Running analyzers on BundleAdjuster
+2021-08-30 15:34:03.975 +02:00 [INF] Identified 0 diagnostics in project BundleAdjuster
+2021-08-30 15:34:04.029 +02:00 [INF] Initializing upgrade step Move to next project
+2021-08-30 15:34:13.952 +02:00 [INF] Saving upgrade progress file at C:\Users\u0115248\source\repos\Software - eigen development\Calibratie Solution Jens\BundleAdjuster\.upgrade-assistant

@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\EmguCV.3.1.0.1\build\EmguCV.props" Condition="Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.props')" />
   <Import Project="..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\build\OpenCvSharp3-AnyCPU.props" Condition="Exists('..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\build\OpenCvSharp3-AnyCPU.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -66,14 +65,11 @@
     <Reference Include="DotNetZip">
       <HintPath>..\packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
     </Reference>
-    <Reference Include="Emgu.CV.UI, Version=3.1.0.2282, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
-      <HintPath>..\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.UI.dll</HintPath>
+    <Reference Include="Emgu.CV.UI, Version=3.3.0.2824, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Emgu.CV.UI.GL, Version=3.1.0.2282, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
-      <HintPath>..\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.UI.GL.dll</HintPath>
-    </Reference>
-    <Reference Include="Emgu.CV.World, Version=3.1.0.2504, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
-      <HintPath>..\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.World.dll</HintPath>
+    <Reference Include="Emgu.CV.World, Version=3.3.0.2824, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.World.dll</HintPath>
     </Reference>
     <Reference Include="GeoAPI">
       <HintPath>..\packages\GeoAPI.1.7.3\lib\net45-client\GeoAPI.dll</HintPath>
@@ -322,10 +318,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\build\OpenCvSharp3-AnyCPU.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OpenCvSharp3-AnyCPU.3.1.0.20160114\build\OpenCvSharp3-AnyCPU.props'))" />
-    <Error Condition="!Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EmguCV.3.1.0.1\build\EmguCV.props'))" />
-    <Error Condition="!Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EmguCV.3.1.0.1\build\EmguCV.targets'))" />
+    <Error Condition="!Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets'))" />
   </Target>
-  <Import Project="..\packages\EmguCV.3.1.0.1\build\EmguCV.targets" Condition="Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" />
+  <Import Project="..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

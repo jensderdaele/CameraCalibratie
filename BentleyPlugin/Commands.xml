@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<KeyinTree xmlns="http://www.bentley.com/schemas/1.0/MicroStation/AddIn/KeyinTree.xsd">
+  <!--The commands.xml contains 3 main sections. <RootKeyinTable> defines the root of the 
+        command table tree. <SubKeyinTables> defines all of the subtrees that appear in the
+        tree. <KeyinHandlers> provides a mapping from key-in string to the method that handles
+        the key-in.-->
+
+  <!--Define the root. The entry for the root is very similar to an entry in the
+        table of subentries. The diference is that the entry for the root is labelled
+        RootKeyinTable, but an entry for a subtable is labelled as KeyinTable.-->
+  
+  
+  <!--Define the root keywords for the addin's commands-->
+  <RootKeyinTable ID="root">
+    <Keyword SubtableRef="BentleyPluginSubTable"
+             CommandClass="MacroCommand" CommandWord="BentleyPlugin" >
+      <Options Required="true"/>
+    </Keyword>
+  </RootKeyinTable>
+  <!--Define the sub tables-->
+  <SubKeyinTables>
+    <!--CellUtility subtable-->
+    <KeyinTable ID="BentleyPluginSubTable">
+      <Keyword CommandWord="Show"></Keyword>
+      <Keyword CommandWord="Connect"></Keyword>
+    </KeyinTable>
+  </SubKeyinTables>
+  <!--Define the mapping from key-in to the method that handles the keyin.-->
+  <KeyinHandlers>
+    <KeyinHandler Keyin="BentleyPlugin SHOW" Function="BentleyPlugin.KeyinCommands.ShowCommand"/>
+    <KeyinHandler Keyin="BentleyPlugin CONNECT" Function="BentleyPlugin.KeyinCommands.ConnectCommand"/>
+  </KeyinHandlers>
+</KeyinTree>

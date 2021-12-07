@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\EmguCV.3.1.0.1\build\EmguCV.props" Condition="Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -8,6 +7,14 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_Debugdir|Win32">
+      <Configuration>Release_Debugdir</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_Debugdir|x64">
+      <Configuration>Release_Debugdir</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
@@ -21,71 +28,107 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D72410C3-ED53-4135-94E2-98DC27BEF8F1}</ProjectGuid>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>ceresdotnet</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <!--<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="D:\libraries\boost_current.props" />
+  </ImportGroup>-->
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)Debug</OutDir>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)Debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Release</OutDir>
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)Debug</OutDir>
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -109,17 +152,16 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_MBCS;WIN32;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>D:\libraries\Ceres\include;C:\Program Files %28x86%29\Eigen\include;D:\libraries\Ceres\include\ceres\internal\miniglog;\\JENS-LAPTOP\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Project1\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\\JENS-LAPTOP\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Project1;D:\libraries\OpenCV\include;D:\libraries\Ceres\include;D:\libraries\Eigen3\include\eigen3;D:\libraries\glog\include;D:\libraries\gflags\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>false</ExceptionHandling>
-      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>D:\libraries\Ceres\lib\ceres.lib;\\JENS-LAPTOP\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Release\ceresdotnet.native.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>D:\libraries\Ceres\lib\ceres.lib;c:\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Debug\ceresdotnet.native.lib;gflags_static.lib;glog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\OpenCV\x64\vc15\lib;D:\libraries\glog\lib;D:\libraries\gflags\lib;C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries\windows\compiler\lib\intel64_win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
     </Link>
@@ -133,6 +175,18 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,18 +209,44 @@
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>D:\libraries\Ceres\lib\ceres.lib;\\JENS-LAPTOP\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Release\ceresdotnet.native.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Ceres\bin;D:\libraries\SuiteSparse\lib;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2017.4.210\windows\compiler\lib\intel64_win;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\libraries\Ceres\bin;D:\libraries\SuiteSparse\lib;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2017.4.210\windows\compiler\lib\intel64_win;D:\libraries\glog\lib;D:\libraries\gflags\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AssemblyDebug>false</AssemblyDebug>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <SubSystem>NotSet</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>GOOGLE_GLOG_DLL_DECL=;_MBCS;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>c:\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Project1;D:\libraries\Ceres\include;D:\libraries\Eigen3\include\eigen3;D:\libraries\glog\include;D:\libraries\gflags\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>D:\libraries\Ceres\lib\ceres.lib;C:\Users\jens\Documents\Visual Studio 2013\Projects\CalibratieForms\Debug\ceresdotnet.native.lib;gflags_static.lib;glog.lib;opencv_aruco330.lib;opencv_bgsegm330.lib;opencv_bioinspired330.lib;opencv_calib3d330.lib;opencv_ccalib330.lib;opencv_core330.lib;opencv_cudaarithm330.lib;opencv_cudabgsegm330.lib;opencv_cudacodec330.lib;opencv_cudafeatures2d330.lib;opencv_cudafilters330.lib;opencv_cudaimgproc330.lib;opencv_cudalegacy330.lib;opencv_cudaobjdetect330.lib;opencv_cudaoptflow330.lib;opencv_cudastereo330.lib;opencv_cudawarping330.lib;opencv_cudev330.lib;opencv_cvv330.lib;opencv_datasets330.lib;opencv_dnn330.lib;opencv_dnn_modern330.lib;opencv_dpm330.lib;opencv_face330.lib;opencv_features2d330.lib;opencv_flann330.lib;opencv_fuzzy330.lib;opencv_hdf330.lib;opencv_highgui330.lib;opencv_imgcodecs330.lib;opencv_imgproc330.lib;opencv_img_hash330.lib;opencv_line_descriptor330.lib;opencv_ml330.lib;opencv_objdetect330.lib;opencv_optflow330.lib;opencv_phase_unwrapping330.lib;opencv_photo330.lib;opencv_plot330.lib;opencv_reg330.lib;opencv_rgbd330.lib;opencv_saliency330.lib;opencv_sfm330.lib;opencv_shape330.lib;opencv_stereo330.lib;opencv_stitching330.lib;opencv_structured_light330.lib;opencv_superres330.lib;opencv_surface_matching330.lib;opencv_text330.lib;opencv_tracking330.lib;opencv_video330.lib;opencv_videoio330.lib;opencv_videostab330.lib;opencv_viz330.lib;opencv_xfeatures2d330.lib;opencv_ximgproc330.lib;opencv_xobjdetect330.lib;opencv_xphoto330.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\Ceres\bin;D:\libraries\SuiteSparse\lib;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\compiler\lib\intel64_win;D:\libraries\glog\lib;D:\libraries\gflags\lib;D:\libraries\OpenCV\x64\vc15\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AssemblyDebug>false</AssemblyDebug>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <SubSystem>NotSet</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Reference Include="Emgu.CV.World">
-      <HintPath>..\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.World.dll</HintPath>
+    <Reference Include="Emgu.CV.UI">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.UI.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK">
-      <HintPath>..\packages\OpenTK.1.1.2225.0\lib\net20\OpenTK.dll</HintPath>
+    <Reference Include="Emgu.CV.World">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.World.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -175,33 +255,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BundlerIterationTracker.h" />
+    <ClInclude Include="CeresEnums.h" />
     <ClInclude Include="IterationSummary.h" />
+    <ClInclude Include="LossFunctions.h" />
     <ClInclude Include="managed.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Offsets.h" />
+    <ClInclude Include="MultiCameraBundler.h" />
     <ClInclude Include="ParameterBlocks.h" />
     <ClInclude Include="SlechteCode.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="SolverOptions.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="BundlerIterationTracker.cpp" />
+    <ClCompile Include="LossFunctions.cpp" />
     <ClCompile Include="managed.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="MultiCameraBundler.cpp" />
     <ClCompile Include="Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Debugdir|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
@@ -214,13 +307,12 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\EmguCV.3.1.0.1\build\EmguCV.targets" Condition="Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" />
+    <Import Project="..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EmguCV.3.1.0.1\build\EmguCV.targets'))" />
-    <Error Condition="!Exists('..\packages\EmguCV.3.1.0.1\build\EmguCV.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EmguCV.3.1.0.1\build\EmguCV.props'))" />
+    <Error Condition="!Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets'))" />
   </Target>
 </Project>

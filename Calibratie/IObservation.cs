@@ -101,7 +101,7 @@ namespace Calibratie {
     }
     
 
-    public interface IMarker3d : ICeresParameterConvertable<CeresPoint> {
+    public interface IMarker3d {
         int ID { get; }
         double X { get; }
         double Y { get; }

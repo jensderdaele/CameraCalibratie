@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C9D6DD0F-42AA-4B61-BA14-FF9A709C9632}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BundleAdjuster</RootNamespace>
+    <AssemblyName>BundleAdjuster</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Caliburn.Micro, Version=2.0.2.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Caliburn.Micro.Core.2.0.2\lib\net45\Caliburn.Micro.dll</HintPath>
+    </Reference>
+    <Reference Include="Caliburn.Micro.Platform, Version=2.0.2.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Caliburn.Micro.2.0.2\lib\net45\Caliburn.Micro.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Emgu.CV.UI, Version=3.3.0.2824, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Emgu.CV.World, Version=3.3.0.2824, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EMGU.CV.3.3.0.2824\lib\net35\Emgu.CV.World.dll</HintPath>
+    </Reference>
+    <Reference Include="Gemini, Version=0.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeminiWpf.0.6.2\lib\net45\Gemini.dll</HintPath>
+    </Reference>
+    <Reference Include="Gemini.Modules.Inspector, Version=0.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gemini.Modules.Inspector.0.6.2\lib\net45\Gemini.Modules.Inspector.dll</HintPath>
+    </Reference>
+    <Reference Include="Gemini.Modules.Output, Version=0.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gemini.Modules.Output.0.6.2\lib\net45\Gemini.Modules.Output.dll</HintPath>
+    </Reference>
+    <Reference Include="Gemini.Modules.PropertyGrid, Version=0.6.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gemini.Modules.PropertyGrid.0.6.2\lib\net45\Gemini.Modules.PropertyGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="MahApps.Metro, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.1.0.0.0\lib\net45\MahApps.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.1.0.0.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Aero, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.Aero.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Metro, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.VS2010, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.VS2010.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.VS2013, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeminiWpf.0.6.2\lib\net45\Xceed.Wpf.AvalonDock.Themes.VS2013.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.DataGrid, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.DataGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.Toolkit, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="ZedGraph, Version=5.1.5.28844, Culture=neutral, PublicKeyToken=02a83cbd123fcd60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZedGraph.5.1.5\lib\ZedGraph.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BP.cs" />
+    <Compile Include="EXT.cs" />
+    <Compile Include="General.cs" />
+    <Compile Include="LoadPhotoscanProject.xaml.cs">
+      <DependentUpon>LoadPhotoscanProject.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MethodBindingExtension.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Shell\GeminiExcludes.cs" />
+    <Compile Include="Shell\ViewModel\BundleAdjusterSettingsViewModel.cs" />
+    <Compile Include="Shell\ViewModel\ShellViewModel.cs" />
+    <Compile Include="Shell\View\BundleAdjusterSettingsView.xaml.cs">
+      <DependentUpon>BundleAdjusterSettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Startup\Module.cs" />
+    <Compile Include="ToolbarDefinitions.cs" />
+    <Compile Include="WorkspaceView\Module.cs" />
+    <Compile Include="WorkspaceView\Reflection\LossfunctionTypes.cs" />
+    <Compile Include="WorkspaceView\Views\WorkspaceView.xaml.cs">
+      <DependentUpon>WorkspaceView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CameraView\Module.cs" />
+    <Compile Include="CameraView\ViewModels\CameraViewModel.cs" />
+    <Compile Include="CameraView\Views\CameraToTracksConverter.cs" />
+    <Compile Include="CameraView\Views\CameraView.xaml.cs">
+      <DependentUpon>CameraView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CameraView\Views\ICameraView.cs" />
+    <Compile Include="Converters\ParameterBlockToCostConverter.cs" />
+    <Compile Include="Converters\ParameterBlockToCostConverterNoLoss.cs" />
+    <Compile Include="GCPView\Module.cs" />
+    <Compile Include="GCPView\ViewModels\GCPViewModel.cs" />
+    <Compile Include="GCPView\Views\GCPView.xaml.cs">
+      <DependentUpon>GCPView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GCPView\Views\ICeresGCPToAdjustedPositionConverter.cs" />
+    <Compile Include="GCPView\Views\IceresGCPToErrorConverter.cs" />
+    <Compile Include="GCPView\Views\ParamblockToCostConverter.cs" />
+    <Compile Include="IntrinsicsView\Module.cs" />
+    <Compile Include="IntrinsicsView\ViewModels\IntrinsicsViewModel.cs" />
+    <Compile Include="IntrinsicsView\Views\IntrinsicsView.xaml.cs">
+      <DependentUpon>IntrinsicsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="IterationsView\Commands\LoadIterationCommandDefinition.cs" />
+    <Compile Include="IterationsView\Commands\LoadIterationCommandHandler.cs" />
+    <Compile Include="IterationsView\Module.cs" />
+    <Compile Include="IterationsView\ViewModels\IterationsViewModel.cs" />
+    <Compile Include="IterationsView\Views\IterationsView.xaml.cs">
+      <DependentUpon>IterationsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ParameterBlockView\IParameterBlockSelector.cs" />
+    <Compile Include="ParameterBlockView\Module.cs" />
+    <Compile Include="ParameterBlockView\ViewModels\ParameterBlockViewModel.cs" />
+    <Compile Include="ParameterBlockView\ViewModels\Util.cs" />
+    <Compile Include="ParameterBlockView\Views\ParameterBlockView.xaml.cs">
+      <DependentUpon>ParameterBlockView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PhotoscanInterface\EditorProvider.cs" />
+    <Compile Include="PhotoscanInterface\ViewModels\PhotoscanInterfaceViewModel.cs" />
+    <Compile Include="PhotoscanInterface\Views\PhotoscanInterfaceView.xaml.cs">
+      <DependentUpon>PhotoscanInterfaceView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="CameraView\Views\CameraView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="GCPView\Views\GCPView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="IntrinsicsView\Views\IntrinsicsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="IterationsView\Views\IterationsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="LoadPhotoscanProject.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ParameterBlockView\Views\ParameterBlockView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PhotoscanInterface\Views\PhotoscanInterfaceView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Shell\View\BundleAdjusterSettingsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WorkspaceView\Views\WorkspaceView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Home\" />
+    <Folder Include="WorkspaceView\ViewModels\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ArUcoNET\ArUcoNET.vcxproj">
+      <Project>{390c417b-622c-4012-b737-6339483f4316}</Project>
+      <Name>ArUcoNET</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Calibratie\Calibratie.csproj">
+      <Project>{08e756d5-dbce-463a-b0d6-0af266636174}</Project>
+      <Name>Calibratie</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ceresdotnet\ceresdotnet.vcxproj">
+      <Project>{d72410c3-ed53-4135-94e2-98dc27bef8f1}</Project>
+      <Name>ceresdotnet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PhotoscanIO\PhotoscanIO.csproj">
+      <Project>{cab632e7-90e0-46ce-8849-7550c11c22bf}</Project>
+      <Name>PhotoscanIO</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EMGU.CV.3.3.0.2824\build\Emgu.CV.targets'))" />
+  </Target>
+</Project>

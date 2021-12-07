@@ -1,0 +1,72 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly ArUcoNET, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly Calibratie, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=None, flags=None
+Assembly Emgu.CV.World, Version=3.1.0.2504, Culture=neutral, PublicKeyToken=7281126722ab4438: 
+	hash=None, flags=None
+Assembly System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class ArUcoNET.CVNative: AutoLayout, AnsiClass, Class, Public, Abstract, Sealed, BeforeFieldInit
+  Methods:
+    triangulateNViews(PointF[], Mat[], Matrix`1): PrivateScope, Public, Static, HideBySig
+Class ArUcoNET.ArucoMarker: AutoLayout, AnsiClass, Class, Public, Serializable, BeforeFieldInit
+  :Calibratie.Marker2d
+    Void .ctor(System.ValueType, System.ValueType, System.ValueType, System.ValueType, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    System.Drawing.PointF Corner1 : Public
+    System.Drawing.PointF Corner2 : Public
+    System.Drawing.PointF Corner3 : Public
+    System.Drawing.PointF Corner4 : Public
+    Int32 _id : Public
+  Properties:
+    Single Y   'get ' : 
+    Single X   'get ' : 
+    Int32 ID   'get set' : 
+  Methods:
+    get_ID(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    set_ID(Int32): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, SpecialName
+    get_X(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    get_Y(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+Class ArUcoNET.SIFTTEST: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    test(): PrivateScope, Public, Static, HideBySig
+Class ArUcoNET.Aruco: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    CreateMarkerToFile(Int32, basic_string<char\,std::char_traits<char>\,std::allocator<char> >*, Int32): PrivateScope, Public, Static, HideBySig
+    CreateMarker(Int32, Int32, String): PrivateScope, Public, Static, HideBySig
+    CreateMarker(Int32, Int32): PrivateScope, Public, Static, HideBySig
+    FindMarkers(Mat*, String): PrivateScope, Public, Static, HideBySig
+    FindMarkers(Mat, String): PrivateScope, Public, Static, HideBySig
+    FindMarkers(String, String): PrivateScope, Public, Static, HideBySig
+    FindMarkers(String): PrivateScope, Public, Static, HideBySig
+    DrawMarkers(Mat, IEnumerable`1, String): PrivateScope, Public, Static, HideBySig
+    DrawMarkers(Mat, IEnumerable`1): PrivateScope, Public, Static, HideBySig
+Struct ArUcoNET.CornerFlags: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    ArUcoNET.CornerFlags Corner1_TOPLEFT = 0 : Public, Static, Literal, HasDefault
+    ArUcoNET.CornerFlags Corner2_TOPRIGHT = 65536 : Public, Static, Literal, HasDefault
+    ArUcoNET.CornerFlags Corner3_BOTTOMRIGHT = 131072 : Public, Static, Literal, HasDefault
+    ArUcoNET.CornerFlags Corner4_BOTTOMLEFT = 262144 : Public, Static, Literal, HasDefault
+Class Blur: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    BlurDetect(Mat, Int32): PrivateScope, Public, Static, HideBySig
+Class CVNative.CVNative: AutoLayout, AnsiClass, Class, Public, Abstract, Sealed, BeforeFieldInit
+  Methods:
+    triangulateNViews(PointF[], Matrix`1[], Matrix`1): PrivateScope, Public, Static, HideBySig

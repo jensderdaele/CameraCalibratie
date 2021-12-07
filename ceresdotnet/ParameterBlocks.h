@@ -7,18 +7,18 @@
 #include "Header.h"//ceresdotnetnative
 #pragma managed(pop)
 
-#include "Offsets.h"
 
 using namespace System::Collections::Generic;
-using namespace Emgu::CV;
+//using namespace Emgu::CV;
 using namespace System::Runtime::InteropServices;
 using namespace System::Drawing;
-using namespace OpenTK;
 using namespace System;
 using namespace System::Runtime::CompilerServices;
 
 
+//TODO: BUNDLEFLAGS in CeresParameterBlock
 namespace ceresdotnet {
+
 	enum {
 		OFFSET_RODR1,
 		OFFSET_RODR2,
@@ -28,19 +28,128 @@ namespace ceresdotnet {
 		OFFSET_T3,
 		OFFSET_SCALE
 	};
+
+	public enum class DistortionModel :int {
+		Unknown = 0,
+		Standard = 1,
+		AgisoftPhotoscan = 2,
+		OpenCVAdvanced = 3
+	};
+	public enum class IntrinsicsOffsets : int {
+		OFFSET_FOCAL_LENGTH_X,
+		OFFSET_FOCAL_LENGTH_Y,
+		OFFSET_PRINCIPAL_POINT_X,
+		OFFSET_PRINCIPAL_POINT_Y,
+		OFFSET_K1,
+		OFFSET_K2,
+		OFFSET_P1,
+		OFFSET_P2,
+		OFFSET_K3,
+		OFFSET_SKEW,
+		OFFSET_K4,
+		OFFSET_P3,
+		OFFSET_P4
+	};
+
+	[FlagsAttribute]
+	public enum class  BundleIntrinsicsFlags :int {
+		None = 0,
+		FocalLength = 1,
+		PrincipalP = 2,
+		R1 = 4,
+		R2 = 8,
+		P1 = 0x10,
+		P2 = 0x20,
+		R3 = 0x40,
+
+		SKEW = 0x80,
+		R4 = 0x100,
+		P3 = 0x200, //s1
+		P4 = 0x400, //s2
+
+		R5 = 0x800,
+		R6 = 0x1000,
+		S1 = 0x2000,
+		S2 = 0x4000,
+
+		ALL_STANDARD = FocalLength | PrincipalP | R1 | R2 | R3 | P1 | P2,
+		INTERNAL_NODIST = FocalLength | PrincipalP,
+		INTERNAL_R1R2 = INTERNAL_NODIST | R1 | R2,
+		INTERNAL_R1R2R3 = INTERNAL_R1R2 | R3,
+		INTERNAL_R1R2R3R4 = INTERNAL_R1R2R3 | R4,
+		INTERNAL_R1R2T1T2 = INTERNAL_R1R2 | P1 | P2,
+
+		ALL_PHOTOSCAN = ALL_STANDARD | SKEW | R4 | P3 | P4,
+
+		ALL_OPENCVADVANCED = FocalLength | PrincipalP | SKEW | R1 | R2 | R3 | R4 | R5 | R6 | P1 | P2 | S1 | S2
+	};
+	[FlagsAttribute]
+	public enum class  BundleWorldCoordinatesFlags :int {
+		None = 0,
+		X = 1,
+		Y = 2,
+		Z = 4,
+
+		ALL = 7
+	};
+	[FlagsAttribute]
+	public enum class  BundlePointOrientFlags :int {
+		None = 0,
+		X = 1,
+		Y = 2,
+		Z = 4,
+		Rodr1 = 8,
+		Rodr2 = 16,
+		Rodr3 = 32,
+
+		Position = X | Y | Z,
+		Orientation = Rodr1 | Rodr2 | Rodr3,
+		ALL = Position | Orientation
+	};
+	[FlagsAttribute]
+	public enum class  BundleTransformationFlags :int {
+		None = 0,
+		X = 1,
+		Y = 2,
+		Z = 4,
+		Rodr1 = 8,
+		Rodr2 = 16,
+		Rodr3 = 32,
+		Scale = 64,
+		Position = X | Y | Z,
+		Orientation = Rodr1 | Rodr2 | Rodr3,
+		ALL = Position | Orientation | Scale
+	};
+	
+	
+	public interface class ICeresParameterblock {
+		property Enum^ BundleFlags {
+			Enum^ get();
+			void set(Enum^ v);
+		}
+	};
 	public ref class CeresParameterBlock abstract {
-	private:
-		bool _paramterizationset = false;
 	public:
 		double* _data;
+		virtual property ICeresParameterblock^ ManagedObject {
+			ICeresParameterblock^ get() abstract;
+		}
+		virtual property int Length { virtual int get()  abstract; }
+		virtual CeresParameterBlock^ Clone() override abstract;
+
+		virtual property Enum^ BundleFlagsEnum {
+			virtual Enum^ get() abstract;
+			virtual void set(Enum^ value) abstract;
+		};
+	
 	internal:
 
-		virtual property Enum^ BundleFlagsEnum { virtual Enum^ get() abstract; };
-		virtual property int Length { virtual int get()  abstract; }
 		virtual bool getBlockFullyVariable() abstract;
 		virtual bool getBlockFullyConstant() abstract;
 		virtual ceres::SubsetParameterization* GetPrametrization() abstract;
 
+		virtual void UpdateManagedData() abstract;
+		virtual void UpdateBundleData() abstract;
 
 		!CeresParameterBlock() {
 			if (_data != nullptr) {
@@ -73,17 +182,7 @@ namespace ceresdotnet {
 
 		void AddToProblem(ceres::Problem* problem) {
 			problem->AddParameterBlock(_data, Length);
-
-			if (getBlockFullyConstant()) {
-				problem->SetParameterBlockConstant(_data);
-			} else if (getBlockFullyVariable()) {
-				problem->SetParameterBlockVariable(_data);
-			} else if (!_paramterizationset) {
-				_paramterizationset = true;
-				// error bij 2+x gebruik SetParametrization.
-				// kan block met parametrization door deze fix niet aan 2 problems toevoegen
-				problem->SetParameterization(_data, GetPrametrization());
-			}
+			setParametrization(problem);
 		}
 
 		void setParametrization(ceres::Problem* problem) {
@@ -91,13 +190,13 @@ namespace ceresdotnet {
 				problem->SetParameterBlockConstant(_data);
 			} else if (getBlockFullyVariable()) {
 				problem->SetParameterBlockVariable(_data);
-			} else if (!_paramterizationset) {
-				_paramterizationset = true;
-				//problem->SetParameterBlockVariable(_data);
+			} else if (problem->GetParameterization(_data) == NULL) {
+				// error bij 2+x gebruik SetParametrization.
+				// kan block met parametrization door deze fix niet aan 2 problems toevoegen
 				problem->SetParameterization(_data, GetPrametrization());
 			}
 		}
-
+		
 		CeresParameterBlock^ CreateCopy() {
 			CeresParameterBlock^ r = (CeresParameterBlock^)this->MemberwiseClone();
 			r->_data = new double[Length];
@@ -107,59 +206,78 @@ namespace ceresdotnet {
 			}
 			return r;
 		}
-
-	public:
-
-		List<array<double>^>^ _iterationvalues;
-
-
 	};
+	
+	public interface class ICeresPoint : ICeresParameterblock {
+		property BundleWorldCoordinatesFlags BundleFlags {
+			BundleWorldCoordinatesFlags get();
+		};
 
-
-	generic <class T> where T : CeresParameterBlock
-		public interface class ICeresParameterConvertable {
-		T toCeresParameter();
-		void updateFromCeres(T paramblock);
-		T toCeresParameter(Enum^ BundleSettings);
-	};
-
-
-
-	public ref class CeresParameterBlockCapture {
-	public:
-		List<CeresParameterBlock^>^ capture;
-		initonly CeresParameterBlock^ block;
-
-		CeresCallbackReturnType captureValues(int nr) {
-			if (block->BundleFlagsEnum->Equals(0)) {
-				return CeresCallbackReturnType::SOLVER_CONTINUE;
-			}
-			if (capture == nullptr) {
-				capture = gcnew List<CeresParameterBlock^>();
-			}
-			capture->Add(block->CreateCopy());
-			return CeresCallbackReturnType::SOLVER_CONTINUE;
+		property double X {
+			double get();
+			void set(double d);
 		}
+		property double Y {
+			double get();
+			void set(double d);
+		}
+		property double Z {
+			double get();
+			void set(double d);
+		}
+
 	};
-
-
 	public ref class CeresPoint : CeresParameterBlock {
-	internal:
-		BundleWorldCoordinatesFlags _bundleFlags;
+	public:
 
 		property int Length { int get() override { return 3; }}
+
+
+
+	private:
+		ICeresPoint^ _managed;
+	internal:
+		BundleWorldCoordinatesFlags _bundleFlags = BundleWorldCoordinatesFlags::ALL;
+
+
 		bool getBlockFullyVariable() override { return _bundleFlags.HasFlag(BundleWorldCoordinatesFlags::ALL); }
 		bool getBlockFullyConstant() override { return _bundleFlags == BundleWorldCoordinatesFlags::None; }
 		ceres::SubsetParameterization* GetPrametrization() override {
 			return NULL;
 		}
-		property Enum^ BundleFlagsEnum {
-			Enum^ get() override { return BundleFlags; }
-		};
+
 
 	public:
+
+		property Enum^ BundleFlagsEnum {
+			Enum^ get() override { return BundleFlags; }
+			void set(Enum^ value) override { _bundleFlags = (BundleWorldCoordinatesFlags)value; };
+		};
+
+		CeresPoint() {};
+		CeresPoint(ICeresPoint^ managedObj) {
+			_managed = managedObj;
+		}
+		virtual CeresParameterBlock^ Clone() override
+		{
+			auto r = gcnew CeresPoint(_managed);
+			memcpy(r->_data, _data, sizeof(double)*Length);
+			return r;
+		}
+		/*
+		virtual CeresParameterBlock^ Clone() override = CeresParameterBlock::Clone
+		{
+			return (CeresParameterBlock^)(gcnew CeresPoint(_managed));
+		}*/
+
+
+		property ICeresParameterblock^ ManagedObject {
+			ICeresParameterblock^ get() override { return _managed; }
+		}
+
+
 		property BundleWorldCoordinatesFlags BundleFlags {
-			BundleWorldCoordinatesFlags get() { return _bundleFlags; }
+			virtual BundleWorldCoordinatesFlags get() { return _bundleFlags; }
 			void set(BundleWorldCoordinatesFlags flags) { _bundleFlags = flags; }
 		};
 
@@ -172,27 +290,27 @@ namespace ceresdotnet {
 		}
 		}
 
-			property double X {
-			double get() {
+		property double X {
+		virtual double get() {
 				return _data[0];
 			}
-			void set(double d) {
+		virtual void set(double d) {
 				_data[0] = d;
 			}
 		}
 		property double Y {
-			double get() {
+			virtual double get() {
 				return _data[1];
 			}
-			void set(double d) {
+			virtual void set(double d) {
 				_data[1] = d;
 			}
 		}
 		property double Z {
-			double get() {
+			virtual double get() {
 				return _data[2];
 			}
-			void set(double d) {
+			virtual void set(double d) {
 				_data[2] = d;
 			}
 		}
@@ -206,12 +324,66 @@ namespace ceresdotnet {
 			_data[2] = value[2];
 		}
 		}
+
+
+
+		virtual void UpdateManagedData() override {
+			_managed->X = _data[0];
+			_managed->Y = _data[1];
+			_managed->Z = _data[2];
+		};
+		virtual void UpdateBundleData() override {
+			_data[0] = _managed->X;
+			_data[1] = _managed->Y;
+			_data[2] = _managed->Z;
+		};
+
+
 	};
 
-
-	public ref class CeresPointOrient : CeresParameterBlock, public ICeresParameterConvertable<CeresPointOrient^> {
+	public interface class ICeresPointOrient : ICeresParameterblock {
+		property BundleWorldCoordinatesFlags BundleFlags {
+			BundleWorldCoordinatesFlags get();
+		};
+		property double X {
+			double get();
+			void set(double d);
+		}
+		property double Y {
+			double get();
+			void set(double d);
+		}
+		property double Z {
+			double get();
+			void set(double d);
+		}
+		/*
+		property double Rodr1 {
+			double get();
+			void set(double d);
+		}
+		property double Rodr2 {
+			double get();
+			void set(double d);
+		}
+		property double Rodr3 {
+			double get();
+			void set(double d);
+		}*/
+		property array<double>^ Pos_paramblock {
+			array<double>^ get();
+			void set(array<double>^ value);
+		}
+		property array<double>^ Rodr {
+			array<double>^ get();
+			void set(array<double>^ value);
+		}
+	};
+	public ref class CeresPointOrient : CeresParameterBlock {
+	private:
+		ICeresPointOrient^ _managed;
 	internal:
-		BundlePointOrientFlags _bundleFlags;
+		BundlePointOrientFlags _bundleFlags = BundlePointOrientFlags::ALL;
 
 		bool getBlockFullyVariable() override { return _bundleFlags.HasFlag(BundlePointOrientFlags::ALL); }
 		bool getBlockFullyConstant() override { return _bundleFlags == BundlePointOrientFlags::None; }
@@ -238,16 +410,38 @@ namespace ceresdotnet {
 
 			return subset_parameterization;
 		}
-		property int Length { int get() override { return 6; }}
-		property Enum^ BundleFlagsEnum {	Enum^ get() override { return _bundleFlags; }; };
+
+
+
 
 	public:
+		property Enum^ BundleFlagsEnum {
+			Enum^ get() override { return _bundleFlags; };
+			void set(Enum^ value) override { _bundleFlags = (BundlePointOrientFlags)value; };
+		};
+
+		property int Length { int get() override { return 6; }}
 
 		CeresPointOrient() {};
 
+		CeresPointOrient(ICeresPointOrient^ managed) {
+			_managed = managed;
+		};
+
+		virtual CeresParameterBlock^ Clone() override
+		{
+			auto r = gcnew CeresPointOrient(_managed);
+			memcpy(r->_data, _data, sizeof(double)*Length);
+			return r;
+		}
+
+		property ICeresParameterblock^ ManagedObject {
+			ICeresParameterblock^ get() override { return _managed; }
+		};
+
 		property BundlePointOrientFlags BundleFlags {
 			BundlePointOrientFlags get() { return _bundleFlags; };
-			void set(BundlePointOrientFlags flags) { _bundleFlags = flags; }
+			void set(BundlePointOrientFlags value) { _bundleFlags = value; }
 		};
 
 
@@ -298,6 +492,39 @@ namespace ceresdotnet {
 		}
 
 
+		virtual void UpdateManagedData() override {
+			_managed->Pos_paramblock = gcnew array<double>{_data[3], _data[4], _data[5]};
+			_managed->Rodr = gcnew array<double>{_data[0], _data[1], _data[2]};
+			/*_managed->X = _data[3];
+			_managed->Y = _data[4];
+			_managed->Z = _data[5];*/
+			/*
+			_managed->Rodr1 = _data[3];
+			_managed->Rodr2 = _data[4];
+			_managed->Rodr3 = _data[5];*/
+
+		};
+		virtual void UpdateBundleData() override {
+			pin_ptr<double> r = &_managed->Rodr[0];
+			memcpy(_data, r, 3 * 8);
+
+			pin_ptr<double> p = &_managed->Pos_paramblock[0];
+			memcpy(&_data[3], p, 3 * 8);
+
+
+			/*_data[3] = _managed->X;
+			_data[4] = _managed->Y;
+			_data[5] = _managed->Z;*/
+
+			/*
+			_data[3] = _managed->Rodr1;
+			_data[4] = _managed->Rodr2;
+			_data[5] = _managed->Rodr3;*/
+
+			
+		};
+
+
 		virtual CeresPointOrient^ toCeresParameter() {
 			return this;
 		}
@@ -307,10 +534,54 @@ namespace ceresdotnet {
 		virtual CeresPointOrient^ toCeresParameter(Enum^ BundleSettings) {
 			_bundleFlags = (BundlePointOrientFlags)BundleSettings;
 			return this;
-		}
+		};
+
 	};
 
+	public interface class ICeresIntrinsics : ICeresParameterblock {
+		property DistortionModel Distortionmodel {DistortionModel get(); }
+		
+		property int ImageWidth {int get(); }
+		property int ImageHeight {int get(); }
+
+		property double fx {
+			double get(); void set(double value); }
+		property double fy {
+			double get(); void set(double value); }
+		property double ppx {
+			double get(); void set(double value); }
+		property double ppy {
+			double get(); void set(double value); }
+		property double k1 {
+			double get(); void set(double value); }
+		property double k2 {
+			double get(); void set(double value); }
+		property double k3 {
+			double get(); void set(double value); }
+		property double p1 {
+			double get(); void set(double value); }
+		property double p2 {
+			double get(); void set(double value); }
+		property double p3 {
+			double get(); void set(double value); }
+		property double p4 {
+			double get(); void set(double value); }
+		property double k4 {
+			double get(); void set(double value); }
+		property double skew {
+			double get(); void set(double value); }
+		property double k5 {
+			double get(); void set(double value); }
+		property double k6 {
+			double get(); void set(double value); }
+		property double s1 {
+			double get(); void set(double value); }
+		property double s2 {
+			double get(); void set(double value); }
+	};
 	public ref class CeresIntrinsics : CeresParameterBlock {
+	private:
+		ICeresIntrinsics^ _managed;
 	public:
 		int _imageWidth;
 		int _imageHeight;
@@ -393,7 +664,7 @@ namespace ceresdotnet {
 			return r;
 		}
 
-		BundleIntrinsicsFlags _bundleFlags = BundleIntrinsicsFlags::ALL;
+		BundleIntrinsicsFlags _bundleFlags = BundleIntrinsicsFlags::ALL_STANDARD;
 
 		bool getBlockFullyVariable() override {
 			switch (Distortionmodel) {
@@ -417,56 +688,51 @@ namespace ceresdotnet {
 		ceres::SubsetParameterization* GetPrametrization() override {
 			auto bundle_data = BundleFlags;
 
+
 			std::vector<int> constant_data;
 
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::FocalLength))
-				constant_data.push_back(OFFSET_FOCAL_LENGTH_X);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::FocalLength))
-				constant_data.push_back(OFFSET_FOCAL_LENGTH_Y);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::PrincipalP))
-				constant_data.push_back(OFFSET_PRINCIPAL_POINT_X);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::PrincipalP))
-				constant_data.push_back(OFFSET_PRINCIPAL_POINT_Y);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R1))
-				constant_data.push_back(OFFSET_K1);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R2))
-				constant_data.push_back(OFFSET_K2);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R3))
-				constant_data.push_back(OFFSET_K3);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::P1))
-				constant_data.push_back(OFFSET_P1);
-			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::P2))
-				constant_data.push_back(OFFSET_P2);
+#define CHECKFLAG(managedflag,offset){\
+			if (!bundle_data.HasFlag(BundleIntrinsicsFlags::managedflag)) \
+			constant_data.push_back(offset); \
+		} \
 
+			CHECKFLAG(FocalLength, OFFSET_FOCAL_LENGTH_X);
+			CHECKFLAG(FocalLength, OFFSET_FOCAL_LENGTH_Y);
+			CHECKFLAG(PrincipalP, OFFSET_PRINCIPAL_POINT_X);
+			CHECKFLAG(PrincipalP, OFFSET_PRINCIPAL_POINT_Y);
+			CHECKFLAG(R1, OFFSET_K1);
+			CHECKFLAG(R2, OFFSET_K2);
+			CHECKFLAG(R3, OFFSET_K3);
+			CHECKFLAG(P1, OFFSET_P1);
+			CHECKFLAG(P2, OFFSET_P2);
 			if (Distortionmodel == DistortionModel::AgisoftPhotoscan) {
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::SKEW))
-					constant_data.push_back(OFFSET_SKEW);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R4))
-					constant_data.push_back(OFFSET_K4);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::P3))
-					constant_data.push_back(OFFSET_P3);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::P4))
-					constant_data.push_back(OFFSET_P4);
-
+				CHECKFLAG(SKEW, OFFSET_SKEW);
+				CHECKFLAG(R4, OFFSET_K4);
+				CHECKFLAG(P3, OFFSET_P3);
+				CHECKFLAG(P4, OFFSET_P4);
 			} else if (Distortionmodel == DistortionModel::OpenCVAdvanced) {
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::SKEW))
-					constant_data.push_back(OFFSET_SKEW);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R4))
-					constant_data.push_back(OFFSET_K4);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R5))
-					constant_data.push_back(OFFSET_K5);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::R6))
-					constant_data.push_back(OFFSET_K6);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::S1))
-					constant_data.push_back(OFFSET_P3);
-				if (!bundle_data.HasFlag(BundleIntrinsicsFlags::S2))
-					constant_data.push_back(OFFSET_P4);
+				CHECKFLAG(SKEW, OFFSET_SKEW);
+				CHECKFLAG(R4, OFFSET_K4);
+				CHECKFLAG(R5, OFFSET_K5);
+				CHECKFLAG(R6, OFFSET_K6);
+				CHECKFLAG(S1, OFFSET_P3);
+				CHECKFLAG(S2, OFFSET_P4);
 			}
 
 			ceres::SubsetParameterization* subset_parameterization = new ceres::SubsetParameterization(Length, constant_data);
 
 			return subset_parameterization;
 		}
+
+		
+
+
+	public:
+		property Enum^ BundleFlagsEnum {
+			Enum^ get() override { return BundleFlags; }
+			void set(Enum^ value) override { _bundleFlags = (BundleIntrinsicsFlags)value; };
+		};
+
 
 		property int Length { int get() override {
 			switch (Distortionmodel) {
@@ -485,13 +751,25 @@ namespace ceresdotnet {
 			}
 		}}
 
-		property Enum^ BundleFlagsEnum {	Enum^ get() override { return BundleFlags; } };
-
-	public:
 		CeresIntrinsics(DistortionModel model) : CeresParameterBlock(15) {
 			this->Distortionmodel = model;
+		};
+		CeresIntrinsics() : CeresIntrinsics(DistortionModel::Standard) {};
+		CeresIntrinsics(ICeresIntrinsics^ managedObj) : CeresIntrinsics(managedObj->Distortionmodel) {
+			_managed = managedObj;
+		};
+
+
+		virtual CeresParameterBlock^ Clone() override
+		{
+			auto r = gcnew CeresIntrinsics(_managed);
+			memcpy(r->_data, _data, sizeof(double)*Length);
+			return r;
 		}
-		CeresIntrinsics() : CeresIntrinsics(DistortionModel::Standard) {}
+
+		property ICeresParameterblock^ ManagedObject {ICeresParameterblock^ get() override { return _managed; }}
+
+
 
 		CeresIntrinsics(array<double>^ intr) : CeresIntrinsics() {
 			Intrinsics = intr;
@@ -499,6 +777,8 @@ namespace ceresdotnet {
 		CeresIntrinsics(Emgu::CV::Matrix<double>^ cameraMat, array<double>^ distCoeffs) : CeresIntrinsics() {
 			set(cameraMat, distCoeffs);
 		}
+
+		
 
 		void set(Emgu::CV::Matrix<double>^ cameraMat, array<double>^ distCoeffs) {
 			fx = cameraMat->default[0, 0];
@@ -519,7 +799,7 @@ namespace ceresdotnet {
 
 		};
 
-		String^  ToString() override {
+		String^ ToString() override {
 			return String::Format("fx:{0} fy:{3} cx:{1} cy:{2}", fx.ToString("0:0,00"), ppx.ToString("1:0,00"), ppy.ToString("2:0,00"), fy.ToString("3:0,00"));
 		}
 
@@ -552,7 +832,11 @@ namespace ceresdotnet {
 			};
 		};
 		}
-		property Matrix<double>^ CameraMatrixCV {Matrix<double>^ get() { return gcnew Matrix<double>(CameraMatrix); }; };
+
+		property Emgu::CV::Matrix<double>^ CameraMatrixCV {
+			Emgu::CV::Matrix<double>^ get() { return gcnew Emgu::CV::Matrix<double>(CameraMatrix); }; 
+		};
+
 		property array<double>^ Intrinsics {
 			array<double>^ get() {
 				array<double>^ r = gcnew array<double>(9);
@@ -675,14 +959,148 @@ namespace ceresdotnet {
 			}}
 #pragma endregion
 
+
+		virtual void UpdateManagedData() override {
+			_managed->fx = fx;
+			_managed->fy = fy;
+
+			_managed->ppx = ppx;
+			_managed->ppy = ppy;
+
+			_managed->skew = skew;
+
+			_managed->k1 = k1;
+			_managed->k2 = k2;
+			_managed->k3 = k3;
+
+			_managed->p1 = p1;
+			_managed->p2 = p2;
+
+			if (Distortionmodel == DistortionModel::AgisoftPhotoscan) {
+				_managed->k4 = k4;
+
+				_managed->p3 = p3;
+				_managed->p4 = p4;
+			}
+			if (Distortionmodel == DistortionModel::OpenCVAdvanced) {
+				_managed->k4 = k4;
+				_managed->k5 = k5;
+				_managed->k6 = k6;
+
+				_managed->s1 = s1;
+				_managed->s2 = s2;
+			}
+		};
+		virtual void UpdateBundleData() override {
+			fx = _managed->fx;
+			fy= _managed->fy;
+
+			ppx = _managed->ppx;
+			ppy = _managed->ppy;
+
+
+			k1 = _managed->k1;
+			k2 = _managed->k2;
+			k3 = _managed->k3;
+
+			p1 = _managed->p1;
+			p2 = _managed->p2;
+
+			if (Distortionmodel == DistortionModel::AgisoftPhotoscan) {
+
+				skew = _managed->skew;
+
+				k4 = _managed->k4;
+
+				p3 = _managed->p3;
+				p4 = _managed->p4;
+			}
+			if (Distortionmodel == DistortionModel::OpenCVAdvanced) {
+
+				skew = _managed->skew;
+
+				k4 = _managed->k4;
+				k5 = _managed->k5;
+				k6 = _managed->k6;
+
+				s1 = _managed->s1;
+				s2 = _managed->s2;
+			}
+		};
+
+
 	};
 
+	public interface class ICeresScaleTransform : ICeresParameterblock{
+		property double XOffset {
+			double get();
+			void set(double v);
+		}
+		property double YOffset {
+			double get();
+			void set(double v);
+		}
+		property double ZOffset {
+			double get();
+			void set(double v);
+		}
+
+
+		property array<double>^ Rot_rodr {
+			array<double>^ get();
+			void set(array<double>^ value);
+		}
+
+		property double scale {
+			double get();
+			void set(double v);
+		}
+	};
 	public ref class CeresScaledTransformation : CeresPointOrient {
 	public:
+		ICeresScaleTransform^ _managed;
+
+		
+
+		virtual void UpdateManagedData() override {
+			_managed->Rot_rodr = gcnew array<double> { _data[OFFSET_RODR1],_data[OFFSET_RODR2],_data[OFFSET_RODR3] };
+
+			_managed->XOffset = _data[3];
+			_managed->YOffset = _data[4];
+			_managed->ZOffset = _data[5];
+
+			_managed->scale = _data[OFFSET_SCALE];
+		};
+		virtual void UpdateBundleData() override {
+			pin_ptr<double> p = &_managed->Rot_rodr[0];
+			memcpy(_data, p, 3 * 8);
+
+
+			_data[3] = _managed->XOffset;
+			_data[4] = _managed->YOffset;
+			_data[5] = _managed->ZOffset;
+
+			_data[6] = _managed->scale;
+		};
+		CeresScaledTransformation(ICeresScaleTransform^ managedObj) {
+			_managed = managedObj;
+			UpdateBundleData();
+		};
+
+		virtual CeresParameterBlock^ Clone() override
+		{
+			auto r = gcnew CeresScaledTransformation(_managed);
+			memcpy(r->_data, _data, sizeof(double)*Length);
+			return r;
+		}
+
+
 		property int Length { int get() override { return 7; }}
 		//bool getBlockFullyVariable() override { return true; }
 		//bool getBlockFullyConstant() override { return false; }
 		//ceres::SubsetParameterization* GetPrametrization() override {return NULL;}
+
+
 
 		property double scale {
 			double get() {

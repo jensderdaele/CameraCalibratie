@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using ceresdotnet;
+using Calibratie.Annotations;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -19,14 +22,33 @@ namespace Calibratie {
     /// <summary>
     /// Gemaakt voor Agisoft project parsing: Chunk xml -> translatie lokaal naar lambert
     /// </summary>
-    public class BaseTransform : SObjectBase,IXmlSerializable {
-        private const string XMLNAME = "transform";
+    public class BaseTransform : SObjectBase,IXmlSerializable,ICeresScaleTransform {
+        public new double[] Rodr {
+            get {
+                var r = new RotationVector3D();
+                CvInvoke.Rodrigues(RotationMat, r);
+                return new []{r[0,0],r[1,0],r[2,0]};
+            }
+            set {
+                var r = new RotationVector3D();
+                r[0, 0] = value[0];
+                r[1, 0] = value[1];
+                r[2, 0] = value[2];
+                CvInvoke.Rodrigues(r, this.RotationMat);
+            }
+        }
+        
+        
+        BundleWorldCoordinatesFlags BundleFlags { get; }
 
-        public double Scale;
+        private ICeresScaleTransform _ceresScaleTransformImplementation;
+        private const string XMLNAME = "transform";
+        
 
         public XmlSchema GetSchema() {
             return null;
         }
+        
 
         public void ReadXml(XmlReader reader) {
             if (reader.Name == XMLNAME && reader.NodeType == XmlNodeType.Element) {
@@ -66,6 +88,29 @@ namespace Calibratie {
             writer.WriteEndElement();
 
             writer.WriteEndElement();
+        }
+
+        public double Scale { get; set; }
+        public double scale {
+            get => Scale;
+            set => Scale = value;
+        }
+
+        double[] ICeresScaleTransform.Rot_rodr {
+            get => Rodr;
+            set => Rodr = value;
+        }
+         double ICeresScaleTransform.ZOffset {
+             get => Z;
+             set => Z = value;
+         }
+         double ICeresScaleTransform.YOffset {
+             get => Y;
+             set => Y = value;
+         }
+        double ICeresScaleTransform.XOffset {
+            get => X;
+            set => X = value;
         }
     }
 
@@ -142,7 +187,7 @@ namespace Calibratie {
     /// <summary>
     /// alle data intern in 4x4 matrix
     /// </summary>
-    public abstract class SObjectBase : SPoint, ICeresParameterConvertable<CeresPointOrient> {
+    public abstract class SObjectBase : SPoint, ICeresPointOrient {
 
         private Matrix _worldMat = new Matrix(new double[,] {
             {1,0,0,0},
@@ -153,7 +198,6 @@ namespace Calibratie {
         private Matrix _rot;
 
         public SObjectBase() {
-            //_worldMat = new Matrix(4,4);
             base._pos = new Matrix<double>(3, 1, _worldMat.Mat.DataPointer + 3 * Matrix<double>.SizeOfElement, _worldMat.Mat.Step);
             _rot = new Matrix<double>(3, 3, _worldMat.Mat.DataPointer, _worldMat.Mat.Step);
         }
@@ -162,20 +206,26 @@ namespace Calibratie {
         /// 3,3 niet originele data
         /// </summary>
         public Matrix Rot_transform {
-            get { return RotationMat.Transpose(); }
-            set { RotationMat = value.Transpose(); }
+            get => RotationMat.Transpose();
+            set => RotationMat = value.Transpose();
         }
 
         /// <summary>
         /// 3,1 niet originele data, set: ROT eerst setten!!
         /// </summary>
         public Matrix Pos_transform {
-            get { return -1 * Rot_transform * Pos; }
-            set { base.setPos((-1 * Rot_transform).Inverted() * value);}
+            get => -1 * Rot_transform * Pos;
+            set {
+                base.setPos((-1 * Rot_transform).Inverted() * value);
+                OnPropertyChanged();/*
+                OnPropertyChanged(nameof(X));
+                OnPropertyChanged(nameof(Y));
+                OnPropertyChanged(nameof(Z));*/
+            }
         }
 
         public Matrix WorldMat {
-            get { return _worldMat; }
+            get => _worldMat;
             set {
                 _worldMat = value;
                 _pos = new Matrix<double>(3, 1, value.Mat.DataPointer + 3 * 8, _worldMat.Mat.Step);
@@ -191,13 +241,14 @@ namespace Calibratie {
         /// set: copies data
         /// </summary>
         public Matrix RotationMat {
-            get { return _rot; }
+            get => _rot;
             set {
                 for (int r = 0; r < 3; r++) {
                     for (int c = 0; c < 3; c++) {
                         _rot[r, c] = value[r, c];
                     }
                 }
+                OnPropertyChanged();
             }
         }
 
@@ -214,59 +265,90 @@ namespace Calibratie {
 
 
 
-        internal CeresPointOrient _ceresparam;
 
-        /// <summary>
-        /// returns the unique ceresparam for this element
-        /// </summary>
-        /// <returns></returns>
-        public CeresPointOrient toCeresParameter() {
-            if (_ceresparam == null) {
-                _ceresparam = new CeresPointOrient();
-                _ceresparam.BundleFlags = BundlePointOrientFlags.ALL;
+        public BundleWorldCoordinatesFlags BundleFlags => throw new NotImplementedException();
+
+        Enum ICeresParameterblock.BundleFlags { get => BundleFlags; set => throw new NotImplementedException(); }
+
+
+        double[] ICeresPointOrient.Pos_paramblock {
+            get {
+                var p = Pos_transform;
+                return new[] { p[0, 0], p[1, 0], p[2, 0] };
             }
-            var rodr = Rodr;
-            var t = Pos_transform;
-            _ceresparam.R_rod = new double[] {rodr[0, 0], rodr[1, 0], rodr[2, 0]};
-            _ceresparam.t = new double[]{t[0,0],t[1,0],t[2,0]};
-            return _ceresparam;
+            set {
+                Pos_transform = new Matrix(value);
+            }
         }
 
-        public CeresPointOrient toCeresParameter(Enum BundleSettings) {
-            var r = toCeresParameter();
-            r.BundleFlags = (BundlePointOrientFlags) BundleSettings;
-            return r;
+        double[] ICeresPointOrient.Rodr {
+            get {
+                var rodr = Rodr;
+                return new[] {rodr[0, 0], rodr[1, 0], rodr[2, 0]};
+            }
+            set {
+                Matrix m = new Matrix(3,3);
+                CvInvoke.Rodrigues(new Matrix(value), m);
+                this.Rot_transform = m;
+                OnPropertyChanged();
+            }
         }
 
-        public void updateFromCeres(CeresPointOrient paramblock) {
-            _pos[0, 0] = paramblock.t[0];
-            _pos[1, 0] = paramblock.t[1];
-            _pos[2, 0] = paramblock.t[2];
-
-            CvInvoke.Rodrigues(new Matrix(paramblock.R_rod), _rot);
-
-            CvInvoke.Invert(_worldMat, _worldMat, DecompMethod.Cholesky);
+        double ICeresPointOrient.X {
+            get => this.Pos_transform[0, 0];
+            set {
+                var p = Pos_transform;
+                p[0, 0] = value;
+                Pos_transform = p;
+                OnPropertyChanged();
+            }
         }
+        double ICeresPointOrient.Y {
+            get => this.Pos_transform[1, 0];
+            set {
+                var p = Pos_transform;
+                p[1, 0] = value;
+                Pos_transform = p;
+                OnPropertyChanged();
+            }
+        }
+        double ICeresPointOrient.Z {
+            get => this.Pos_transform[2, 0];
+            set {
+                var p = Pos_transform;
+                p[2, 0] = value;
+                Pos_transform = p;
+                OnPropertyChanged();
+            }
+        }
+        
     }
 
     /// <summary>
     /// alle data interne in 3x1 matrix
     /// </summary>
-    public abstract class SPoint : ICeresParameterConvertable<CeresPoint> {
+    public abstract class SPoint : ICeresPoint, INotifyPropertyChanged{
         protected Matrix _pos;
 
         public double X {
             get {return _pos[0, 0];}
-            set { _pos[0, 0] = value; }
+            set { _pos[0, 0] = value;
+                OnPropertyChanged();
+            }
         }
 
         public double Y {
             get { return _pos[1, 0]; }
-            set { _pos[1, 0] = value; }
+            set { _pos[1, 0] = value;
+                OnPropertyChanged();
+            }
         }
         public double Z {
             get { return _pos[2, 0]; }
-            set { _pos[2, 0] = value; }
+            set {
+                _pos[2, 0] = value;
+                OnPropertyChanged();
+            }
         }
 
         public MCvPoint3D32f toMCvPoint3D32f() {
@@ -281,6 +363,10 @@ namespace Calibratie {
             get { return _pos; }
             set { setPos(value); }
         }
+
+        public BundleWorldCoordinatesFlags BundleFlags => throw new NotImplementedException();
+
+        Enum ICeresParameterblock.BundleFlags { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public SPoint() {
             _pos = new Matrix(3, 1);
@@ -301,29 +387,16 @@ namespace Calibratie {
             _pos[0, 0] = pos[0, 0];
             _pos[1, 0] = pos[1, 0];
             _pos[2, 0] = pos[2, 0];
+            OnPropertyChanged(nameof(X));
+            OnPropertyChanged(nameof(Y));
+            OnPropertyChanged(nameof(Z));
         }
 
-        private CeresPoint _cerespoint;
-        public CeresPoint toCeresParameter() {
-            if (_cerespoint == null) {
-                _cerespoint = new CeresPoint();
-            }
-            _cerespoint.X = _pos[0, 0];
-            _cerespoint.Y = _pos[1, 0];
-            _cerespoint.Z = _pos[2, 0];
-            return _cerespoint;
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        public CeresPoint toCeresParameter(Enum BundleSettings) {
-            var r = toCeresParameter();
-            r.BundleFlags = (BundleWorldCoordinatesFlags) BundleSettings;
-            return r;
-        }
-
-        public void updateFromCeres(CeresPoint paramblock) {
-            _pos[0, 0] = paramblock.X;
-            _pos[1, 0] = paramblock.Y;
-            _pos[2, 0] = paramblock.Z;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

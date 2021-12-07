@@ -3,6 +3,7 @@
 #pragma managed(push,off)
 #include "Header.h"//ceresdotnetnative
 #pragma managed(pop)
+
 namespace ceresdotnet {
 	public ref class IterationSummary {
 	private:

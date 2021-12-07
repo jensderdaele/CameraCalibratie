@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MatlabNetLibNative</name>
+    </assembly>
+    <members>
+        <member name="T:MatlabNetLibNative.testClass">
+            <summary>
+            The testClass class provides a CLS compliant, Object (native) interface to the
+            MATLAB functions contained in the files:
+            <newpara></newpara>
+            C:\Users\jens\Desktop\calibratie\testfnc.m
+            </summary>
+            <remarks>
+            @Version 0.0
+            </remarks>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.#cctor">
+            <summary internal= "true">
+            The static constructor instantiates and initializes the MATLAB Runtime instance.
+            </summary>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.#ctor">
+            <summary>
+            Constructs a new instance of the testClass class.
+            </summary>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.Finalize">
+            <summary internal= "true">
+            Class destructor called by the CLR garbage collector.
+            </summary>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.Dispose">
+            <summary>
+            Frees the native resources associated with this object
+            </summary>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.Dispose(System.Boolean)">
+            <summary internal= "true">
+            Internal dispose function
+            </summary>
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.testfnc">
+             <summary>
+             Provides a void output, 0-input Objectinterface to the testfnc MATLAB function.
+             </summary>
+             <remarks>
+             </remarks>
+            
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.testfnc(System.Int32)">
+             <summary>
+             Provides the standard 0-input Object interface to the testfnc MATLAB function.
+             </summary>
+             <remarks>
+             </remarks>
+             <param name="numArgsOut">The number of output arguments to return.</param>
+             <returns>An Array of length "numArgsOut" containing the output
+             arguments.</returns>
+            
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.testfnc(System.Int32,System.Object[]@,System.Object[],System.Object[])">
+             <summary>
+             Provides an interface for the testfnc function in which the input and output
+             arguments are specified as an array of Objects.
+             </summary>
+             <remarks>
+             This method will allocate and return by reference the output argument
+             array.<newpara></newpara>
+             </remarks>
+             <param name="numArgsOut">The number of output arguments to return</param>
+             <param name= "argsOut">Array of Object output arguments</param>
+             <param name= "argsIn">Array of Object input arguments</param>
+             <param name= "varArgsIn">Array of Object representing variable input
+             arguments</param>
+            
+        </member>
+        <member name="M:MatlabNetLibNative.testClass.WaitForFiguresToDie">
+             <summary>
+             This method will cause a MATLAB figure window to behave as a modal dialog box.
+             The method will not return until all the figure windows associated with this
+             component have been closed.
+             </summary>
+             <remarks>
+             An application should only call this method when required to keep the
+             MATLAB figure window from disappearing.  Other techniques, such as calling
+             Console.ReadLine() from the application should be considered where
+             possible.</remarks>
+            
+        </member>
+    </members>
+</doc>

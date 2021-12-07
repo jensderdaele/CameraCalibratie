@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="BundleAdjuster.GCPView.Views.GCPView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BundleAdjuster.GCPView.Views"
+             xmlns:converters="clr-namespace:BundleAdjuster.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <local:ParamblockToCostConverter x:Key="ParamblockToCostConverter" />
+        <local:ICeresGCPToAdjustedPositionConverter x:Key="ICeresGCPToAdjustedPositionConverter" />
+        <local:IceresGCPToErrorConverter x:Key="IceresGCPToErrorConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <DataGrid x:Name="Datagrid" ItemsSource="{Binding Gcps}" 
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  HorizontalGridLinesBrush="Transparent" VerticalGridLinesBrush="Transparent"
+                  BorderThickness="0"
+                  Background="Transparent"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow" x:FieldModifier="public">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Width="30" Binding="{Binding Id}" />
+                <DataGridTextColumn Header="Name" Width="60" Binding="{Binding Label}" />
+                <DataGridTextColumn Header="Easting" Width="80"  Binding="{Binding X, StringFormat={}{0:0.00}}" />
+                <DataGridTextColumn Header="Northing" Width="80"  Binding="{Binding Y, StringFormat={}{0:0.00}}"/>
+                <DataGridTextColumn Header="Elevation" Width="60"  Binding="{Binding Z, StringFormat={}{0:0.00}}"/>
+                <DataGridTextColumn Header="Cost" Width="80"  Binding="{Binding Converter={StaticResource ParamblockToCostConverter},StringFormat=E2}"/>
+                <DataGridTextColumn Header="Error" Width="80" Binding="{Binding Converter={StaticResource IceresGCPToErrorConverter},StringFormat={}{0:0.00}}"/>
+                <DataGridTextColumn Header="Reprojected" Width="200"  Binding="{Binding  Converter={StaticResource ICeresGCPToAdjustedPositionConverter}}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

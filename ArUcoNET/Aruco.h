@@ -8,19 +8,27 @@
 
 #include "stdafx.h"
 #include <iostream>
-using namespace std;
 
 using namespace System::Collections::Generic;
 #include <msclr\marshal_cppstd.h>
 using namespace System;
-using namespace std;
+//using namespace std;
 using namespace cv;
 using namespace System::Linq;
 using namespace System::Drawing; 
 using namespace System::Collections::Generic;
 using namespace cv::xfeatures2d;
 
+//#include "CVNative.h"
+
 namespace ArUcoNET {
+	static public ref class CVNative abstract sealed {
+	public:
+		static void triangulateNViews(array<System::Drawing::PointF>^ pts, array<Emgu::CV::Mat^>^ Ps, Emgu::CV::Matrix<double>^ triangulated) {
+			//triangulateNViews(pts, Ps, triangulated);
+			
+		}
+	};
 
 	[FlagsAttribute]
 	public enum class CornerFlags : int {
@@ -234,7 +242,7 @@ namespace ArUcoNET {
 	private:
 		
 	public:
-		static void CreateMarkerToFile(int id, string path, int pixelSz){
+		static void CreateMarkerToFile(int id, std::string path, int pixelSz){
 			cv::Mat markerImage; 
 			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::aruco::drawMarker(dictionary, id, pixelSz, markerImage, 1);
@@ -317,7 +325,8 @@ namespace ArUcoNET {
 			cv::Ptr<cv::aruco::Dictionary> markerDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_ORIGINAL);
 			cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
 			
-			detectorParams->doCornerRefinement = true;
+			detectorParams->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
+			//detectorParams->doCornerRefinement = true;
 			detectorParams->adaptiveThreshWinSizeMin = 140;
 			detectorParams->adaptiveThreshWinSizeStep = 30;
 			detectorParams->adaptiveThreshWinSizeMax = 230;

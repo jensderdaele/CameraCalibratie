@@ -1,0 +1,647 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        "ceresdotnet"
+    </assembly>
+    <members>
+        <member name="M:ceresdotnet.MultiCameraBundler.GetCostForNativeParameterblock(ceresdotnet.CeresParameterBlock,System.Boolean)">
+            <summary>
+Bad things will happen is the block is unknown
+</summary>
+        </member>
+        <member name="M:ceresdotnet.MultiCameraBundler.GetTotalCost">
+            <summary>
+Evaluates entire problem
+</summary>
+        </member>
+        <member name="T:GCPError">
+NIET GESCHIKT VOOR GROTE AFSTANDEN 1-2KM+ -&gt; projectie != kromming aarde (vlak)  ; sfm = kromming aarde (bol)
+</member>
+        <member name="D:Eigen.AlignedBox1i">
+\defgroup alignedboxtypedefs Global aligned box typedefs
+  *
+  * \ingroup Geometry_Module
+  *
+  * Eigen defines several typedef shortcuts for most common aligned box types.
+  *
+  * The general patterns are the following:
+  *
+  * \c AlignedBoxSizeType where \c Size can be \c 1, \c 2,\c 3,\c 4 for fixed size boxes or \c X for dynamic size,
+  * and where \c Type can be \c i for integer, \c f for float, \c d for double.
+  *
+  * For example, \c AlignedBox3d is a fixed-size 3x3 aligned box type of doubles, and \c AlignedBoxXf is a dynamic-size aligned box of floats.
+  *
+  * \sa class AlignedBox
+
+</member>
+        <member name="D:Eigen.AlignedScaling3d">
+\deprecated 
+</member>
+        <member name="D:Eigen.AlignedScaling3f">
+\deprecated 
+</member>
+        <member name="D:Eigen.AlignedScaling2d">
+\deprecated 
+</member>
+        <member name="D:Eigen.AlignedScaling2f">
+\deprecated 
+</member>
+        <member name="M:Eigen.Scaling(System.Double)">
+Constructs a uniform scaling from scale factor \a s 
+</member>
+        <member name="M:Eigen.Scaling(System.Single)">
+Constructs a uniform scaling from scale factor \a s 
+</member>
+        <member name="D:Eigen.Translation2f">
+\addtogroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Projective3d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Projective2d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Projective3f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Projective2f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.AffineCompact3d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.AffineCompact2d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.AffineCompact3f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.AffineCompact2f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Affine3d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Affine2d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Affine3f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Affine2f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Isometry3d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Isometry2d">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Isometry3f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.Isometry2f">
+\ingroup Geometry_Module 
+</member>
+        <member name="D:Eigen.AngleAxisd">
+\ingroup Geometry_Module
+  * double precision angle-axis type 
+</member>
+        <member name="D:Eigen.AngleAxisf">
+\ingroup Geometry_Module
+  * single precision angle-axis type 
+</member>
+        <member name="D:Eigen.QuaternionMapAlignedd">
+\ingroup Geometry_Module
+  * Map a 16-byte aligned array of double precision scalars as a quaternion 
+</member>
+        <member name="D:Eigen.QuaternionMapAlignedf">
+\ingroup Geometry_Module
+  * Map a 16-byte aligned array of single precision scalars as a quaternion 
+</member>
+        <member name="D:Eigen.QuaternionMapd">
+\ingroup Geometry_Module
+  * Map an unaligned array of double precision scalars as a quaternion 
+</member>
+        <member name="D:Eigen.QuaternionMapf">
+\ingroup Geometry_Module
+  * Map an unaligned array of single precision scalars as a quaternion 
+</member>
+        <member name="D:Eigen.Quaterniond">
+\ingroup Geometry_Module
+  * double precision quaternion type 
+</member>
+        <member name="D:Eigen.Quaternionf">
+\ingroup Geometry_Module
+  * single precision quaternion type 
+</member>
+        <member name="D:Eigen.Rotation2Dd">
+\ingroup Geometry_Module
+  * double precision 2D rotation type 
+</member>
+        <member name="D:Eigen.Rotation2Df">
+\ingroup Geometry_Module
+  * single precision 2D rotation type 
+</member>
+        <member name="M:Eigen.setNbThreads(System.Int32)">
+Sets the max number of threads reserved for Eigen
+  * \sa nbThreads 
+</member>
+        <member name="M:Eigen.nbThreads">
+\returns the max number of threads reserved for Eigen
+  * \sa setNbThreads 
+</member>
+        <member name="M:Eigen.initParallel">
+Must be call first when calling Eigen from multiple threads 
+</member>
+        <member name="M:Eigen.internal.manage_multi_threading(Eigen.Action,System.Int32*)">
+\internal 
+</member>
+        <member name="M:Eigen.setCpuCacheSizes(System.Int64,System.Int64,System.Int64)">
+Set the cpu L1 and L2 cache sizes (in bytes).
+  * These values are use to adjust the size of the blocks
+  * for the algorithms working per blocks.
+  *
+  * \sa computeProductBlockingSizes 
+</member>
+        <member name="M:Eigen.l3CacheSize">
+\returns the currently set level 3 cpu cache size (in bytes) used to estimate the ideal blocking size paramete\
+rs.                                                                                                                
+* \sa setCpuCacheSize 
+</member>
+        <member name="M:Eigen.l2CacheSize">
+\returns the currently set level 2 cpu cache size (in bytes) used to estimate the ideal blocking size parameters.
+  * \sa setCpuCacheSize 
+</member>
+        <member name="M:Eigen.l1CacheSize">
+\returns the currently set level 1 cpu cache size (in bytes) used to estimate the ideal blocking size parameters.
+  * \sa setCpuCacheSize 
+</member>
+        <member name="M:Eigen.internal.manage_caching_sizes(Eigen.Action,System.Int64*,System.Int64*,System.Int64*)">
+\internal 
+</member>
+        <member name="T:Eigen.internal.CacheSizes">
+\internal 
+</member>
+        <member name="D:Eigen.Array22i">
+\defgroup arraytypedefs Global array typedefs
+  * \ingroup Core_Module
+  *
+  * Eigen defines several typedef shortcuts for most common 1D and 2D array types.
+  *
+  * The general patterns are the following:
+  *
+  * \c ArrayRowsColsType where \c Rows and \c Cols can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size,
+  * and where \c Type can be \c i for integer, \c f for float, \c d for double, \c cf for complex float, \c cd
+  * for complex double.
+  *
+  * For example, \c Array33d is a fixed-size 3x3 array type of doubles, and \c ArrayXXf is a dynamic-size matrix of floats.
+  *
+  * There are also \c ArraySizeType which are self-explanatory. For example, \c Array4cf is
+  * a fixed-size 1D array of 4 complex floats.
+  *
+  * \sa class Array
+
+</member>
+        <member name="D:Eigen.Matrix2i">
+\defgroup matrixtypedefs Global matrix typedefs
+  *
+  * \ingroup Core_Module
+  *
+  * Eigen defines several typedef shortcuts for most common matrix and vector types.
+  *
+  * The general patterns are the following:
+  *
+  * \c MatrixSizeType where \c Size can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size,
+  * and where \c Type can be \c i for integer, \c f for float, \c d for double, \c cf for complex float, \c cd
+  * for complex double.
+  *
+  * For example, \c Matrix3d is a fixed-size 3x3 matrix type of doubles, and \c MatrixXf is a dynamic-size matrix of floats.
+  *
+  * There are also \c VectorSizeType and \c RowVectorSizeType which are self-explanatory. For example, \c Vector4cf is
+  * a fixed-size vector of 4 complex floats.
+  *
+  * \sa class Matrix
+
+</member>
+        <member name="M:Eigen.IOFormat.#ctor(System.Int32,System.Int32,std.basic_string&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte,std.char_traits{System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte},std.allocator&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte&gt;&gt;!System.Runtime.CompilerServices.IsConst*!System.Runtime.CompilerServices.IsImplicitlyDereferenced,std.basic_string&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte,std.char_traits{System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte},std.allocator&lt;System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte&gt;&gt;!System.Runtime.CompilerServices.IsConst*!System.Runtime.CompilerServices.IsImplicitlyDereferenced,std.basic_string&lt;System.SByte!">
+Default constructor, see class IOFormat for the meaning of the parameters 
+</member>
+        <member name="T:Eigen.IOFormat">
+\class IOFormat
+  * \ingroup Core_Module
+  *
+  * \brief Stores a set of parameters controlling the way matrices are printed
+  *
+  * List of available parameters:
+  *  - \b precision number of digits for floating point values, or one of the special constants \c StreamPrecision and \c FullPrecision.
+  *                 The default is the special value \c StreamPrecision which means to use the
+  *                 stream's own precision setting, as set for instance using \c cout.precision(3). The other special value
+  *                 \c FullPrecision means that the number of digits will be computed to match the full precision of each floating-point
+  *                 type.
+  *  - \b flags an OR-ed combination of flags, the default value is 0, the only currently available flag is \c DontAlignCols which
+  *             allows to disable the alignment of columns, resulting in faster code.
+  *  - \b coeffSeparator string printed between two coefficients of the same row
+  *  - \b rowSeparator string printed between two rows
+  *  - \b rowPrefix string printed at the beginning of each row
+  *  - \b rowSuffix string printed at the end of each row
+  *  - \b matPrefix string printed at the beginning of the matrix
+  *  - \b matSuffix string printed at the end of the matrix
+  *
+  * Example: \include IOFormat.cpp
+  * Output: \verbinclude IOFormat.out
+  *
+  * \sa DenseBase::format(), class WithFormat
+
+</member>
+        <member name="T:Eigen.internal.scalar_boolean_xor_op">
+\internal
+ * \brief Template functor to compute the xor of two booleans
+ *
+ * \sa class CwiseBinaryOp, ArrayBase::operator^
+
+</member>
+        <member name="T:Eigen.internal.scalar_boolean_or_op">
+\internal
+  * \brief Template functor to compute the or of two booleans
+  *
+  * \sa class CwiseBinaryOp, ArrayBase::operator||
+
+</member>
+        <member name="T:Eigen.internal.default_packet_traits">
+\internal
+  * \file GenericPacketMath.h
+  *
+  * Default implementation for types not supported by the vectorization.
+  * In practice these functions are provided to make easier the writing
+  * of generic vectorized code.
+
+</member>
+        <member name="M:Eigen.numext.log2(System.Int32)">
+Log base 2 for 32 bits positive integers.
+  * Conveniently returns 0 for x==0. 
+</member>
+        <member name="M:Eigen.internal.queryTopLevelCacheSize">
+\internal
+ * \returns the size in Bytes of the L2 or L3 cache if this later is present 
+</member>
+        <member name="M:Eigen.internal.queryL1CacheSize">
+\internal
+ * \returns the size in Bytes of the L1 data cache 
+</member>
+        <member name="M:Eigen.internal.queryCacheSizes(System.Int32*!System.Runtime.CompilerServices.IsImplicitlyDereferenced,System.Int32*!System.Runtime.CompilerServices.IsImplicitlyDereferenced,System.Int32*!System.Runtime.CompilerServices.IsImplicitlyDereferenced)">
+\internal
+ * Queries and returns the cache sizes in Bytes of the L1, L2, and L3 data caches respectively 
+</member>
+        <member name="M:Eigen.internal.aligned_realloc(System.Void*,System.UInt64,System.UInt64)">
+\internal
+\brief Reallocates an aligned block of memory.
+\throws std::bad_alloc on allocation failure
+
+</member>
+        <member name="M:Eigen.internal.aligned_free(System.Void*)">
+\internal Frees memory allocated with aligned_malloc. 
+</member>
+        <member name="M:Eigen.internal.aligned_malloc(System.UInt64)">
+\internal Allocates \a size bytes. The returned pointer is guaranteed to have 16 or 32 bytes alignment depending on the requirements.
+  * On allocation error, the returned pointer is null, and std::bad_alloc is thrown.
+
+</member>
+        <member name="M:Eigen.internal.handmade_aligned_realloc(System.Void*,System.UInt64,System.UInt64)">
+\internal
+  * \brief Reallocates aligned memory.
+  * Since we know that our handmade version is based on std::malloc
+  * we can use std::realloc to implement efficient reallocation.
+
+</member>
+        <member name="M:Eigen.internal.handmade_aligned_free(System.Void*)">
+\internal Frees memory allocated with handmade_aligned_malloc 
+</member>
+        <member name="M:Eigen.internal.handmade_aligned_malloc(System.UInt64)">
+\internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
+  * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
+
+</member>
+        <member name="T:Eigen.internal.noncopyable">
+\internal
+  * A base class do disable default copy ctor and copy assignement operator.
+
+</member>
+        <member name="D:Eigen.internal.IntPtr">
+\internal
+  * \file Meta.h
+  * This file contains generic metaprogramming classes which are not specifically related to Eigen.
+  * \note In case you wonder, yes we're aware that Boost already provides all these features,
+  * we however don't want to add a dependency to Boost.
+
+</member>
+        <member name="D:Eigen.Index">
+\brief The Index type as used for the API.
+\details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
+\sa \blank \ref TopicPreprocessorDirectives, StorageIndex.
+
+</member>
+        <member name="T:Eigen.internal.ComparisonName">
+\internal
+ * Constants for comparison functors
+
+</member>
+        <member name="T:Eigen.ArrayXpr">
+The type used to identify an array expression 
+</member>
+        <member name="T:Eigen.MatrixXpr">
+The type used to identify a matrix expression 
+</member>
+        <member name="T:Eigen.TranspositionsStorage">
+The type used to identify a permutation storage. 
+</member>
+        <member name="T:Eigen.PermutationStorage">
+The type used to identify a permutation storage. 
+</member>
+        <member name="T:Eigen.SolverStorage">
+The type used to identify a general solver (factored) storage. 
+</member>
+        <member name="T:Eigen.Sparse">
+The type used to identify a general sparse storage. 
+</member>
+        <member name="T:Eigen.Dense">
+The type used to identify a dense storage. 
+</member>
+        <member name="T:Eigen.Action">
+\internal \ingroup enums
+  * Enum used in experimental parallel implementation. 
+</member>
+        <member name="T:Eigen.ProductImplType">
+\internal \ingroup enums
+  * Enum used as template parameter in Product and product evaluators. 
+</member>
+        <member name="T:Eigen.TransformTraits">
+\ingroup enums
+  * Enum used to specify how a particular transformation is stored in a matrix.
+  * \sa Transform, Hyperplane::transform(). 
+</member>
+        <member name="F:Projective">
+Transformation is a general projective transformation stored as a (Dim+1)^2 matrix. 
+</member>
+        <member name="F:AffineCompact">
+Transformation is an affine transformation stored as a (Dim) x (Dim+1) matrix. 
+</member>
+        <member name="F:Affine">
+Transformation is an affine transformation stored as a (Dim+1)^2 matrix whose last row is 
+    * assumed to be [0 ... 0 1]. 
+</member>
+        <member name="F:Isometry">
+Transformation is an isometry. 
+</member>
+        <member name="T:Eigen.ComputationInfo">
+\ingroup enums
+  * Enum for reporting the status of a computation. 
+</member>
+        <member name="F:InvalidInput">
+The inputs are invalid, or the algorithm has been improperly called.
+    * When assertions are enabled, such errors trigger an assert. 
+</member>
+        <member name="F:NoConvergence">
+Iterative procedure did not converge. 
+</member>
+        <member name="F:NumericalIssue">
+The provided data did not satisfy the prerequisites. 
+</member>
+        <member name="F:Success">
+Computation was successful. 
+</member>
+        <member name="T:Eigen.QRPreconditioners">
+\ingroup enums
+  * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. 
+</member>
+        <member name="F:FullPivHouseholderQRPreconditioner">
+Use a QR decomposition with full pivoting as the first step. 
+</member>
+        <member name="F:ColPivHouseholderQRPreconditioner">
+Use a QR decomposition with column pivoting as the first step. 
+</member>
+        <member name="F:HouseholderQRPreconditioner">
+Use a QR decomposition without pivoting as the first step. 
+</member>
+        <member name="F:NoQRPreconditioner">
+Do not specify what is to be done if the SVD of a non-square matrix is asked for. 
+</member>
+        <member name="T:Eigen.DecompositionOptions">
+\ingroup enums
+  * Enum with options to give to various decompositions. 
+</member>
+        <member name="F:GenEigMask">
+\internal 
+</member>
+        <member name="F:BAx_lx">
+Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ BAx = \lambda x \f$. 
+</member>
+        <member name="F:ABx_lx">
+Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ ABx = \lambda x \f$. 
+</member>
+        <member name="F:Ax_lBx">
+Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
+    * solve the generalized eigenproblem \f$ Ax = \lambda B x \f$. 
+</member>
+        <member name="F:EigVecMask">
+\internal 
+</member>
+        <member name="F:ComputeEigenvectors">
+Used in SelfAdjointEigenSolver and GeneralizedSelfAdjointEigenSolver to specify
+    * that both the eigenvalues and the eigenvectors are to be computed. 
+</member>
+        <member name="F:EigenvaluesOnly">
+Used in SelfAdjointEigenSolver and GeneralizedSelfAdjointEigenSolver to specify
+    * that only the eigenvalues are to be computed and not the eigenvectors. 
+</member>
+        <member name="F:ComputeThinV">
+Used in JacobiSVD to indicate that the thin matrix V is to be computed. 
+</member>
+        <member name="F:ComputeFullV">
+Used in JacobiSVD to indicate that the square matrix V is to be computed. 
+</member>
+        <member name="F:ComputeThinU">
+Used in JacobiSVD to indicate that the thin matrix U is to be computed. 
+</member>
+        <member name="F:ComputeFullU">
+Used in JacobiSVD to indicate that the square matrix U is to be computed. 
+</member>
+        <member name="F:NoPivoting">
+\internal Not used (meant for LDLT?). 
+</member>
+        <member name="F:Pivoting">
+\internal Not used (meant for LDLT?). 
+</member>
+        <member name="T:Eigen.AccessorLevels">
+\ingroup enums
+  * Used as template parameter in DenseCoeffBase and MapBase to indicate 
+  * which accessors should be provided. 
+</member>
+        <member name="F:DirectWriteAccessors">
+Direct read/write access to the coefficients. 
+</member>
+        <member name="F:DirectAccessors">
+Direct read-only access to the coefficients. 
+</member>
+        <member name="F:WriteAccessors">
+Read/write access via member functions. 
+</member>
+        <member name="F:ReadOnlyAccessors">
+Read-only access via a member function. 
+</member>
+        <member name="T:Eigen.AmbiVectorMode">
+\internal \ingroup enums
+  * Used in AmbiVector. 
+</member>
+        <member name="T:Eigen.SideType">
+\ingroup enums
+  * Enum for specifying whether to apply or solve on the left or right. 
+</member>
+        <member name="F:OnTheRight">
+Apply transformation on the right. 
+</member>
+        <member name="F:OnTheLeft">
+Apply transformation on the left. 
+</member>
+        <member name="T:Eigen.StorageOptions">
+\ingroup enums
+  * Enum containing possible values for the \p _Options template parameter of
+  * Matrix, Array and BandMatrix. 
+</member>
+        <member name="F:DontAlign">
+Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be requested to be aligned) 
+</member>
+        <member name="F:AutoAlign">
+Align the matrix itself if it is vectorizable fixed-size 
+</member>
+        <member name="F:RowMajor">
+Storage order is row major (see \ref TopicStorageOrders). 
+</member>
+        <member name="F:ColMajor">
+Storage order is column major (see \ref TopicStorageOrders). 
+</member>
+        <member name="T:Eigen.SpecializedType">
+\internal \ingroup enums
+  * Enum to specify whether to use the default (built-in) implementation or the specialization. 
+</member>
+        <member name="T:Eigen.UnrollingType">
+\internal \ingroup enums
+  * Enum to specify whether to unroll loops when traversing over the entries of a matrix. 
+</member>
+        <member name="F:CompleteUnrolling">
+\internal Unroll both the inner and the outer loop. If there is only one loop, 
+    * because linear traversal is used, then unroll that loop. 
+</member>
+        <member name="F:InnerUnrolling">
+\internal Unroll only the inner loop, but not the outer loop. 
+</member>
+        <member name="F:NoUnrolling">
+\internal Do not unroll loops. 
+</member>
+        <member name="T:Eigen.TraversalType">
+\internal \ingroup enums
+  * Enum to specify how to traverse the entries of a matrix. 
+</member>
+        <member name="F:AllAtOnceTraversal">
+\internal Evaluate all entries at once 
+</member>
+        <member name="F:InvalidTraversal">
+\internal Special case to properly handle incompatible scalar types or other defecting cases
+</member>
+        <member name="F:SliceVectorizedTraversal">
+\internal Generic vectorization path using one vectorized loop per row/column with some
+    * scalar loops to handle the unaligned boundaries 
+</member>
+        <member name="F:LinearVectorizedTraversal">
+\internal Vectorization path using a single loop plus scalar loops for the
+    * unaligned boundaries 
+</member>
+        <member name="F:InnerVectorizedTraversal">
+\internal Equivalent to a slice vectorization for fixed-size matrices having good alignment
+    * and good size 
+</member>
+        <member name="F:LinearTraversal">
+\internal No vectorization, use index-based access to have only one for loop instead of 2 nested loops 
+</member>
+        <member name="F:DefaultTraversal">
+\internal Default traversal, no vectorization, no index-based access 
+</member>
+        <member name="T:Eigen.DirectionType">
+\ingroup enums
+  * Enum containing possible values for the \p Direction parameter of
+  * Reverse, PartialReduxExpr and VectorwiseOp. 
+</member>
+        <member name="F:BothDirections">
+For Reverse, both rows and columns are reversed; 
+    * not used for PartialReduxExpr and VectorwiseOp. 
+</member>
+        <member name="F:Horizontal">
+For Reverse, all rows are reversed; 
+    * for PartialReduxExpr and VectorwiseOp, act on rows. 
+</member>
+        <member name="F:Vertical">
+For Reverse, all columns are reversed; 
+    * for PartialReduxExpr and VectorwiseOp, act on columns. 
+</member>
+        <member name="T:Eigen.CornerType">
+\ingroup enums
+ * Enum used by DenseBase::corner() in Eigen2 compatibility mode. 
+</member>
+        <member name="T:Eigen.AlignmentType">
+\ingroup enums
+  * Enum for indicating whether a buffer is aligned or not. 
+</member>
+        <member name="T:Eigen.UpLoType">
+\defgroup enums Enumerations
+  * \ingroup Core_Module
+  *
+  * Various enumerations used in %Eigen. Many of these are used as template parameters.
+
+\ingroup enums
+  * Enum containing possible values for the \c Mode or \c UpLo parameter of
+  * MatrixBase::selfadjointView() and MatrixBase::triangularView(), and selfadjoint solvers. 
+</member>
+        <member name="F:Symmetric">
+Used to support symmetric, non-selfadjoint, complex matrices. 
+</member>
+        <member name="F:SelfAdjoint">
+Used in BandMatrix and SelfAdjointView to indicate that the matrix is self-adjoint. 
+</member>
+        <member name="F:StrictlyUpper">
+View matrix as an upper triangular matrix with zeros on the diagonal. 
+</member>
+        <member name="F:StrictlyLower">
+View matrix as a lower triangular matrix with zeros on the diagonal. 
+</member>
+        <member name="F:UnitUpper">
+View matrix as an upper triangular matrix with ones on the diagonal. 
+</member>
+        <member name="F:UnitLower">
+View matrix as a lower triangular matrix with ones on the diagonal. 
+</member>
+        <member name="F:ZeroDiag">
+%Matrix has zeros on the diagonal; to be used in combination with #Lower or #Upper. 
+</member>
+        <member name="F:UnitDiag">
+%Matrix has ones on the diagonal; to be used in combination with #Lower or #Upper. 
+</member>
+        <member name="F:Upper">
+View matrix as an upper triangular matrix. 
+</member>
+        <member name="F:Lower">
+View matrix as a lower triangular matrix. 
+</member>
+        <!-- Discarding badly formed XML document comment for member 'T:Eigen.internal.scalar_boolean_and_op'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:Eigen.internal.manage_caching_sizes_helper(System.Int64,System.Int64)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:Eigen.internal.scalar_boolean_and_op'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:Eigen.internal.manage_caching_sizes_helper(System.Int64,System.Int64)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:Eigen.internal.scalar_boolean_and_op'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:Eigen.internal.manage_caching_sizes_helper(System.Int64,System.Int64)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:Eigen.internal.scalar_boolean_and_op'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:Eigen.internal.manage_caching_sizes_helper(System.Int64,System.Int64)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:Eigen.internal.scalar_boolean_and_op'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:Eigen.internal.manage_caching_sizes_helper(System.Int64,System.Int64)'. -->
+    </members>
+</doc>

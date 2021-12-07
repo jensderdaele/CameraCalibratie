@@ -2,7 +2,7 @@
 
 
 //STANDARD CAMERA
-ReprojectionErrorSingleCamera::ReprojectionErrorSingleCamera(double observed_x, double observed_y)
+ReprojectionErrorSingleCamera::ReprojectionErrorSingleCamera(const double observed_x, const double observed_y)
 		: observed_x(observed_x), observed_y(observed_y) {
 	};
 template <typename T>
@@ -97,7 +97,7 @@ bool __cdecl ReprojectionErrorSysteemCamera::operator()(const T* const intrinsic
 	residuals[1] = predicted_y - T(observed_y);
 	return true;
 };
-ceres::CostFunction* ReprojectionErrorSysteemCamera::Create(double obsx, double obsy) {
+ceres::CostFunction* ReprojectionErrorSysteemCamera::Create(const double obsx, const double obsy) {
 	return new ceres::AutoDiffCostFunction <ReprojectionErrorSysteemCamera, 2, 9, 6, 6, 3 >(new ReprojectionErrorSysteemCamera(obsx, obsy));
 };
 
@@ -155,7 +155,7 @@ bool __cdecl ReprojectionErrorSingleCameraHighDist::operator()(const T* const in
 	residuals[1] = predicted_y - T(observed_y);
 	return true;
 };
-ceres::CostFunction* ReprojectionErrorSingleCameraHighDist::Create(double obsx, double obsy) {
+ceres::CostFunction* ReprojectionErrorSingleCameraHighDist::Create(const double obsx, const double obsy) {
 	return new ceres::AutoDiffCostFunction <ReprojectionErrorSingleCameraHighDist, 2, 13, 6, 3 >(new ReprojectionErrorSingleCameraHighDist(obsx, obsy));
 };
 
@@ -213,7 +213,7 @@ bool __cdecl ReprojectionErrorSysteemCameraHighDist::operator()(const T* const i
 	residuals[1] = predicted_y - T(observed_y);
 	return true;
 };
-ceres::CostFunction* ReprojectionErrorSysteemCameraHighDist::Create(double obsx, double obsy) {
+ceres::CostFunction* ReprojectionErrorSysteemCameraHighDist::Create(const double obsx, const double obsy) {
 	return new ceres::AutoDiffCostFunction <ReprojectionErrorSysteemCameraHighDist, 2, 13, 6, 6, 3 >(new ReprojectionErrorSysteemCameraHighDist(obsx, obsy));
 };
 
@@ -269,7 +269,7 @@ bool ReprojectionErrorSingleCameraOpenCVAdvancedDist::operator()(const T* const 
 		residuals[1] = predicted_y - T(observed_y);
 		return true;
 	};
-ceres::CostFunction* ReprojectionErrorSingleCameraOpenCVAdvancedDist::Create(double obsx, double obsy) {
+ceres::CostFunction* ReprojectionErrorSingleCameraOpenCVAdvancedDist::Create(const double obsx, const double obsy) {
 		return new ceres::AutoDiffCostFunction <ReprojectionErrorSingleCameraOpenCVAdvancedDist, 2, 15, 6, 3 >(new ReprojectionErrorSingleCameraOpenCVAdvancedDist(obsx, obsy));
 	};
 
@@ -345,19 +345,21 @@ bool __cdecl GCPError::operator()(const T* const X, const T* const transformatio
 	T x[3];
 	//transformation(7) = angleaxis(3) + translation(3) + scale(1)
 	ceres::AngleAxisRotatePoint(transformation, X, x);
-	x[0] += transformation[3];
-	x[1] += transformation[4];
-	x[2] += transformation[5];
+
 
 	x[0] *= transformation[6];
 	x[1] *= transformation[6];
 	x[2] *= transformation[6];
+
+	x[0] += transformation[3];
+	x[1] += transformation[4];
+	x[2] += transformation[5];
 
 	residuals[0] = x[0] - T(observed_x);
 	residuals[1] = x[1] - T(observed_y);
 	residuals[2] = x[2] - T(observed_z);
 	return true;
 };
-ceres::CostFunction* GCPError::Create(double obsx, double obsy, double obsz) {
+ceres::CostFunction* GCPError::Create(const double obsx, const double obsy, const double obsz) {
 	return new ceres::AutoDiffCostFunction <GCPError, 3, 3, 7>(new GCPError(obsx, obsy, obsz));
 }

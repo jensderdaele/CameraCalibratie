@@ -6,5 +6,7 @@
 
 #pragma managed(push, off) 
 #pragma comment(lib, "Shlwapi.lib")
-#include <ceres/ceres.h>
+//#include <ceres/ceres.h>
 #pragma managed(pop)
+
+//#include "BundlerIterationTracker.h"
